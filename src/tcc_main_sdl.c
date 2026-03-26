@@ -1,101 +1,56 @@
-#define PERSONALIZACAO_IMPLEMENTACAO
 #include <SDL2/SDL.h>
-#include "./components/game_screen/game_screen.h"
-#include "texturas/leitura_arquivos.c"
-#include "texturas/globais.c"
-#include "texturas/texturaid.c"
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#include <string.h>
+#include <assert.h>
 
+// Dimensões da tela
+int LARGURA = 800;
+int ALTURA = 600;
+int CORES = 15;
 
 int main(int args, char* argc[]) {
-    SDL_Event *evento;
 
-      // Dimensões da tela
-    int LARGURA = LARGURA_PADRAO;
-    int ALTURA = ALTURA_PADRAO;
-
-    // Inicialização SDL
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        SDL_Log("Erro ao iniciar SDL: %s", SDL_GetError());
-        return -1;
-    }
+    SDL_Init(SDL_INIT_EVERYTHING);
   
-    obterTamanhoMonitor(&LARGURA, &ALTURA);
-
-    // Criação da janela e renderizador
-    SDL_Window *janela = SDL_CreateWindow(
-        "Ilha Geladeira",
+    SDL_Window *win = SDL_CreateWindow(
+        "Persanalização",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        LARGURA,
-        ALTURA,
-        SDL_WINDOW_SHOWN
+        LARGURA, ALTURA, 
+        SDL_WINDOW_FULLSCREEN_DESKTOP 
     );
-    SDL_Log("%d,%d",ALTURA, LARGURA);
-    if (!janela) {
-        SDL_Log("Erro ao criar janela: %s", SDL_GetError());
-        SDL_Quit();
-        return -1;
-    }
 
-    SDL_Renderer *renderizador = SDL_CreateRenderer(janela, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderizador) {
-        SDL_Log("Erro ao criar renderizador: %s", SDL_GetError());
-        SDL_DestroyWindow(janela);
-        SDL_Quit();
-        return -1;
-    }
+    SDL_DisplayMode displayMode;
+    SDL_GetDesktopDisplayMode(0, &displayMode);
+    LARGURA = displayMode.w;
+    ALTURA = displayMode.h;
 
-    bool carregando = true;
-    int qnt;
+    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, 0);
 
-    const char *relativo = "texturas/menu.json";
+    TTF_Init();
+    TTF_Font* fnt = TTF_OpenFont("imgs/tiny.ttf", 50);
+    assert(fnt != NULL);
+    SDL_Color clr = {0xFF,0xFF,0xFF,0xFF};
+    SDL_Surface* sfc = TTF_RenderText_Blended(fnt, "Escolha sua cor: ", clr);
+    assert(sfc != NULL);
+    SDL_Texture* txt_escolha = SDL_CreateTextureFromSurface(ren, sfc);
+    assert(txt_escolha != NULL);
+    SDL_FreeSurface(sfc);
 
-    // --- 2. Pega o caminho base do executável (SDL garante válido em Windows/Linux/macOS) ---
-    char *base = SDL_GetBasePath();
-
-    // --- 3. Monta o caminho completo ---
-    char caminho_completo[512];
-    snprintf(caminho_completo, sizeof(caminho_completo), "%s%s", base, relativo);
-    TexturaInfo *info_txt = carregar_texturas(caminho_completo, &qnt);
-
-    inicializa_lista_textura(&lista_txt, info_txt, qnt);
-
-     while (carregando)
-    {
-        if (lista_txt.texturas_lidas_sucesso < lista_txt.qnt_texturas)
-        {
-            le_prox_textura(&lista_txt,renderizador);
-        }
-        else
-        {
-            carregando = false;
-        }
-    }
-
-    bool editando = true;
+    SDL_Texture* txt_background = IMG_LoadTexture(ren, "imgs/background_personalizar.png");
+    SDL_Texture* txt_quadro = IMG_LoadTexture(ren, "imgs/personalizar/quadro.png");
+    SDL_Texture* txt_bt_voltar = IMG_LoadTexture(ren, "imgs/botoes/b_voltar.png");
+    SDL_Texture* txt_pinguim = IMG_LoadTexture(ren, "imgs/personalizar/pinguim_amarelo.png");
     
-    SDL_Texture *pinguim_img = lista_txt.inicio[TEX_PINGUIM_AMARELO].txt;
-    corSelecionada = AMARELO;
-
-    Objeto background;
-    background.rect = (SDL_Rect){0, 0, LARGURA, ALTURA};
-    background.txt = lista_txt.inicio[TEX_BACKGROUND_PERSONALIZAR].txt;
-
-    Objeto quadro;
-    quadro.rect = (SDL_Rect){LARGURA*0.55, ALTURA*0.20, LARGURA*0.45, ALTURA*0.56};
-    quadro.txt = lista_txt.inicio[TEX_QUADRO].txt;
-
-    
-    int tam_botao_x = LARGURA*0.292, tam_botao_y = ALTURA*0.156;
-    
-    SDL_Rect pinguim= { LARGURA*0.146, ALTURA*0.13, ALTURA*0.52, ALTURA*0.52};
-    Objeto escolha;
-
-    escolha.rect = (SDL_Rect){LARGURA*0.60, ALTURA*0.20, LARGURA*0.35, ALTURA*0.05};
-    escolha.txt = lista_txt.inicio[TEX_ESCOLHA].txt;
-    SDL_Rect voltar= {LARGURA*0.142, ALTURA*0.75, LARGURA*0.292, ALTURA*0.156};
-
-    SDL_Rect rectCores[TOTAL];
+    SDL_Rect rect_background = {0, 0, LARGURA, ALTURA};
+    SDL_Rect rect_quadro = {LARGURA*0.55, ALTURA*0.20, LARGURA*0.45, ALTURA*0.56};
+    SDL_Rect rect_pinguim= { LARGURA*0.146, ALTURA*0.13, ALTURA*0.52, ALTURA*0.52};
+    SDL_Rect rect_bt_voltar= {LARGURA*0.142, ALTURA*0.75, LARGURA*0.292, ALTURA*0.156};
+    SDL_Rect rect_escolha = {LARGURA*0.60, ALTURA*0.19, LARGURA*0.38, ALTURA*0.1};
+   
+    SDL_Rect rect_cores[CORES];
+    SDL_Texture * txt_cores[CORES];
 
     int startX = LARGURA*0.60;
     int startY = ALTURA*0.30;
@@ -103,37 +58,50 @@ int main(int args, char* argc[]) {
     int largura = 0.065*LARGURA;
     int altura  = 0.117*ALTURA;
 
-    for (int i = 0; i < TOTAL; i++) {
-        rectCores[i].x = startX + (i % 5) * (largura + espaco);
-        rectCores[i].y = startY + (i / 5) * (altura + espaco);
-        rectCores[i].w = largura;
-        rectCores[i].h = altura;
+    char path[100];
+    char base[] = "imgs/personalizar"; 
+
+    for (int i = 0; i < CORES; i++) {
+        rect_cores[i].x = startX + (i % 5) * (largura + espaco);
+        rect_cores[i].y = startY + (i / 5) * (altura + espaco);
+        rect_cores[i].w = largura;
+        rect_cores[i].h = altura;
+        snprintf(path, sizeof(path), "%s/%d.png", base, i);
+        SDL_Log(path);
+        txt_cores[i] = IMG_LoadTexture(ren, path);
+        assert(txt_cores[i] != NULL);
     }
 
-    SDL_Point mouse;
+    SDL_RenderClear(ren);
+    SDL_RenderCopy(ren, txt_background, NULL, &rect_background);
+    SDL_RenderCopy(ren, txt_quadro, NULL, &rect_quadro);
+    SDL_RenderCopy(ren, txt_pinguim, NULL, &rect_pinguim);
+    SDL_RenderCopy(ren, txt_bt_voltar, NULL, &rect_bt_voltar);
+    SDL_RenderCopy(ren, txt_escolha, NULL, &rect_escolha);
 
-    SDL_GetMouseState(&mouse.x, &mouse.y);
-
-    SDL_SetRenderDrawColor(renderizador,225, 225, 255, 0);
-    SDL_RenderClear(renderizador);
-    SDL_RenderCopy(renderizador, background.txt, NULL, &background.rect);
-    SDL_RenderCopy(renderizador, quadro.txt, NULL, &quadro.rect);
-    SDL_RenderCopy(renderizador, escolha.txt, NULL , &escolha.rect);
-    SDL_RenderCopy(renderizador, SDL_PointInRect(&mouse, &voltar) ?
-    lista_txt.inicio[TEX_ELEMENTO_VOLTAR_HOVER].txt : lista_txt.inicio[TEX_ELEMENTO_VOLTAR].txt,
-        NULL, &voltar);
-
-    SDL_RenderCopy(renderizador, pinguim_img, NULL , &pinguim);
-    for (int i = 0; i < TOTAL; i++) {
-        SDL_RenderCopy(renderizador, lista_txt.inicio[i + TEX_COR_AMARELO].txt, NULL , &rectCores[i]);
+    for (int i = 0; i < CORES; i++) {
+        SDL_RenderCopy(ren, txt_cores[i], NULL , &rect_cores[i]);
     }
-    SDL_RenderPresent(renderizador);
-    SDL_Delay(5000);
 
-      // Libera recursos
-    SDL_DestroyTexture(pinguim_img);
-    SDL_DestroyRenderer(renderizador);
-    SDL_DestroyWindow(janela);
+    SDL_RenderPresent(ren);
+    SDL_Delay(20000);
+
+    TTF_CloseFont(fnt);
+    SDL_DestroyTexture(txt_background);
+    SDL_DestroyTexture(txt_quadro);
+    SDL_DestroyTexture(txt_bt_voltar);
+    SDL_DestroyTexture(txt_pinguim);
+    SDL_DestroyTexture(txt_escolha);
+
+
+    for (int i = 0; i < CORES; i++) {
+
+        SDL_DestroyTexture(txt_cores[i]);
+    }
+
+    SDL_DestroyRenderer(ren);
+    SDL_DestroyWindow(win);
+    TTF_Quit();
     SDL_Quit();
 
     return 0;
