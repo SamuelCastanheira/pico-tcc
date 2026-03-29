@@ -1,5 +1,5 @@
 require 'pico.check'
-local Loading = require("loading")
+local Personalizacao = require("personalizacao")
 
 local Menu = {}
 
@@ -20,7 +20,7 @@ function Menu.renderizar()
                 pico.quit()
             end
             if e.tag=='mouse.button.dn' and pico.vs.pos_rect(mouse, bt_personalizar) then
-                Loading.renderizar()
+                Personalizacao.renderizar()
             end
             if e.tag=='quit' then
                 break

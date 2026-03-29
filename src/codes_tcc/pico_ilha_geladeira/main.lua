@@ -1,8 +1,7 @@
 local Menu = require("menu")
-local Loading = require("loading")
 
 pico.init(true)
-local phy = {'!', w=800, h=600}
+local phy = {'!', w=1280, h=720}
 pico.set.view{grid=false}
 pico.set.dim(phy)
 pico.set.expert(true,10)

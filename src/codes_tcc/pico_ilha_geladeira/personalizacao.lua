@@ -1,5 +1,5 @@
 require 'pico.check'
-local Loading = {}
+local Personalizacao = {}
 
 local qnt_cores = 15
 local cores = 
@@ -21,7 +21,7 @@ local cores =
     {index = 14, texto="vermelho",    rect={'#', x=6 , y=4 , w=1 , h=1}},
 }
 
-local cor_select = cores[2]
+local cor_select = cores[1]
 local background = {'%', x=0.5, y=0.5, w=1, h=1}
 local pinguim = {'%', x=0.3, y=0.35, w=0.3, h=0}
 local voltar = {'%', x=0.3, y=0.8, w=0.3, h=0}
@@ -57,7 +57,7 @@ function mouse_em_cor()
     pico.set.layer(nil)
 end
 
-function Loading.renderizar()
+function Personalizacao.renderizar()
     
     pico.set.window{title="Personalização"}
     mouse = pico.get.mouse()
@@ -97,4 +97,4 @@ function Loading.renderizar()
     end
 end
 
-return Loading
+return Personalizacao
