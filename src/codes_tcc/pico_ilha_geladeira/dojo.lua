@@ -25,9 +25,6 @@ local ResultadoState = {
 
 local DURACAO_RESULTADO = 1.5
 
--- =========================
--- CARTA
--- =========================
 local function novaCarta(elemento, pontuacao, path)
     local carta = {
         elemento = elemento,
@@ -45,9 +42,6 @@ local function novaCarta(elemento, pontuacao, path)
     return carta
 end
 
--- =========================
--- UTIL
--- =========================
 local function sortearCartas(pool)
     local destino = {}
     local usados = {}
@@ -119,10 +113,35 @@ local function desenha_mao(mao, isJogador, cartaSelecionada)
     end
 end
 
--- =========================
--- LÓGICA DO JOGO
--- =========================
-local function atualizar_jogo(jogo, agora)
+
+local function init()
+    local pool = {
+        novaCarta(Elemento.AGUA, 3, "../../../assets/imgs/dojo/agua_3.png"),
+        novaCarta(Elemento.FOGO, 4, "../../../assets/imgs/dojo/fogo_4.png"),
+        novaCarta(Elemento.FOGO, 7, "../../../assets/imgs/dojo/fogo_7.png"),
+        novaCarta(Elemento.GELO, 5, "../../../assets/imgs/dojo/gelo_5.png"),
+        novaCarta(Elemento.GELO, 6, "../../../assets/imgs/dojo/gelo_6.png")
+    }
+
+    local jogo = {
+        estado = DuelState.SELECIONANDO,
+        cartasJogador = sortearCartas(pool),
+        cartasNPC = sortearCartas(pool),
+        jogadorScore = 0,
+        npcScore = 0,
+        resultado = ResultadoState.EMPATE,
+        cartaSelecionada = nil,
+        cartaNPCSelecionada = nil,
+        tempoResultado = 0
+    }
+
+    ordena_mao(jogo.cartasJogador, true)
+    ordena_mao(jogo.cartasNPC, false)
+
+    return jogo
+end
+
+local function update(jogo, agora)
     if jogo.estado == DuelState.SELECIONANDO then
 
         if jogo.cartaSelecionada and not jogo.cartaNPCSelecionada then
@@ -171,39 +190,40 @@ local function atualizar_jogo(jogo, agora)
     end
 end
 
--- =========================
--- MAIN
--- =========================
+local function draw(jogo)
+    local background = {'%', x=0.5, y=0.5, w=1, h=1}
+    local rect_jogador = {'%', x=0.8, y=0.3, w=0.5, h=0}
+    local rect_npc = {'%', x=0.2, y=0.3, w=0.5, h=0}
+
+    pico.output.draw.image("../../../assets/imgs/dojo/background.png", background)
+
+    desenha_mao(jogo.cartasNPC, false, jogo.cartaSelecionada)
+    desenha_mao(jogo.cartasJogador, true, jogo.cartaSelecionada)
+
+    if jogo.estado == DuelState.MOSTRANDO_RESULTADO and jogo.cartaSelecionada and jogo.cartaNPCSelecionada then
+
+        pico.output.draw.image(jogo.cartaSelecionada.path, rect_jogador)
+        pico.output.draw.image(jogo.cartaNPCSelecionada.path, rect_npc)
+
+        if jogo.resultado == ResultadoState.GANHOU then
+            pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_jogador)
+            pico.output.draw.image("../../../assets/imgs/dojo/x.png", rect_npc)
+
+        elseif jogo.resultado == ResultadoState.PERDEU then
+            pico.output.draw.image("../../../assets/imgs/dojo/x.png", rect_jogador)
+            pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_npc)
+
+        else
+            pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_jogador)
+            pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_npc)
+        end
+    end
+end
+
 function Dojo.renderizar()
     pico.set.window{title="Dojo"}
 
-    local background = {'%', x=0.5, y=0.5, w=1, h=1}
-
-    local pool = {
-        novaCarta(Elemento.AGUA, 3, "../../../assets/imgs/dojo/agua_3.png"),
-        novaCarta(Elemento.FOGO, 4, "../../../assets/imgs/dojo/fogo_4.png"),
-        novaCarta(Elemento.FOGO, 7, "../../../assets/imgs/dojo/fogo_7.png"),
-        novaCarta(Elemento.GELO, 5, "../../../assets/imgs/dojo/gelo_5.png"),
-        novaCarta(Elemento.GELO, 6, "../../../assets/imgs/dojo/gelo_6.png")
-    }
-
-    local jogo = {
-        estado = DuelState.SELECIONANDO,
-        cartasJogador = sortearCartas(pool),
-        cartasNPC = sortearCartas(pool),
-        jogadorScore = 0,
-        npcScore = 0,
-        resultado = ResultadoState.EMPATE,
-        cartaSelecionada = nil,
-        cartaNPCSelecionada = nil,
-        tempoResultado = 0
-    }
-
-    ordena_mao(jogo.cartasJogador, true)
-    ordena_mao(jogo.cartasNPC, false)
-
-    local rect_jogador = {'%', x=0.8, y=0.3, w=0.5, h=0}
-    local rect_npc = {'%', x=0.2, y=0.3, w=0.5, h=0}
+    local jogo = init()
 
     while true do
         local e = pico.input.event()
@@ -221,37 +241,13 @@ function Dojo.renderizar()
             end
         end
 
-        atualizar_jogo(jogo, agora)
+        update(jogo, agora)
 
         if jogo.estado == DuelState.FINALIZADO then
-            print("Fim do duelo!")
             break
         end
 
-        -- RENDER
-        pico.output.draw.image("../../../assets/imgs/dojo/background.png", background)
-
-        desenha_mao(jogo.cartasNPC, false, jogo.cartaSelecionada)
-        desenha_mao(jogo.cartasJogador, true, jogo.cartaSelecionada)
-
-        if jogo.estado == DuelState.MOSTRANDO_RESULTADO and jogo.cartaSelecionada and jogo.cartaNPCSelecionada then
-
-            pico.output.draw.image(jogo.cartaSelecionada.path, rect_jogador)
-            pico.output.draw.image(jogo.cartaNPCSelecionada.path, rect_npc)
-
-            if jogo.resultado == ResultadoState.GANHOU then
-                pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_jogador)
-                pico.output.draw.image("../../../assets/imgs/dojo/x.png", rect_npc)
-
-            elseif jogo.resultado == ResultadoState.PERDEU then
-                pico.output.draw.image("../../../assets/imgs/dojo/x.png", rect_jogador)
-                pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_npc)
-
-            else
-                pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_jogador)
-                pico.output.draw.image("../../../assets/imgs/dojo/ok.png", rect_npc)
-            end
-        end
+        draw(jogo)
 
         pico.output.present()
     end

@@ -79,7 +79,7 @@ function Personalizacao.renderizar()
             end
         end 
 
-        local img_voltar = pico.vs.pos_rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../imgs/botoes/b_voltar.png"
+        local img_voltar = pico.vs.pos_rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
         local base_pinguins = "../../../assets/imgs/personalizar/pinguim"
         
         mouse_em_cor()

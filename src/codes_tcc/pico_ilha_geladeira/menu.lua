@@ -1,6 +1,6 @@
 require 'pico.check'
 local Personalizacao = require("personalizacao")
-local BeanCounters = require("bean_counters")
+local Dojo  = require("dojo")
 
 local Menu = {}
 
@@ -24,16 +24,16 @@ function Menu.renderizar()
                 Personalizacao.renderizar()
             end
             if e.tag=='mouse.button.dn' and pico.vs.pos_rect(mouse, bt_jogar) then
-                BeanCounters.renderizar()
+                Dojo.renderizar()
             end
             if e.tag=='quit' then
                 break
             end
         end
 
-        local img_jogar = pico.vs.pos_rect(mouse, bt_jogar) and "../../../assets/imgs/botoes/b_jogar_clicado.png" or "../../imgs/botoes/b_jogar.png"
-        local img_personalizar = pico.vs.pos_rect(mouse, bt_personalizar) and "../../../assets/imgs/botoes/b_personalizar_clicado.png" or "../../imgs/botoes/b_personalizar.png"
-        local img_sair = pico.vs.pos_rect(mouse, bt_sair) and "../../../assets/imgs/botoes/b_sair_clicado.png" or "../../imgs/botoes/b_sair.png"
+        local img_jogar = pico.vs.pos_rect(mouse, bt_jogar) and "../../../assets/imgs/botoes/b_jogar_clicado.png" or "../../../assets/imgs/botoes/b_jogar.png"
+        local img_personalizar = pico.vs.pos_rect(mouse, bt_personalizar) and "../../../assets/imgs/botoes/b_personalizar_clicado.png" or "../../../assets/imgs/botoes/b_personalizar.png"
+        local img_sair = pico.vs.pos_rect(mouse, bt_sair) and "../../../assets/imgs/botoes/b_sair_clicado.png" or "../../../assets/imgs/botoes/b_sair.png"
 
         pico.output.draw.image("../../../assets/imgs/background_menu.png", background) 
         pico.output.draw.image("../../../assets/imgs/logo.png", logo) 

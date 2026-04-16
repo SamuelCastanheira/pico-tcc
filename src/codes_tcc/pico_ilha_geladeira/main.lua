@@ -6,6 +6,5 @@ local phy = {'!', w=1280, h=720}
 pico.set.view{grid=false}
 pico.set.dim(phy)
 pico.set.expert(true,10)
---Menu.renderizar()
-Dojo.renderizar()
+Menu.renderizar()
 pico.init(false)
