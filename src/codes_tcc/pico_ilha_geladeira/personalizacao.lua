@@ -21,16 +21,13 @@ local cores =
     {index = 14, texto="vermelho",    rect={'#', x=6 , y=4 , w=1 , h=1}},
 }
 
-local cor_select = cores[1]
 local background = {'%', x=0.5, y=0.5, w=1, h=1}
 local pinguim = {'%', x=0.3, y=0.35, w=0.3, h=0}
 local voltar = {'%', x=0.3, y=0.8, w=0.3, h=0}
 local texto_escolha = {'%', x=0.78, y=0.25, w=0.38, h=0.1}
 local layer_place = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
 
-
-function cria_layer_quadro()
-
+local function cria_layer_quadro()
     local dim = {w=600, h=400}
     local new_tile = {x=7, y=5}
     pico.layer.empty('=', "quadro_gelo", {w=dim.w, h=dim.h})
@@ -44,55 +41,53 @@ function cria_layer_quadro()
         local path = string.format("%s/%d.png", base, cor.index)
         pico.output.draw.image(path, cor.rect)
     end
-        pico.set.layer(nil)
+    pico.set.layer(nil)
 end
 
-function mouse_em_cor()
-    local mouse = pico.get.mouse('%', layer_place)
+local function mouse_em_cor(state, mouse)
     for _, cor in ipairs(cores) do
         print(mouse.x, mouse.y)
         if pico.vs.pos_rect(mouse, cor.rect) then
-            cor_select = cor
-            print(cor.texto)
+            state.personData.cor_select = cor
         end 
     end
 end
 
-
-function Personalizacao.renderizar()
-    
-    pico.set.window{title="Personalização"}
+function Personalizacao.init(state)
     cria_layer_quadro()
+    state.personData = {
+        cor_select = cores[1]
+    }
+end
+
+function Personalizacao.update(state, event)
+    local mouse = pico.get.mouse('!')
     
-    while true do
-        local e = pico.input.event()
-        local mouse = pico.get.mouse('!')
-        if e ~= nil then
-            if e.tag=='mouse.button.dn' then
-                if pico.vs.pos_rect(mouse, voltar) then
-                    break
-                end
-            end
-            if e.tag=='quit' then
-                pico.quit()
-                break
-            end
-        end 
-
-        local img_voltar = pico.vs.pos_rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
-        local base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-        
-        mouse_em_cor()
-
-        pico.output.clear()
-        pico.output.draw.image("../../../assets/imgs/background_personalizar.png", background)
-        pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.texto), pinguim)
-        pico.output.draw.image(img_voltar, voltar)
-        pico.output.draw.text("Escolha sua cor", texto_escolha)
-
-        pico.output.draw.layer("quadro_gelo", layer_place )
-        pico.output.present()
+    if event and event.tag == 'mouse.button.dn' then
+        if pico.vs.pos_rect(mouse, voltar) then
+            state.nextScreen = "menu"
+        end
     end
+    mouse = pico.get.mouse('!', layer_place)
+    mouse_em_cor(state, mouse)
+end
+
+function Personalizacao.draw(state)
+    local mouse = pico.get.mouse('!')
+    local img_voltar = pico.vs.pos_rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
+    local base_pinguins = "../../../assets/imgs/personalizar/pinguim"
+    local cor_select = state.personData.cor_select
+
+    pico.output.clear()
+    pico.output.draw.image("../../../assets/imgs/background_personalizar.png", background)
+    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.texto), pinguim)
+    pico.output.draw.image(img_voltar, voltar)
+    pico.output.draw.text("Escolha sua cor", texto_escolha)
+    pico.output.draw.layer("quadro_gelo", layer_place)
+end
+
+function Personalizacao.finish(state)
+    state.personData = nil
 end
 
 return Personalizacao

@@ -16,9 +16,6 @@
 #define NUM_CARTAS_PLAYER 3
 #define NUM_CARTAS_POOL 5
 
-static int cartaSelecionada = -1;
-static int cartaNPCSelecionada = -1;
-
 typedef enum { GELO, AGUA, FOGO } Elemento;
 
 typedef struct {
@@ -30,8 +27,31 @@ typedef struct {
 typedef enum {
     DUEL_SELECIONANDO,
     DUEL_COMPARANDO,
+    DUEL_MOSTRANDO_RESULTADO,
     DUEL_FINALIZADO
 } DuelState;
+
+typedef enum {
+    RESULTADO_EMPATE = 0,
+    RESULTADO_GANHOU = 1,
+    RESULTADO_PERDEU = -1
+} ResultadoState;
+
+#define DURACAO_RESULTADO 1500  // milliseconds
+
+typedef struct {
+    DuelState estado;
+    Carta cartasJogador[NUM_CARTAS_PLAYER];
+    Carta cartasNPC[NUM_CARTAS_PLAYER];
+    int cartasRestantesJogador;
+    int cartasRestantesNPC;
+    int jogadorScore;
+    int npcScore;
+    ResultadoState resultado;
+    int cartaSelecionadaIdx;
+    int cartaNPCSelecionadaIdx;
+    Uint32 tempoResultado;
+} DojoGame;
 
 // Sorteio de cartas sem repetição
 static inline void sortearCartas(Carta* cartas_pool, Carta* cartas_destino) {
@@ -45,37 +65,160 @@ static inline void sortearCartas(Carta* cartas_pool, Carta* cartas_destino) {
 }
 
 // Comparar cartas por elemento e desempate por pontuação
-static inline int compararCartas(Carta jogador, Carta npc) {
+static inline ResultadoState compararCartas(Carta jogador, Carta npc) {
     if (jogador.elemento == npc.elemento) {
-        if (jogador.pontuacao > npc.pontuacao) return 1;
-        else if (jogador.pontuacao < npc.pontuacao) return -1;
-        else return 0;
+        if (jogador.pontuacao > npc.pontuacao) return RESULTADO_GANHOU;
+        else if (jogador.pontuacao < npc.pontuacao) return RESULTADO_PERDEU;
+        else return RESULTADO_EMPATE;
     }
 
     // Atributos: gelo > agua > fogo > gelo
     if ((jogador.elemento == GELO && npc.elemento == AGUA) ||
         (jogador.elemento == AGUA && npc.elemento == FOGO) ||
         (jogador.elemento == FOGO && npc.elemento == GELO)) {
-        return 1; // jogador vence
+        return RESULTADO_GANHOU; // jogador vence
     } else {
-        return -1; // NPC vence
+        return RESULTADO_PERDEU; // NPC vence
     }
 }
 
 // Remove carta do jogador
-static inline void removerCartaJogador(Carta* array, int index, int* tamanho) {
+static inline void removerCarta(Carta* array, int index, int* tamanho) {
     for (int i = index; i < (*tamanho) - 1; i++) {
         array[i] = array[i + 1];
     }
     (*tamanho)--;
 }
 
-// Remove carta do NPC
-static inline void removerCartaNPC(Carta* array, int index, int* tamanho) {
-    for (int i = index; i < (*tamanho) - 1; i++) {
-        array[i] = array[i + 1];
+static inline void ordena_mao(Carta* mao, int tamanho, SDL_Rect* rects, bool isJogador, int LARGURA, int ALTURA) {
+    float baseX = isJogador ? 0.85f : 0.05f;
+    float dir = isJogador ? -1.0f : 1.0f;
+    int card_w = (int)(0.1f * LARGURA);
+    int card_h = (int)(0.2f * ALTURA);
+
+    for (int i = 0; i < tamanho; i++) {
+        rects[i].x = (int)(baseX * LARGURA + dir * i * 0.12f * LARGURA);
+        rects[i].y = (int)(0.80f * ALTURA);
+        rects[i].w = card_w;
+        rects[i].h = card_h;
     }
-    (*tamanho)--;
+}
+
+static inline void desenha_mao(Carta* mao, int tamanho, SDL_Rect* rects, SDL_Renderer* renderizador, SDL_Texture* verso, bool isJogador, Carta* cartaSelecionada) {
+    for (int i = 0; i < tamanho; i++) {
+        if (&mao[i] != cartaSelecionada) {
+            if (isJogador) {
+                SDL_RenderCopy(renderizador, mao[i].textura, NULL, &rects[i]);
+            } else {
+                SDL_RenderCopy(renderizador, verso, NULL, &rects[i]);
+            }
+        }
+    }
+}
+
+static inline DojoGame init() {
+    srand(time(NULL));
+
+    Carta pool[NUM_CARTAS_POOL] = {
+        {AGUA, 3, lista_txt.inicio[TEX_AGUA_3].txt},
+        {FOGO, 4, lista_txt.inicio[TEX_FOGO_4].txt},
+        {FOGO, 7, lista_txt.inicio[TEX_FOGO_7].txt},
+        {GELO, 5, lista_txt.inicio[TEX_GELO_5].txt},
+        {GELO, 6, lista_txt.inicio[TEX_GELO_6].txt}
+    };
+
+    DojoGame jogo;
+    jogo.estado = DUEL_SELECIONANDO;
+    sortearCartas(pool, jogo.cartasJogador);
+    sortearCartas(pool, jogo.cartasNPC);
+    jogo.cartasRestantesJogador = NUM_CARTAS_PLAYER;
+    jogo.cartasRestantesNPC = NUM_CARTAS_PLAYER;
+    jogo.jogadorScore = 0;
+    jogo.npcScore = 0;
+    jogo.resultado = RESULTADO_EMPATE;
+    jogo.cartaSelecionadaIdx = -1;
+    jogo.cartaNPCSelecionadaIdx = -1;
+    jogo.tempoResultado = 0;
+
+    return jogo;
+}
+
+static inline void update(DojoGame* jogo, Uint32 agora) {
+    if (jogo->estado == DUEL_SELECIONANDO) {
+        if (jogo->cartaSelecionadaIdx != -1 && jogo->cartaNPCSelecionadaIdx == -1) {
+            jogo->cartaNPCSelecionadaIdx = rand() % jogo->cartasRestantesNPC;
+        }
+        if (jogo->cartaSelecionadaIdx != -1 && jogo->cartaNPCSelecionadaIdx != -1) {
+            jogo->estado = DUEL_COMPARANDO;
+        }
+    } else if (jogo->estado == DUEL_COMPARANDO) {
+        Carta cJog = jogo->cartasJogador[jogo->cartaSelecionadaIdx];
+        Carta cNPC = jogo->cartasNPC[jogo->cartaNPCSelecionadaIdx];
+        jogo->resultado = compararCartas(cJog, cNPC);
+
+        if (jogo->resultado == RESULTADO_GANHOU) {
+            jogo->jogadorScore += 3;
+        } else if (jogo->resultado == RESULTADO_PERDEU) {
+            jogo->npcScore += 3;
+        } else {
+            jogo->jogadorScore += 1;
+            jogo->npcScore += 1;
+        }
+
+        jogo->tempoResultado = agora;
+        jogo->estado = DUEL_MOSTRANDO_RESULTADO;
+    } else if (jogo->estado == DUEL_MOSTRANDO_RESULTADO) {
+        if (agora - jogo->tempoResultado >= DURACAO_RESULTADO) {
+            removerCarta(jogo->cartasJogador, jogo->cartaSelecionadaIdx, &jogo->cartasRestantesJogador);
+            removerCarta(jogo->cartasNPC, jogo->cartaNPCSelecionadaIdx, &jogo->cartasRestantesNPC);
+
+            jogo->cartaSelecionadaIdx = -1;
+            jogo->cartaNPCSelecionadaIdx = -1;
+
+            if (jogo->cartasRestantesJogador == 0 || jogo->cartasRestantesNPC == 0) {
+                jogo->estado = DUEL_FINALIZADO;
+            } else {
+                jogo->estado = DUEL_SELECIONANDO;
+            }
+        }
+    }
+}
+
+static inline void draw(DojoGame* jogo, SDL_Renderer* renderizador, SDL_Texture* background_textura, SDL_Texture* verso, SDL_Texture* ganhou_textura, SDL_Texture* perdeu_textura, int LARGURA, int ALTURA) {
+    SDL_Rect background = {0, 0, LARGURA, ALTURA};
+    SDL_RenderClear(renderizador);
+    SDL_RenderCopy(renderizador, background_textura, NULL, &background);
+
+    SDL_Rect rectsJogador[NUM_CARTAS_PLAYER];
+    SDL_Rect rectsNPC[NUM_CARTAS_PLAYER];
+    ordena_mao(jogo->cartasJogador, jogo->cartasRestantesJogador, rectsJogador, true, LARGURA, ALTURA);
+    ordena_mao(jogo->cartasNPC, jogo->cartasRestantesNPC, rectsNPC, false, LARGURA, ALTURA);
+
+    Carta* cartaSel = (jogo->cartaSelecionadaIdx != -1) ? &jogo->cartasJogador[jogo->cartaSelecionadaIdx] : NULL;
+    desenha_mao(jogo->cartasNPC, jogo->cartasRestantesNPC, rectsNPC, renderizador, verso, false, cartaSel);
+    desenha_mao(jogo->cartasJogador, jogo->cartasRestantesJogador, rectsJogador, renderizador, verso, true, cartaSel);
+
+    if (jogo->estado == DUEL_MOSTRANDO_RESULTADO && jogo->cartaSelecionadaIdx != -1 && jogo->cartaNPCSelecionadaIdx != -1) {
+        SDL_Rect rect_jogador = {(int)(0.7f * LARGURA), (int)(0.2f * ALTURA), (int)(0.2f * LARGURA), (int)(0.4f * ALTURA)};
+        SDL_Rect rect_npc = {(int)(0.1f * LARGURA), (int)(0.2f * ALTURA), (int)(0.2f * LARGURA), (int)(0.4f * ALTURA)};
+
+        SDL_RenderCopy(renderizador, jogo->cartasJogador[jogo->cartaSelecionadaIdx].textura, NULL, &rect_jogador);
+        SDL_RenderCopy(renderizador, jogo->cartasNPC[jogo->cartaNPCSelecionadaIdx].textura, NULL, &rect_npc);
+
+        SDL_Rect txt_rect = {0, 0, 150, 150};
+        if (jogo->resultado == RESULTADO_GANHOU) {
+            SDL_RenderCopy(renderizador, ganhou_textura, NULL, &rect_jogador);
+            SDL_RenderCopy(renderizador, perdeu_textura, NULL, &rect_npc);
+        } else if (jogo->resultado == RESULTADO_PERDEU) {
+            SDL_RenderCopy(renderizador, perdeu_textura, NULL, &rect_jogador);
+            SDL_RenderCopy(renderizador, ganhou_textura, NULL, &rect_npc);
+        } else {
+            SDL_RenderCopy(renderizador, ganhou_textura, NULL, &rect_jogador);
+            SDL_RenderCopy(renderizador, ganhou_textura, NULL, &rect_npc);
+        }
+    }
+
+    SDL_RenderPresent(renderizador);
 }
 
 static inline int RenderDojoScreen(
@@ -86,80 +229,33 @@ static inline int RenderDojoScreen(
     GameState *estadoJogo,
     char dinheiro[10]  // agora é string
 ) {
-    srand(time(NULL));
     obterTamanhoJanela(janela, &LARGURA, &ALTURA);
     IMG_Init(IMG_INIT_PNG);
 
-    SDL_Rect background = {0, 0, LARGURA, ALTURA};
     SDL_Texture* background_textura = lista_txt.inicio[TEX_FUNDO_DOJO].txt;
-
-    // Pool de cartas
-    Carta cartas_pool[NUM_CARTAS_POOL] = {
-        {AGUA, 3, lista_txt.inicio[TEX_AGUA_3].txt},
-        {FOGO, 4, lista_txt.inicio[TEX_FOGO_4].txt},
-        {FOGO, 7, lista_txt.inicio[TEX_FOGO_7].txt},
-        {GELO, 5, lista_txt.inicio[TEX_GELO_5].txt},
-        {GELO, 6, lista_txt.inicio[TEX_GELO_6].txt}
-    };
-
-    // Sorteio das cartas do jogador
-    Carta cartasJogador[NUM_CARTAS_PLAYER];
-    sortearCartas(cartas_pool, cartasJogador);
-
-    // Sorteio das cartas do NPC
-    Carta cartasNPC[NUM_CARTAS_PLAYER];
-    sortearCartas(cartas_pool, cartasNPC);
-
     SDL_Texture* carta_azul_textura = lista_txt.inicio[TEX_CARTA_AZUL].txt;
     SDL_Texture* ganhou_textura = lista_txt.inicio[TEX_GANHOU].txt;
     SDL_Texture* perdeu_textura = lista_txt.inicio[TEX_PERDEU].txt;
 
-    SDL_Rect cartas_player[NUM_CARTAS_PLAYER];
-    SDL_Rect cartas_azuis[NUM_CARTAS_PLAYER];
-
-    int card_w = 200, card_h = 200;
-    int pos_y = ALTURA - card_h;
-    for (int i = 0; i < NUM_CARTAS_PLAYER; i++) {
-        cartas_azuis[i].x = i * (card_w / 2);
-        cartas_azuis[i].y = pos_y;
-        cartas_azuis[i].w = card_w;
-        cartas_azuis[i].h = card_h;
-
-        cartas_player[i].x = LARGURA - card_w - i * card_w;
-        cartas_player[i].y = pos_y;
-        cartas_player[i].w = card_w;
-        cartas_player[i].h = card_h;
-    }
-
-    SDL_Rect carta_grande = {LARGURA - 350 - 30, 40, 350, 350};
-    SDL_Rect cartaNPC_rect = {40, 40, 350, 350};
-
-    DuelState dueloEstado = DUEL_SELECIONANDO;
-    int cartasRestantesJogador = NUM_CARTAS_PLAYER;
-    int cartasRestantesNPC = NUM_CARTAS_PLAYER;
-    int jogadorScore = 0, npcScore = 0;
+    DojoGame jogo = init();
 
     while (true) {
+        Uint32 agora = SDL_GetTicks();
+
         if (AUX_WaitEventTimeout(evento, timeout)) {
-            if (evento->type == SDL_MOUSEBUTTONDOWN) {
+            if (evento->type == SDL_MOUSEBUTTONDOWN && jogo.estado == DUEL_SELECIONANDO) {
                 int mx = evento->button.x;
                 int my = evento->button.y;
-                bool clicouNaCarta = false;
 
-                for (int i = 0; i < cartasRestantesJogador; i++) {
-                    if(mx >= cartas_player[i].x && mx <= cartas_player[i].x + cartas_player[i].w &&
-                       my >= cartas_player[i].y && my <= cartas_player[i].y + cartas_player[i].h) 
-                    {
-                        cartaSelecionada = i;
-                        clicouNaCarta = true;
-                        if(cartaNPCSelecionada == -1)
-                            cartaNPCSelecionada = rand() % cartasRestantesNPC;
+                SDL_Rect rectsJogador[NUM_CARTAS_PLAYER];
+                ordena_mao(jogo.cartasJogador, jogo.cartasRestantesJogador, rectsJogador, true, LARGURA, ALTURA);
+
+                for (int i = 0; i < jogo.cartasRestantesJogador; i++) {
+                    if (mx >= rectsJogador[i].x && mx <= rectsJogador[i].x + rectsJogador[i].w &&
+                        my >= rectsJogador[i].y && my <= rectsJogador[i].y + rectsJogador[i].h) {
+                        jogo.cartaSelecionadaIdx = i;
                         break;
                     }
-                }
-                if(!clicouNaCarta) {
-                    cartaSelecionada = -1;
-                    cartaNPCSelecionada = -1;
                 }
             }
 
@@ -175,97 +271,21 @@ static inline int RenderDojoScreen(
             }
         }
 
-        switch (dueloEstado) {
-            case DUEL_SELECIONANDO:
-                if (cartaSelecionada != -1 && cartaNPCSelecionada != -1)
-                    dueloEstado = DUEL_COMPARANDO;
-                break;
+        update(&jogo, agora);
 
-            case DUEL_COMPARANDO: {
-                Carta cJog = cartasJogador[cartaSelecionada];
-                Carta cNPC = cartasNPC[cartaNPCSelecionada];
-                int resultado = compararCartas(cJog, cNPC);
+        if (jogo.estado == DUEL_FINALIZADO) {
+            // Premiação apenas no resultado final
+            int dinheiro_int = atoi(dinheiro); // converte string para int
+            if (jogo.jogadorScore > jogo.npcScore) dinheiro_int += 100;
+            else if (jogo.jogadorScore == jogo.npcScore) dinheiro_int += 50;
+            sprintf(dinheiro, "%d", dinheiro_int); // atualiza string
 
-                // Atualiza pontuação apenas
-                if (resultado == 1) jogadorScore += 3;
-                else if (resultado == -1) npcScore += 3;
-                else { jogadorScore += 1; npcScore += 1; }
-
-                // Render do duelo
-                SDL_RenderClear(renderizador);
-                SDL_RenderCopy(renderizador, background_textura, NULL, &background);
-
-                for (int i = 0; i < cartasRestantesJogador; i++) {
-                    SDL_RenderCopy(renderizador, carta_azul_textura, NULL, &cartas_azuis[i]);
-                    SDL_RenderCopy(renderizador, cartasJogador[i].textura, NULL, &cartas_player[i]);
-                }
-                SDL_RenderCopy(renderizador, cartasNPC[cartaNPCSelecionada].textura, NULL, &cartaNPC_rect);
-                SDL_RenderCopy(renderizador, cartasJogador[cartaSelecionada].textura, NULL, &carta_grande);
-
-                SDL_Rect txt_rect = {0,0,150,150};
-                if (resultado == 1) {
-                    txt_rect.x = carta_grande.x + carta_grande.w/2 - txt_rect.w/2;
-                    txt_rect.y = carta_grande.y + carta_grande.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, ganhou_textura, NULL, &txt_rect);
-
-                    txt_rect.x = cartaNPC_rect.x + cartaNPC_rect.w/2 - txt_rect.w/2;
-                    txt_rect.y = cartaNPC_rect.y + cartaNPC_rect.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, perdeu_textura, NULL, &txt_rect);
-                } else if (resultado == -1) {
-                    txt_rect.x = carta_grande.x + carta_grande.w/2 - txt_rect.w/2;
-                    txt_rect.y = carta_grande.y + carta_grande.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, perdeu_textura, NULL, &txt_rect);
-
-                    txt_rect.x = cartaNPC_rect.x + cartaNPC_rect.w/2 - txt_rect.w/2;
-                    txt_rect.y = cartaNPC_rect.y + cartaNPC_rect.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, ganhou_textura, NULL, &txt_rect);
-                } else {
-                    txt_rect.x = carta_grande.x + carta_grande.w/2 - txt_rect.w/2;
-                    txt_rect.y = carta_grande.y + carta_grande.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, ganhou_textura, NULL, &txt_rect);
-
-                    txt_rect.x = cartaNPC_rect.x + cartaNPC_rect.w/2 - txt_rect.w/2;
-                    txt_rect.y = cartaNPC_rect.y + cartaNPC_rect.h/2 - txt_rect.h/2;
-                    SDL_RenderCopy(renderizador, ganhou_textura, NULL, &txt_rect);
-                }
-
-                SDL_RenderPresent(renderizador);
-                SDL_Delay(3000); 
-
-                removerCartaJogador(cartasJogador, cartaSelecionada, &cartasRestantesJogador);
-                removerCartaNPC(cartasNPC, cartaNPCSelecionada, &cartasRestantesNPC);
-
-                cartaSelecionada = -1;
-                cartaNPCSelecionada = -1;
-                dueloEstado = (cartasRestantesJogador > 0 && cartasRestantesNPC > 0) ? DUEL_SELECIONANDO : DUEL_FINALIZADO;
-                break;
-            }
-
-            case DUEL_FINALIZADO:
-                // Premiação apenas no resultado final
-                {
-                    int dinheiro_int = atoi(dinheiro); // converte string para int
-                    if (jogadorScore > npcScore) dinheiro_int += 100;
-                    else if (jogadorScore == npcScore) dinheiro_int += 50;
-                    sprintf(dinheiro, "%d", dinheiro_int); // atualiza string
-                }
-
-                *estadoJogo = STATE_JOGANDO;
-                IMG_Quit();
-                return 1;
+            *estadoJogo = STATE_JOGANDO;
+            IMG_Quit();
+            return 1;
         }
 
-        SDL_RenderClear(renderizador);
-        SDL_RenderCopy(renderizador, background_textura, NULL, &background);
-        for (int i = 0; i < cartasRestantesJogador; i++) {
-            SDL_RenderCopy(renderizador, carta_azul_textura, NULL, &cartas_azuis[i]);
-            SDL_RenderCopy(renderizador, cartasJogador[i].textura, NULL, &cartas_player[i]);
-        }
-        if(cartaNPCSelecionada != -1)
-            SDL_RenderCopy(renderizador, cartasNPC[cartaNPCSelecionada].textura, NULL, &cartaNPC_rect);
-        if(cartaSelecionada >= 0)
-            SDL_RenderCopy(renderizador, cartasJogador[cartaSelecionada].textura, NULL, &carta_grande);
-        SDL_RenderPresent(renderizador);
+        draw(&jogo, renderizador, background_textura, carta_azul_textura, ganhou_textura, perdeu_textura, LARGURA, ALTURA);
     }
 
     IMG_Quit();
