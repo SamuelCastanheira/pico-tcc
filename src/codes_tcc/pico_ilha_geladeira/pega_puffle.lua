@@ -3,7 +3,6 @@ local Puffle = require("util.puffle")
 local Vetor = require("util.vetor")
 
 -- ==================== UTILITÁRIOS ====================
---criar um lista.lua
 local function removerPuffle(lista, alvo)
     for i, v in ipairs(lista) do
         if v == alvo then
@@ -69,55 +68,71 @@ function PegaPuffle.init(state)
         cercado = {'%', x=0.5, y=0.65, w=0.15, h=0.25},
         capturados = 0,
         fugiram = 0,
-        timer = 100 *1000
+        tempo_inicial = pico.get.now(),
+        timer = 0,
+        duracao_timer = 100*1000
     }
 end
 
 function PegaPuffle.update(state, event)
     local data = state.pegaPuffleData
     local mouse = pico.get.mouse('%')
+    data.timer = pico.get.now() - data.tempo_inicial
     local dt = 0.05
-    -- Processa evento de mouse
-    if event and event.tag == 'mouse.motion' then
-          
-        for _, puffle in ipairs(data.puffles) do
-            
-            if not puffle.dentro_cercado and not puffle.em_fuga then
-                local dx = mouse.x - puffle.rect.x
-                local dy = mouse.y - puffle.rect.y
-                local delta = Vetor.new({x=dx, y=dy})
-                local dist = delta:magnitude()
-                
-                if dist > 0.001 and dist <= data.distancia_max then
-                    -- Calcula reflexão e move para lá
-                    local destino = Vetor.new({ x= mouse.x - (2 * delta.x),
-                                                y=mouse.y - (2 * delta.y) })
 
-                    puffle:calcula_velocidade_vetorial(destino, data.velocidade_esc)
-                else
-                    puffle:limpar_movimento()
+    for _, puffle in ipairs(data.puffles) do
+        puffle.movendo = false
+    end
+    -- Processa evento de mouse
+    for _, puffle in ipairs(data.puffles) do
+        if not puffle.em_fuga then
+            local dx = mouse.x - puffle.rect.x
+            local dy = mouse.y - puffle.rect.y
+            local delta = Vetor.new({x=dx, y=dy})
+            local dist = delta:magnitude()
+            
+            if dist > 0.001 and dist <= data.distancia_max then
+                -- Calcula reflexão e move para lá
+                local destino = Vetor.new({ x= mouse.x - (2 * delta.x),
+                                            y=mouse.y - (2 * delta.y) })
+
+                puffle:calcula_velocidade_vetorial(destino, data.velocidade_esc)
+                puffle.movendo = true
+                --Verifica colisões entre puffles
+                for _, b in ipairs(data.puffles) do
+                    if puffle ~= b and not b.movendo then
+                        if pico.vs.rect_rect(puffle.hitbox, b.rect) then
+                            puffle:colidir_com(b)
+                            b.movendo = true
+                        end
+                    end
                 end
+            else
+                puffle:limpar_movimento()
             end
+
+            
+            
         end
     end
     
     -- Atualiza movimento de cada puffle
     for _, puffle in ipairs(data.puffles) do
-        puffle:atualizar_posicao(dt)
-        if puffle.em_fuga then puffle:atualizar_fuga(dt) end
         
-        -- Limites da tela - mesma lógica de fuga
-        local limites = {
-            {puffle.rect.x < 0.1, 0.1, {x=1, y=0}},    -- esquerda -> foge direita
-            {puffle.rect.x > 0.9, 0.9, {x=-1, y=0}},   -- direita -> foge esquerda
-            {puffle.rect.y < 0.1, 0.1, {x=0, y=1}},    -- cima -> foge baixo
-            {puffle.rect.y > 0.95, 0.95, {x=0, y=-1}}    -- baixo -> foge cima
-        }
+        puffle:atualizar_posicao(dt)
+        puffle:clamp_cercado(data.cercado)
+        if puffle.em_fuga then puffle:atualizar_fuga(dt) end
+    end
 
-       if not dentro_do_oval(puffle) or puffle.rect.x > 1 or puffle.rect.x < 0 then
-            removerPuffle(data.puffles, puffle)
-            data.fugiram = data.fugiram + 1
-       end
+    
+
+
+    --Verifica colisões e limites de tela
+    for _, puffle in ipairs(data.puffles) do
+        if not dentro_do_oval(puffle) or puffle.rect.x > 1 or puffle.rect.x < 0 then
+                removerPuffle(data.puffles, puffle)
+                data.fugiram = data.fugiram + 1
+        end
 
         local colidiu, parede_nome = verificaColisaoComParede(puffle, data.hitboxes)
         if colidiu then
@@ -140,6 +155,8 @@ function PegaPuffle.update(state, event)
         end
     end
     
+    
+
     -- Verifica vitória
     data.capturados = 0
     for _, puffle in ipairs(data.puffles) do
@@ -156,7 +173,7 @@ function PegaPuffle.update(state, event)
         end
     end
 
-    if todos_dentro or #data.puffles == 0 or data.timer < pico.get.now()  then
+    if todos_dentro or #data.puffles == 0 or data.timer > data.duracao_timer  then
         state.nextScreen = "centro"
     end
 end
@@ -173,15 +190,18 @@ function PegaPuffle.draw(state)
     end
 
     pico.output.draw.image("../../../assets/imgs/puffle_roundup/arvores.png", arvores)
-     pico.set.color.draw('yellow')
-    pico.output.draw.text(string.format("%s: %d", "Capturados", data.capturados), {'%', x=0.02, y=0.02, w=0.1, h=0.05, anchor='NW'})
-    pico.output.draw.text(string.format("%s: %d", "Fugiram", data.fugiram), {'%', x=0.02, y=0.06, w=0.1, h=0.05, anchor='NW'})
-    pico.output.draw.text(string.format("%s: %d", "Timer", math.floor((data.timer - pico.get.now())/1000)), {'%', x=0.9, y=0.02, w=0.1, h=0.1, anchor='NW'})
+    pico.set.color.draw('yellow')
+    local s_capturados = string.format("%s: %d", "Capturados", data.capturados)
+    local s_fugiram = string.format("%s: %d", "Fugiram", data.fugiram)
+    local s_timer = string.format("%s: %d", "Timer", math.floor(data.duracao_timer/1000 - data.timer/1000))
+    pico.output.draw.text(s_capturados, {'%', x=0.02, y=0.02, w=0.008*#s_capturados, h=0.05, anchor='NW'})
+    pico.output.draw.text(s_fugiram, {'%', x=0.02, y=0.06, w=0.008*#s_fugiram, h=0.05, anchor='NW'})
+    pico.output.draw.text(s_timer, {'%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'})
 
 end
 
 function PegaPuffle.finish(state)
-    state.money = state.pegaPuffleData.capturados * 10
+    state.money = state.money + state.pegaPuffleData.capturados * 10
     state.pegaPuffleData = nil
 end
 

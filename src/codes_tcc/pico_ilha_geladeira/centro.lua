@@ -59,7 +59,7 @@ function Centro.draw(state)
     pico.output.draw.image(petshop:get_img(), petshop.rect)
 
     local moeda = {'%',x=0.05, y=0.05, w=0.05, h=0}
-    local moeda_num = {'%',x=0.08, y=0, w=0.05, h=0.1, anchor='NW'}
+    local moeda_num = {'%',x=0.08, y=0, w=.025*#tostring(state.money), h= 0.1, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/moeda.png",moeda )
     pico.set.color.draw('yellow')
     pico.output.draw.text(state.money, moeda_num)
