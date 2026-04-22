@@ -270,6 +270,13 @@ function Vetor:reflect(normal)
     return self
 end
 
+function Vetor.reflect(ponto, normal)
+    local d = 2 * self:dot(normal)
+    ponto.x = ponto.x - d * normal.x
+    ponto.y = ponto.y - d * normal.y
+    return ponto
+end
+
 --- Obtém um vetor perpendicular (rotação de 90 graus)
 -- @return Vetor novo vetor perpendicular
 function Vetor:perpendicular()

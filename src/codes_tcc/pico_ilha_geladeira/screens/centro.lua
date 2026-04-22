@@ -1,5 +1,4 @@
 local Centro = {}
-local Dojo = require("dojo")
 local Objeto =  require("util.objeto")
 
 local background = Objeto.create({

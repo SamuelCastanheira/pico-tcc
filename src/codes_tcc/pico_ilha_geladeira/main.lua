@@ -1,11 +1,11 @@
 -- Importa módulos de tela (como no seu código, mas adicionando dojo)
 local screens = {
-    menu = require("menu"),
-    dojo = require("dojo"),
-    person = require("personalizacao"),
-    centro = require("centro"),
-    pega_puffle = require("pega_puffle"),
-    bean_counters = require("bean_counters")
+    menu = require("screens.menu"),
+    person = require("screens.personalizacao"),
+    centro = require("screens.centro"),
+    pega_puffle = require("screens.minigames.pega_puffle"),
+    dojo = require("screens.minigames.dojo"),
+    bean_counters = require("screens.minigames.bean_counters")
 }
 
 -- Estado global compartilhado (novo, para evitar globais)
