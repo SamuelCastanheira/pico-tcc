@@ -1,23 +1,24 @@
-local Movable = require("util.movable")
 local Vetor = require("util.vetor")
+local Objeto = require("util.objeto")
 
 local Puffle = {}
 Puffle.__index = Puffle
 
--- Herança: Puffle herda de Movable
-setmetatable(Puffle, {__index = Movable})
+-- Herança: Movable herda de Objeto
+setmetatable(Puffle, {__index = Objeto})
 
 function Puffle.create(opts)
     opts = opts or {}
 
-    local self = Movable.create(opts)
+    local self = Objeto.create(opts)
     setmetatable(self, Puffle)
 
     self.em_fuga = false
     self.tempo_fuga = 0
     self.dentro_cercado = false
     self.direcao = Vetor.new({x=0, y=0})
-    
+    self.velocidade = opts.velocidade or Vetor.new{ x = 0, y = 0 }
+
     self.hitbox = opts.hitbox or {
         x = self.rect.x,
         y = self.rect.y,
