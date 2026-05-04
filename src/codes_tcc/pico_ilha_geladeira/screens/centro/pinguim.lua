@@ -41,31 +41,33 @@ end
 
 function Pinguim:get_direcao()
     if self.velocidade:magnitude() == 0 then return end
-    if self.velocidade:angle() < 5*math.pi/8 and self.velocidade:angle() >= 3*math.pi/8 then
+
+    local ang = self.velocidade:angle()
+
+    if ang >= 3*math.pi/8 and ang < 5*math.pi/8 then
         self.direcao = direcoes.SUL
 
-    elseif self.velocidade:angle() < 3*math.pi/8 and self.velocidade:angle() >= math.pi/8 then
+    elseif ang >= math.pi/8 and ang < 3*math.pi/8 then
         self.direcao = direcoes.SUDESTE
 
-    elseif self.velocidade:angle() < math.pi/8 and self.velocidade:angle() >= -math.pi/8 then 
+    elseif ang >= -math.pi/8 and ang < math.pi/8 then 
         self.direcao = direcoes.LESTE
 
-    elseif self.velocidade:angle() < -math.pi/8 and self.velocidade:angle() >= -3*math.pi/8 then
+    elseif ang >= -3*math.pi/8 and ang < -math.pi/8 then
         self.direcao = direcoes.NORDESTE
 
-    elseif self.velocidade:angle() < -3*math.pi/8 and self.velocidade:angle() >= -5*math.pi/8 then
+    elseif ang >= -5*math.pi/8 and ang < -3*math.pi/8 then
         self.direcao = direcoes.NORTE
     
-    elseif self.velocidade:angle() < -5*math.pi/8 and self.velocidade:angle() >= -7*math.pi/8 then
+    elseif ang >= -7*math.pi/8 and ang < -5*math.pi/8 then
         self.direcao = direcoes.NOROESTE
 
-    elseif self.velocidade:angle() < -7*math.pi/8 and self.velocidade:angle() >= 7*math.pi/8 then
+    elseif ang >= 7*math.pi/8 or ang < -7*math.pi/8 then
         self.direcao = direcoes.OESTE
 
-    else
+    elseif ang >= 5*math.pi/8 and ang < 7*math.pi/8 then
         self.direcao = direcoes.SUDOESTE
     end
-
 end
 
 function Pinguim:atualiza_posicao(dt)
@@ -78,19 +80,14 @@ function Pinguim:calcula_movimento(ponto)
     local delta = Vetor.new({x= ponto.x - self.rect.x,
                              y= ponto.y - self.rect.y})
 
-    local dist = delta:magnitude()
-    if dist > 0.05 then
-        self.destino = ponto
-        self.velocidade = delta:normalize():multiply(0.2)
-    else
-        self.velocidade = Vetor.new({x=0, y=0})
-    end
+    self.destino = ponto
+    self.velocidade = delta:normalize():multiply(0.2)
 end
 
 function Pinguim:chegou_destino()
     local delta = Vetor.new({x= self.rect.x - self.destino.x,
                              y= self.rect.y - self.destino.y})
-    if delta:magnitude() < 0.05 then
+    if delta:magnitude() < 0.01 then
         self.destino = self.rect
         self.velocidade = Vetor.new({x=0, y=0})
         return true

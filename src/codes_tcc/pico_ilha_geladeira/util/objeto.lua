@@ -7,6 +7,7 @@ function Objeto.create(opts)
     local self = setmetatable({}, Objeto)
 
     self.rect = opts.rect or {}
+    self.hitbox = opts.hitbox or {}
     self.hover = false
     self.img = opts.img
     self.img_hover = opts.img_hover or opts.img

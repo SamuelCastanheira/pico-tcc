@@ -1,6 +1,6 @@
 local Dojo = {}
 local Objeto = require("util.objeto")
-local Carta = require("util.carta")
+local Carta = require("screens.minigames.dojo.carta")
 
 local NUM_CARTAS_PLAYER = 3
 

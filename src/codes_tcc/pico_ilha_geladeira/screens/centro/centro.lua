@@ -1,6 +1,6 @@
 local Centro = {}
 local Objeto =  require("util.objeto")
-local Pinguim =  require("util.pinguim")
+local Pinguim =  require("screens.centro.pinguim")
 
 local background = Objeto.create({
                         rect = {'%', x=0.5, y=0.5, w=1, h=1},
@@ -27,7 +27,8 @@ function Centro.init(state)
     state.centroData =
     {
        pinguim = Pinguim.new({rect={'%', x=0.5, y=0.7, w=0.08, h=0}}),
-       last = pico.get.now()
+       last = pico.get.now(),
+       destino = nil
     }
 end
 
@@ -50,17 +51,20 @@ function Centro.update(state, event)
 
     if pico.vs.pos_rect(mouse, petshop.rect) then
         petshop.hover = true
+        data.destino = "petshop"
     elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
         cafeteria.hover = true
+        data.destino = "cafeteria"
     elseif pico.vs.pos_rect(mouse, dojo.rect) then
         dojo.hover = true
+        data.destino = "dojo"
     end
 
-    if pico.vs.pos_rect(data.pinguim.rect, petshop.rect) then
+    if data.destino and data.destino == "petshop" and pico.vs.pos_rect(data.pinguim.rect, petshop.rect) then
         state.nextScreen = "pega_puffle"
-    elseif pico.vs.pos_rect(data.pinguim.rect, cafeteria.rect) then
+    elseif data.destino and data.destino == "cafeteria" and pico.vs.pos_rect(data.pinguim.rect, cafeteria.rect) then
         state.nextScreen = "bean_counters"
-    elseif pico.vs.pos_rect(data.pinguim.rect, dojo.rect) then
+    elseif data.destino and data.destino == "dojo" and pico.vs.pos_rect(data.pinguim.rect, dojo.rect) then
         state.nextScreen = "dojo"
     end
 end

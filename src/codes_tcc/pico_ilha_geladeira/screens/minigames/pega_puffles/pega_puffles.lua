@@ -1,5 +1,5 @@
 local PegaPuffle = {}
-local Puffle = require("util.puffle")
+local Puffle = require("screens.minigames.pega_puffles.puffle")
 local Vetor = require("util.vetor")
 local Timer = require("util.timer")
 

@@ -110,9 +110,9 @@ void adiciona_carga(ListaCarga *lista, Carga *nova)
 
 void sorteia_carga(SDL_Renderer *renderizador, ListaCarga *lista)
 {
-    lista->prob = rand() % 80;
+    lista->prob = rand() % 1000;
 
-    if (lista->prob == 13)
+    if (lista->prob == 1)
     {
         Carga *c = cria_carga(renderizador);
         adiciona_carga(lista, c);
