@@ -113,11 +113,11 @@ function Dojo.init(state)
                     pontuacao =7, 
                     img="../../../assets/imgs/dojo/fogo_7.png"}),
         Carta.create({
-                    Elemento.GELO, 
+                    elemento = Elemento.GELO, 
                     pontuacao =5, 
                     img="../../../assets/imgs/dojo/gelo_5.png"}),
         Carta.create({
-                    Elemento.GELO, 
+                    elemento =  Elemento.GELO, 
                     pontuacao =6, 
                     img="../../../assets/imgs/dojo/gelo_6.png"})
     }

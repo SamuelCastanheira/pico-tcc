@@ -189,14 +189,29 @@ function BeanCounters.draw(state)
         
 
         for _, carga in pairs(data.cargas) do
+            if carga.tipo.key == "cafe" then
+                pico.layer.image(carga:get_img())
+                pico.set.layer(carga:get_img())
+                pico.set.view{rotation={angle=carga.angle, anchor='C'}}
+                pico.set.layer()
+            end
+           
             pico.output.draw.image(carga:get_img(), carga.rect)
         end
 
         for i = 1, data.pilha1.num_cafes do
+            pico.layer.image(data.pilha1:get_img())
+            pico.set.layer(data.pilha1:get_img())
+            pico.set.view{rotation={angle=0, anchor='C'}}
+            pico.set.layer()
             pico.output.draw.image(data.pilha1:get_img(), {'%', x=0.1, y=0.85 - (0.03*(i-1)), w=0.1,h=0.1})
         end
 
         for i = 1, data.pilha2.num_cafes do
+            pico.layer.image(data.pilha2:get_img())
+            pico.set.layer(data.pilha2:get_img())
+            pico.set.view{rotation={angle=0, anchor='C'}}
+            pico.set.layer()
             pico.output.draw.image(data.pilha2:get_img(), {'%', x=0.15, y=0.85 - (0.03*(i-1)), w=0.1,h=0.1})
         end
         

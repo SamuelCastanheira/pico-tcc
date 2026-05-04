@@ -29,6 +29,7 @@ function Carga.new(opts)
     self.gravidadade = nil
     self.tipo = tipos[math.random(1,4)]
     self.rect = nil
+    self.angle = 0
     
     setmetatable(self, Carga)
     return self
@@ -38,12 +39,6 @@ function Carga:get_img()
     local base = "../../../assets/imgs/bean_counters"
     self.img = string.format("%s/%s.webp", base, self.tipo.path)
     return self.img
-end
-
-function Carga.lanca_carga()
-    
-
-    return nil
 end
 
 function Carga.lanca_carga(dt)
@@ -131,7 +126,7 @@ function Carga:inicializacao()
     self.p_lancamento = {x=x0, y=y0}
     self.destino = {x=xf, y= yf}
     self.velocidade_inicial = Vetor.new({x = vx, y = vy})
-    self.rect = {'%', x=x0 ,y=y0 ,w=0.07, h=0.07}
+    self.rect = {'%', x=x0 ,y=y0 ,w=0.08, h=0.08}
     self.gravidade = g
 end
 
@@ -142,6 +137,18 @@ function Carga:atualiza_posicao(dt)
     -- atualiza posição
     self.rect.x = self.p_lancamento.x + self.velocidade_inicial.x * self.tempo
     self.rect.y = self.p_lancamento.y + self.velocidade_inicial.y * self.tempo + self.gravidade*math.pow(self.tempo,2)/2
+
+    local p_dist = (self.rect.x - self.p_lancamento.x)/(self.destino.x - self.p_lancamento.x)
+
+    if p_dist < 0.25 then
+        self.angle = 0
+    elseif p_dist < 0.50 then
+        self.angle = 45
+    elseif p_dist < 0.75 then
+        self.angle = 135
+    else
+        self.angle = 180
+    end
 end
 
 function Carga:chegou_destino()

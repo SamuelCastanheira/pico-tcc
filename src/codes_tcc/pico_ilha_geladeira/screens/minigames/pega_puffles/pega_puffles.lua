@@ -137,7 +137,7 @@ function PegaPuffle.init(state)
             direita =  {'%', x=0.58, y=0.65, w=0.02, h=0.3, anchor='C'},
             baixo =    {'%', x=0.5, y=0.8, w=0.15, h=0.02, anchor='C'}
         },
-        distancia_max = 0.1,
+        distancia_max = 0.2,
         velocidade_esc = 0.04,
         cercado = {'%', x=0.5, y=0.65, w=0.15, h=0.25},
         capturados = 0,
