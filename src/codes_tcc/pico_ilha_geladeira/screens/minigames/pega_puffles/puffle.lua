@@ -42,8 +42,8 @@ function Puffle.lista()
     }
 
     for i = 1, #puffle_paths do
-        local x_rect = math.random(30, 70) / 100
-        local y_rect = math.random(10, 40) / 100
+        local x_rect = math.random(5, 90) / 100
+        local y_rect = math.random(10, 50) / 100
 
         puffles[i] = Puffle.create({
             img = puffle_paths[i],

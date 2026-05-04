@@ -174,7 +174,6 @@ function PegaPuffle.update(state, event)
         for _, normal in ipairs(normais) do
             if not normal:isZero() then
                 normal = normal:normalize()
-                dt = 0.03
                 puffle.direcao = aplicar_slide(puffle.direcao, normal)
             end 
         end
