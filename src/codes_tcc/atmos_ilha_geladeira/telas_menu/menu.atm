@@ -1,0 +1,21 @@
+require "atmos.env.pico"
+set pico = require "pico"
+
+set W, H = (1280, 720)
+
+pico.zet.window @{ title="Ilhda da Geladeira" }
+pico.zet.dim @{'!', w=1280, h=720}
+
+math.randomseed()
+
+func Background()
+{
+    val background = @{ '%', x=0.5, y=0.5 }
+     
+    every :draw {
+        pico.output.draw.image("../../../../assets/imgs/background_menu.png", background)
+    }        
+}
+
+spawn Background() 
+await(false)
