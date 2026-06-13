@@ -17,5 +17,27 @@ func Background()
     }        
 }
 
+func Logo(x,y,img_path)
+{
+    val rect = @{ '%', x=x, y=y, w=0.45, h=0.45}
+    
+    every :draw {
+        pico.output.draw.image(img_path, rect)
+    }
+}
+
+func Botao(x,y,img_path)
+{
+    val rect = @{ '%', x=x, y=y, w=0.55, h=0.2 }
+    
+    every :draw {
+        pico.output.draw.image(img_path, rect)
+    }
+}
+
 spawn Background() 
+spawn Logo(0.5, 0.2,"../../../../assets/imgs//logo.png")
+spawn Botao(0.5, 0.5,"../../../../assets/imgs/botoes/b_jogar.png")
+spawn Botao(0.5, 0.7,"../../../../assets/imgs/botoes/b_personalizar.png")
+spawn Botao(0.5, 0.9,"../../../../assets/imgs/botoes/b_sair.png")
 await(false)
