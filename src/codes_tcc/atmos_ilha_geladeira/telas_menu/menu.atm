@@ -17,27 +17,63 @@ func Background()
     }        
 }
 
-func Logo(x,y,img_path)
+func Logo(x, y, img_path, hover_img_path)
 {
-    val rect = @{ '%', x=x, y=y, w=0.45, h=0.45}
+    var rect = @{ '%', x=x, y=y, w=0.45, h=0.45}
     
     every :draw {
         pico.output.draw.image(img_path, rect)
     }
 }
 
-func Botao(x,y,img_path)
+func Botao(x,y,img_path, hover_img_path)
 {
     val rect = @{ '%', x=x, y=y, w=0.55, h=0.2 }
-    
-    every :draw {
-        pico.output.draw.image(img_path, rect)
+    var img = img_path
+    set pub = @{
+        rect = rect,
+    }
+    par
+    {
+        every _,ms in :clock  {
+            val m = pico.get.mouse('!')
+            set img = img_path
+            if pico.vs.pos_rect(@{'!', x=m.x, y=m.y}, rect)
+            {
+                set img = hover_img_path
+            }
+        }
+    }
+    with
+    {
+        every :draw {  
+            pico.output.draw.image(img, rect)  
+        }   
     }
 }
 
 spawn Background() 
 spawn Logo(0.5, 0.225,"../../../../assets/imgs//logo.png")
-spawn Botao(0.5, 0.5,"../../../../assets/imgs/botoes/b_jogar.png")
-spawn Botao(0.5, 0.7,"../../../../assets/imgs/botoes/b_personalizar.png")
-spawn Botao(0.5, 0.9,"../../../../assets/imgs/botoes/b_sair.png")
+pin botoes = tasks(3)
+spawn [botoes]  Botao(x, y, img, img_hover) where
+{
+    x = 0.5
+    y = 0.5
+    img = "../../../../assets/imgs/botoes/b_jogar.png"
+    img_hover = "../../../../assets/imgs/botoes/b_jogar_clicado.png"
+}
+spawn [botoes] Botao(x,y,img, img_hover) where
+{
+    x = 0.5 
+    y = 0.7
+    img = "../../../../assets/imgs/botoes/b_personalizar.png"
+    img_hover = "../../../../assets/imgs/botoes/b_personalizar_clicado.png"
+}
+spawn [botoes] Botao(x,y,img, img_hover) where 
+{
+    x = 0.5
+    y = 0.9
+    img = "../../../../assets/imgs/botoes/b_sair.png"
+    img_hover = "../../../../assets/imgs/botoes/b_sair_clicado.png"
+}
 await(false)
