@@ -1,0 +1,16 @@
+val GameState = require "consts/gameState"
+val Image = require "util/image"
+
+func Centro(){
+    watching :end
+    {
+        spawn Image(r, img) where
+        {
+            r = @{ '%', x=0.5, y=0.5 }
+            img = "../../../assets/imgs/centro.png"
+        }
+
+        await(false)
+    }
+}
+ Centro

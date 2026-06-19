@@ -1,0 +1,42 @@
+val GameState = require "consts/gameState"
+val Image = require "util/image"
+val Botao = require "util/botao"
+
+func Menu () {
+
+    spawn Image(r, img) where
+    {
+        r = @{ '%', x=0.5, y=0.5 }
+        img = "../../../assets/imgs/background_menu.png"
+    }
+
+    spawn Image(r, img) where
+    {
+        r = @{ '%', x=0.5, y=0.225, w=0.45, h=0.45 }
+        img = "../../../assets/imgs//logo.png"
+    }
+        
+    pin botoes = tasks(3)
+    spawn [botoes] Botao(0.5, off, on, GameState.CENTRO) where
+    {
+        off = "../../../assets/imgs/botoes/b_jogar.png"
+        on = "../../../assets/imgs/botoes/b_jogar_clicado.png"
+    }
+    
+    spawn [botoes] Botao(0.7, off, on, GameState.PERSON) where
+    {
+        off = "../../../assets/imgs/botoes/b_personalizar.png"
+        on = "../../../assets/imgs/botoes/b_personalizar_clicado.png"
+    }
+    
+    spawn [botoes] Botao(0.9, off, on, GameState.SAIR) where
+    {
+        off = "../../../assets/imgs/botoes/b_sair.png"
+        on = "../../../assets/imgs/botoes/b_sair_clicado.png"
+    }
+    
+    await @5
+    :GameState.CENTRO
+}
+
+Menu

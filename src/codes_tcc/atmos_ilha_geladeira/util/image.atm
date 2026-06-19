@@ -1,0 +1,8 @@
+func Image(rect, path)
+{
+    every :draw {
+        pico.output.draw.image(path, rect)
+    }
+}
+
+Image
