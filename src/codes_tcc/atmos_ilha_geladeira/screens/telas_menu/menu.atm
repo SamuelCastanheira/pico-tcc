@@ -3,40 +3,48 @@ val Image = require "util/image"
 val Botao = require "util/botao"
 
 func Menu () {
-
-    spawn Image(r, img) where
-    {
-        r = @{ '%', x=0.5, y=0.5 }
-        img = "../../../assets/imgs/background_menu.png"
+    set pub = @{
+        nextScreen = nil
     }
 
-    spawn Image(r, img) where
-    {
-        r = @{ '%', x=0.5, y=0.225, w=0.45, h=0.45 }
-        img = "../../../assets/imgs//logo.png"
-    }
+    watching :end {
+        spawn Image(r, img) where
+        {
+            r = @{ '%', x=0.5, y=0.5 }
+            img = "../../../assets/imgs/background_menu.png"
+        }
+
+        spawn Image(r, img) where
+        {
+            r = @{ '%', x=0.5, y=0.225, w=0.45, h=0.45 }
+            img = "../../../assets/imgs//logo.png"
+        }
+            
+        pin jogar = spawn Botao(@{ '%', x=0.5, y=0.5, w=0.55, h=0.15 },
+        "../../../assets/imgs/botoes/b_jogar.png",
+        "../../../assets/imgs/botoes/b_jogar_clicado.png", 
+        GameState.CENTRO) 
         
-    pin botoes = tasks(3)
-    spawn [botoes] Botao(0.5, off, on, GameState.CENTRO) where
-    {
-        off = "../../../assets/imgs/botoes/b_jogar.png"
-        on = "../../../assets/imgs/botoes/b_jogar_clicado.png"
+        pin person = spawn Botao(@{ '%', x=0.5, y=0.7, w=0.55, h=0.15 }, 
+        "../../../assets/imgs/botoes/b_personalizar.png", 
+        "../../../assets/imgs/botoes/b_personalizar_clicado.png", 
+        GameState.PERSON)
+        
+        pin sair = spawn Botao(@{ '%', x=0.5, y=0.9, w=0.55, h=0.15 }, 
+        "../../../assets/imgs/botoes/b_sair.png", 
+        "../../../assets/imgs/botoes/b_sair_clicado.png", 
+        GameState.SAIR) 
+        
+        every :clock
+        {
+            if jogar.pub.output || person.pub.output || sair.pub.output
+            {
+                set pub.nextScreen = jogar.pub.output || person.pub.output || sair.pub.output
+                emit :end
+            }
+        }
     }
-    
-    spawn [botoes] Botao(0.7, off, on, GameState.PERSON) where
-    {
-        off = "../../../assets/imgs/botoes/b_personalizar.png"
-        on = "../../../assets/imgs/botoes/b_personalizar_clicado.png"
-    }
-    
-    spawn [botoes] Botao(0.9, off, on, GameState.SAIR) where
-    {
-        off = "../../../assets/imgs/botoes/b_sair.png"
-        on = "../../../assets/imgs/botoes/b_sair_clicado.png"
-    }
-    
-    await @5
-    :GameState.CENTRO
+    pub.nextScreen
 }
 
 Menu

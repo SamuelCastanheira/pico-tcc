@@ -1,0 +1,7 @@
+func T(x)
+{
+    await(:X)
+    print(x)
+}
+pin a = spawn T("oi")
+emit :X

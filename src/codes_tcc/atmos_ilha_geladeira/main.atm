@@ -12,13 +12,12 @@ val Menu = require "screens/telas_menu/menu"
 val Centro = require "screens/centro/centro"
 val GameState = require "consts/gameState"
 
-loop {
-    print("oi")
-    val v = await Menu()
+watching :SAIR {
+    var v = await Menu()
     print(v)
     match v
     {
-        :GameState.CENTRO => await Centro()
+        :CENTRO => await Centro()
+        :PERSONALIZAR => await Centro()
     }
-    await(false)
 }

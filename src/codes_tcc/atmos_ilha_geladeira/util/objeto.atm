@@ -1,6 +1,6 @@
 val Image = require "util/image"
 
-func Botao(rect, off, on, estado)
+func Objeto(rect, off, on, estado)
 {
     set pub = @{
         output = nil
@@ -40,8 +40,7 @@ func Botao(rect, off, on, estado)
                 }            
             }
         }
-        await @.1
     }
 }
 
-Botao
+Objeto

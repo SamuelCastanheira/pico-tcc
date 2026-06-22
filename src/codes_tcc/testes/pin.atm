@@ -1,0 +1,9 @@
+func T(x)
+{
+    await(:X)
+    print(x)
+}
+spawn{
+    T("oi")
+}
+emit :X
