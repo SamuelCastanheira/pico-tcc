@@ -1,4 +1,3 @@
-val GameState = require "consts/gameState"
 val Image = require "util/image"
 val Objeto = require "util/objeto"
 
