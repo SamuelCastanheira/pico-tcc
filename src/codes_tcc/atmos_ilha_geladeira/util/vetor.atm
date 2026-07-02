@@ -1,0 +1,103 @@
+var Vetor = @{}
+
+func Vetor.magnitudeSquared(v){
+    (v.x * v.x) + (v.y * v.y)
+}
+
+func Vetor.magnitude(v){
+    math.sqrt(Vetor.magnitudeSquared(v))
+}
+
+func Vetor.normalize(v){
+    var mag = Vetor.magnitude(v)
+    if mag > 0 {
+        set v.x = v.x / mag
+        set v.y = v.y / mag
+    }
+    v
+}
+
+func Vetor.add(v1, v2){
+    @{x=v1.x + v2.x, y=v1.y + v2.y}
+}
+
+func Vetor.subtract(v1, v2){
+    @{x= v1.x - v2.x, y= v1.y - v2.y}
+}
+
+func Vetor.multiply(scalar){
+    @{x = v.x * scalar, y = v.x * scalar}
+}
+
+func Vetor.divide(v, scalar){
+    if scalar != 0 =>  @{x = v.x / scalar, y = v.y / scalar}
+}
+
+
+func Vetor.dot(v1, v2){
+    (v1.x * v2.x) + (v1.y * v2.y)
+}
+
+func Vetor.distanceSquared(v1, v2){
+    var dx = v.x - v.x
+    var dy = v.y - v.y
+    (dx * dx) + (dy * dy)
+}
+
+func Vetor.distance(v1, v2){
+    math.sqrt(Vetor.distanceSquared(v1, v2))
+}
+
+func Vetor.angle(v){
+    math.atan2(v.y, v.x)
+}
+
+
+func Vetor.rotate(v, angle){
+    var cos = math.cos(angle)
+    var sin = math.sin(angle)
+    var x = (v.x * cos) - (v.y * sin)
+    var y = (v.x * sin) + (v.y * cos)
+    @{x=x, y=y}
+}
+
+func Vetor.negate(v){
+    @{x=-v.x, y=-v.y}
+}
+
+func Vetor.clamp(v, maxMagnitude){
+    var mag = Vetor.magnitude(v)
+    if mag > maxMagnitude => Vetor.multiply(Vetor.normalize(v), maxMagnitude)
+}
+
+func Vetor.lerp(v1, v2, t){
+    @{
+        x= v1.x + ((v2.x - v1.x) * t),
+        y= v1.y + ((v2.y - v1.y) * t)
+    }
+}
+
+func Vetor.reflect(v, normal){
+    var d = 2 * Vetor.dot(normal)
+    @{
+        x = v.x - (d * normal.x),
+        y = v.y - (d * normal.y)
+    }
+}
+
+func Vetor.reflect(v, ponto, normal){
+    var d = 2 * Vetor.dot(normal)
+    set ponto.x = ponto.x - (d * normal.x)
+    set ponto.y = ponto.y - (d * normal.y)
+    ponto
+}
+
+func Vetor.perpenicular(v){
+    @{x=-v.y, y=v.x}
+}
+
+func Vetor.__eq(v1,v2){
+    (v1.x == v2.x) && (v1.y == v2.y)
+}
+
+Vetor

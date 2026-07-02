@@ -1,6 +1,6 @@
 val Image = require "util/image"
 
-func Objeto(rect, off, on, estado)
+func Objeto(rect, off, on, other_rect)
 {
     set pub = @{
         output = nil
@@ -12,7 +12,7 @@ func Objeto(rect, off, on, estado)
             spawn {
                 every :clock {
                     val m  = pico.get.mouse('%')
-                    val on = pico.vs.pos.rect(@{'%', x=m.x, y=m.y}, rect)
+                    val on = pico.vs.pos_rect(@{'%', x=m.x, y=m.y}, rect)
                     emit (if on => :on => :off)
                 }
             }
@@ -22,7 +22,7 @@ func Objeto(rect, off, on, estado)
                 every e in :mouse.button.dn 
                 {
                      val m  = pico.get.mouse('%')
-                    set click = pico.vs.pos.rect(m, rect)
+                    set click = pico.vs.pos_rect(m, rect)
                     if click
                     {  
                         set pub.output = estado

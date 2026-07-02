@@ -13,7 +13,6 @@ val Centro = require "screens/centro/centro"
 
 loop {
     var v = await Menu()
-    print(v)
     match v {
         :CENTRO => await Centro()
         :PERSON => await Centro()

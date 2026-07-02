@@ -1,32 +1,18 @@
-val Image = require "util/image"
+val Image_Clickable = require "util/image_clickable"
 
 func Botao(id, rect, off, on)
 {
-    par_or {
-        every :clock {
-            val m  = pico.get.mouse('%')
-            val on = pico.vs.pos.rect(@{'%', x=m.x, y=m.y}, rect)
-            emit (if on => :on => :off)
-        }
-    } with {
-        loop {
-            watching :on {
-                await Image(rect, off)
-            }
-            watching :off {
-                await Image(rect, on)
-            }            
-        }
-    } with {
-        loop {
-            await :mouse.button.dn
-            val m  = pico.get.mouse('%')
-            set click = pico.vs.pos.rect(m, rect)
-            if click {  
-                break()
-            }
+   pin image = spawn Image_Clickable(id, rect, off, on)
+
+    loop
+    {
+        await :clock
+        if (image.pub.click)
+        {
+            break()
         }
     }
+    
     id
 }
 

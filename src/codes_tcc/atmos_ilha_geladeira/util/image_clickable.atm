@@ -1,0 +1,34 @@
+val Image = require "util/image"
+
+func Image_Clickable(id, rect, off, on)
+{
+    set pub = @{
+        id = id,
+        rect = rect
+    }
+    par_or {
+        every :clock {
+            val m  = pico.get.mouse('%')
+            val on = pico.vs.pos_rect(@{'%', x=m.x, y=m.y}, rect)
+            emit (if on => :on => :off)
+        }
+    } with {
+        loop {
+            watching :on {
+                await Image(rect, off)
+            }
+            watching :off {
+                await Image(rect, on)
+            }            
+        }
+    } with {
+        loop {
+            await :mouse.button.dn
+            val m  = pico.get.mouse('%')
+            set click = pico.vs.pos_rect(m, rect)
+            if click => set pub.click = true
+        }
+    }
+}
+
+Image_Clickable

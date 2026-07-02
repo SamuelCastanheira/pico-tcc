@@ -1,0 +1,44 @@
+val Image_Collidable = require "util/image_collidable"
+;;testes
+;;incompleto
+
+func Pinguim(id, rect, on, off, others)
+{
+    set vel  = @{x=0.5, y=0.5}
+    pin image = spawn Image_Collidable(id, rect, off, on, others)
+
+    par_or{
+            every :mouse.button.dn{
+                set dest  = pico.get.mouse('%')
+                emit :MOVENDO
+            } 
+    }
+    with{
+        every :clock
+        {
+            await :MOVENDO
+            if (rect.x =!= dest.x) && (rect.y =!= dest.y){
+                print("o")
+                emit :MOVENDO
+            }
+        }
+    }
+    with{
+            every _,ms in :clock {
+                await :MOVENDO
+                var dt = ms/1000
+                ;;set rect.x = rect.x + (vel.x * dt)
+                set rect.y = rect.y - (vel.y * dt)
+            }
+    }with{
+        loop{
+            await :clock
+            if (image.pub.collided){
+                break()
+            }
+        }
+    }
+    image.pub.collided
+}
+
+Pinguim

@@ -1,0 +1,25 @@
+val Image_Clickable = require "util/image_clickable"
+
+func Image_Collidable(id, rect, off, on, other)
+{
+    pin image = spawn Image_Clickable(id, rect, off, on)
+
+    set pub = @{
+        collided = nil,
+    }
+
+    loop
+    {
+        await :clock
+        loop _,e in other{
+            if (e && e.pub.rect)
+            {
+                set col = pico.vs.rect_rect(e.pub.rect, rect)
+                if col => set collided = e.pub.id
+            }
+        }
+        if collided => set pub.collided = collided
+    }
+}
+
+Image_Collidable

@@ -1,62 +1,43 @@
 val Image = require "util/image"
-val Objeto = require "util/objeto"
+val Image_Clickable = require "util/image_clickable"
+val Pinguim = require "screens/centro/pinguim"
 
 func Centro(){
-    set pub = @{
-        nextScreen = nil
-    }
-
-    watching :end
+    spawn Image(r, img) where
     {
-        spawn Image(r, img) where
-        {
-            r = @{ '%', x=0.5, y=0.5 }
-            img = "../../../assets/imgs/centro.png"
-        }
-        
-        pin cafeteria = spawn Objeto(@{'%', x=0.25, y=0.4, w=0.4, h=0.4},
-            "../../../assets/imgs/coffe.png",
-            "../../../assets/imgs/coffe_hover.png",
-            GameState.BEAN_COUNTERS)
-
-        pin dojo = spawn Objeto(@{'%', x=0.72, y=0.39, w=0.35, h=0.35},
-            "../../../assets/imgs/dojo/dojo.png",
-            "../../../assets/imgs/dojo/dojo_hover.png",
-            GameState.DOJO)
-
-        pin petshop = spawn Objeto(@{'%', x=0.5, y=0.4, w=0.35, h=0.35},
-            "../../../assets/imgs/pet_shop.png",
-            "../../../assets/imgs/pet_shop_hover.png",
-            GameState.PEGA_PUFLES)
-        
-        every :clock
-        {
-            if petshop.pub.output || dojo.pub.output || cafeteria.pub.output
-            {
-                set  pub.nextScreen = petshop.pub.output || dojo.pub.output || cafeteria.pub.output
-                emit :end
-            }
-        }
+        r = @{ '%', x=0.5, y=0.5 }
+        img = "../../../assets/imgs/centro.png"
     }
-    set v = pub.nextScreen
-    print (v)
+
+    pin predios = tasks(3)
+
+    spawn [predios] Image_Clickable(:BEAN_COUNTERS,
+        @{'%', x=0.25, y=0.4, w=0.4, h=0.4},
+        "../../../assets/imgs/coffe.png",
+        "../../../assets/imgs/coffe_hover.png")
+    
+    spawn [predios] Image_Clickable(:DOJO, 
+        @{'%', x=0.72, y=0.39, w=0.35, h=0.35},
+        "../../../assets/imgs/dojo/dojo.png",
+        "../../../assets/imgs/dojo/dojo_hover.png")
+
+    spawn [predios] Image_Clickable(:PEGA_PUFLES,
+        @{'%', x=0.5, y=0.4, w=0.35, h=0.35},
+        "../../../assets/imgs/pet_shop.png",
+        "../../../assets/imgs/pet_shop_hover.png")
+
+    val v = await Pinguim(:NONE,
+        @{'%', x=0.5, y=0.9, w=0.1, h=0.1},
+        "../../../assets/imgs/pinguim/amarelo/000.png",
+        "../../../assets/imgs/pinguim/amarelo/000.png",
+        predios)
+
     match v
     {
-
-    }
+        :BEAN_COUNTERS => print("1")
+        :DOJO => print("2")
+        :PEGA_PUFLES => print("3")
+    } 
 }
+
  Centro
-
-
-
-;;Essa comparação é menos obvia
-    ;;if pico.vs.pos_rect(mouse, petshop.rect) then
-      ;;  petshop.hover = true
-      ;;  data.destino = "petshop"
-    ;;elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
-      ;;  cafeteria.hover = true
-      ;;  data.destino = "cafeteria"
-    ;;elseif pico.vs.pos_rect(mouse, dojo.rect) then
-      ;;  dojo.hover = true
-      ;;  data.destino = "dojo"
-    ;;end
