@@ -1,25 +1,29 @@
 val Image_Collidable = require "util/image_collidable"
-;;testes
-;;incompleto
+val Vetor = require "util/vetor"
 
 func Pinguim(id, rect, on, off, others)
 {
-    set vel  = @{x=0.5, y=0.5}
+    var vel  = @{x=0, y=0}
     pin image = spawn Image_Collidable(id, rect, off, on, others)
 
     par_or{
             every :mouse.button.dn{
-                set dest  = pico.get.mouse('%')
+                var ponto = pico.get.mouse('%')
+                var delta = @{x=ponto.x -rect.x, y=ponto.y -rect.y}
+                set dest = ponto
+                set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
                 emit :MOVENDO
             } 
     }
     with{
         every :clock
         {
-            await :MOVENDO
-            if (rect.x =!= dest.x) && (rect.y =!= dest.y){
-                print("o")
-                emit :MOVENDO
+            if dest
+            {
+                var d = @{x=dest.x -rect.x, y=dest.y -rect.y}
+                if Vetor.magnitude(d)>0.01{
+                    emit :MOVENDO
+                }
             }
         }
     }
@@ -27,8 +31,8 @@ func Pinguim(id, rect, on, off, others)
             every _,ms in :clock {
                 await :MOVENDO
                 var dt = ms/1000
-                ;;set rect.x = rect.x + (vel.x * dt)
-                set rect.y = rect.y - (vel.y * dt)
+                set rect.x = rect.x + (vel.x * dt)
+                set rect.y = rect.y + (vel.y * dt)
             }
     }with{
         loop{

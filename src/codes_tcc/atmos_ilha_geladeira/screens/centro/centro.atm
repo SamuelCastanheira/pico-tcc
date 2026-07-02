@@ -27,7 +27,7 @@ func Centro(){
         "../../../assets/imgs/pet_shop_hover.png")
 
     val v = await Pinguim(:NONE,
-        @{'%', x=0.5, y=0.9, w=0.1, h=0.1},
+        @{'%', x=0.5, y=0.7, w=0.08, h=0},
         "../../../assets/imgs/pinguim/amarelo/000.png",
         "../../../assets/imgs/pinguim/amarelo/000.png",
         predios)
