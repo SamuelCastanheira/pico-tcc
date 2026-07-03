@@ -1,9 +1,9 @@
 val Image = require "util/image"
 val Image_Hover = require "util/image_hover"
-val Image_Clickable_Persistent = require "util/image_clickable_persistent"
 val Pinguim = require "screens/centro/pinguim"
 
 func Centro(){
+    print(v)
     spawn Image(r, img) where
     {
         r = @{ '%', x=0.5, y=0.5 }
@@ -12,7 +12,7 @@ func Centro(){
 
     pin predios = tasks(3)
 
-    spawn [predios] Image_Clickable_Persistent(:BEAN_COUNTERS,
+    spawn [predios] Image_Hover(:BEAN_COUNTERS,
         @{'%', x=0.25, y=0.4, w=0.4, h=0.4},
         "../../../assets/imgs/coffe.png",
         "../../../assets/imgs/coffe_hover.png")
@@ -22,7 +22,7 @@ func Centro(){
         "../../../assets/imgs/dojo/dojo.png",
         "../../../assets/imgs/dojo/dojo_hover.png")
 
-    spawn [predios] Image_Clickable_Persistent(:PEGA_PUFLES,
+    spawn [predios] Image_Hover(:PEGA_PUFLES,
         @{'%', x=0.5, y=0.4, w=0.35, h=0.35},
         "../../../assets/imgs/pet_shop.png",
         "../../../assets/imgs/pet_shop_hover.png")

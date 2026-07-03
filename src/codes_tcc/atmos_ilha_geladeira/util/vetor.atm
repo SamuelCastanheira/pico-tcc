@@ -33,7 +33,6 @@ func Vetor.divide(v, scalar){
     if scalar != 0 =>  @{x = v.x / scalar, y = v.y / scalar}
 }
 
-
 func Vetor.dot(v1, v2){
     (v1.x * v2.x) + (v1.y * v2.y)
 }
@@ -51,7 +50,6 @@ func Vetor.distance(v1, v2){
 func Vetor.angle(v){
     math.atan2(v.y, v.x)
 }
-
 
 func Vetor.rotate(v, angle){
     var cos = math.cos(angle)

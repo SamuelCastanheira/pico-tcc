@@ -22,17 +22,14 @@ func get_img(cor, vel){
 func Pinguim(id, rect, cor, others)
 {
     var vel  = @{x=0, y=0}
-    var path = get_img(cor,vel)
-
-    pin imagem = spawn Image(rect, path)
     pin colis = spawn Collidable(id, rect, others)
-    
+
     par_or{
         every :mouse.button.dn{
             var ponto = pico.get.mouse('%')
             var delta = @{x=ponto.x -rect.x, y=ponto.y -rect.y}
             set dest = ponto
-            set vel = Vetor.multiply(Vetor.normalize(delta), 0.3)
+            set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
             emit :MOVENDO
         } 
     }
@@ -57,12 +54,12 @@ func Pinguim(id, rect, cor, others)
         }
     }with{
         every :draw {
-            set path = get_img(cor,vel)
+            var path = get_img(cor,vel)
+            pico.output.draw.image(path, rect)
         }
     }
     with{
         loop{
-            print(path)
             await :clock
             if (colis.pub){
                 break()
