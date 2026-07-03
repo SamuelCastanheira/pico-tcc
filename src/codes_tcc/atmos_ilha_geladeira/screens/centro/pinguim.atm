@@ -62,6 +62,7 @@ func Pinguim(id, rect, cor, others)
     }
     with{
         loop{
+            print(path)
             await :clock
             if (colis.pub){
                 break()
