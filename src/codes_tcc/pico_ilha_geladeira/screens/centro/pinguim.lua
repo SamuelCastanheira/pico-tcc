@@ -1,16 +1,27 @@
 local Vetor = require("util.vetor")
 local Objeto = require("util.objeto")
 
-local direcoes = 
-{
-    SUL = "000",
-    SUDESTE = "045",
-    LESTE = "090",
-    NORDESTE = "135",
-    NORTE = "180",
-    NOROESTE = "225" ,
-    OESTE = "270",
-    SUDOESTE = "315"
+
+local direcoes = {
+    LESTE = 0,
+    SUDESTE = 1,
+    SUL = 2,
+    SUDOESTE = 3,
+    OESTE = 4,
+    NOROESTE = 5,
+    NORTE = 6,
+    NORDESTE = 7
+}
+
+local angulos = {
+    "090", -- 0 = LESTE
+    "045", -- 1 = SUDESTE
+    "000", -- 2 = SUL
+    "315", -- 3 = SUDOESTE
+    "270", -- 4 = OESTE
+    "225", -- 5 = NOROESTE
+    "180", -- 6 = NORTE
+    "135", -- 7 = NORDESTE
 }
 
 local Pinguim = {}
@@ -23,7 +34,7 @@ function Pinguim.new(opts)
     opts = opts or {}
     local self = Objeto.create(opts) 
     self.cor = opts.cor or "amarelo"
-    self.direcao = direcoes.SUL
+    self.direcao = angulos[direcoes.SUL + 1]
     self.velocidade = Vetor.new({x=0, y=0})
     self.destino = {x=opts.rect.x, y=opts.rect.y}
     setmetatable(self, Pinguim)
@@ -40,34 +51,15 @@ end
 
 
 function Pinguim:get_direcao()
-    if self.velocidade:magnitude() == 0 then return end
+    if self.velocidade:magnitude() == 0 then
+        return
+    end
 
     local ang = self.velocidade:angle()
 
-    if ang >= 3*math.pi/8 and ang < 5*math.pi/8 then
-        self.direcao = direcoes.SUL
-
-    elseif ang >= math.pi/8 and ang < 3*math.pi/8 then
-        self.direcao = direcoes.SUDESTE
-
-    elseif ang >= -math.pi/8 and ang < math.pi/8 then 
-        self.direcao = direcoes.LESTE
-
-    elseif ang >= -3*math.pi/8 and ang < -math.pi/8 then
-        self.direcao = direcoes.NORDESTE
-
-    elseif ang >= -5*math.pi/8 and ang < -3*math.pi/8 then
-        self.direcao = direcoes.NORTE
-    
-    elseif ang >= -7*math.pi/8 and ang < -5*math.pi/8 then
-        self.direcao = direcoes.NOROESTE
-
-    elseif ang >= 7*math.pi/8 or ang < -7*math.pi/8 then
-        self.direcao = direcoes.OESTE
-
-    elseif ang >= 5*math.pi/8 and ang < 7*math.pi/8 then
-        self.direcao = direcoes.SUDOESTE
-    end
+    local setor = math.floor((ang + math.pi/8) / (math.pi/4)) % 8
+    print(setor)
+    self.direcao = angulos[setor + 1]
 end
 
 function Pinguim:atualiza_posicao(dt)

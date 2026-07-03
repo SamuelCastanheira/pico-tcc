@@ -28,8 +28,7 @@ func Centro(){
 
     val v = await Pinguim(:NONE,
         @{'%', x=0.5, y=0.7, w=0.08, h=0},
-        "../../../assets/imgs/pinguim/amarelo/000.png",
-        "../../../assets/imgs/pinguim/amarelo/000.png",
+        "amarelo",
         predios)
 
     match v

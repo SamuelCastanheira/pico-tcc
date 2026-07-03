@@ -1,19 +1,36 @@
-val Image_Collidable = require "util/image_collidable"
+val Collidable = require "util/image_collidable"
 val Vetor = require "util/vetor"
 
-func Pinguim(id, rect, on, off, others)
+
+func get_direcao(vel)
+{
+    var setor = 0
+    if Vetor.magnitude(vel) != 0{
+        var ang = Vetor.angle(vel)
+        set setor = math.floor((ang + (math.pi/8)) / (math.pi/4)) % 8
+    }
+    (90 - (setor*45)) % 360
+}
+
+func get_img(cor, vel){
+    var base = "../../../assets/imgs/pinguim"
+    var direcao = get_direcao(vel)
+    string.format("%s/%s/%03d.png", base, cor, direcao) 
+}
+
+func Pinguim(id, rect, cor, others)
 {
     var vel  = @{x=0, y=0}
-    pin image = spawn Image_Collidable(id, rect, off, on, others)
-
+    
+    pin colis = spawn Collidable(id, rect, others)
     par_or{
-            every :mouse.button.dn{
-                var ponto = pico.get.mouse('%')
-                var delta = @{x=ponto.x -rect.x, y=ponto.y -rect.y}
-                set dest = ponto
-                set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
-                emit :MOVENDO
-            } 
+        every :mouse.button.dn{
+            var ponto = pico.get.mouse('%')
+            var delta = @{x=ponto.x -rect.x, y=ponto.y -rect.y}
+            set dest = ponto
+            set vel = Vetor.multiply(Vetor.normalize(delta), 0.3)
+            emit :MOVENDO
+        } 
     }
     with{
         every :clock
@@ -28,21 +45,27 @@ func Pinguim(id, rect, on, off, others)
         }
     }
     with{
-            every _,ms in :clock {
-                await :MOVENDO
-                var dt = ms/1000
-                set rect.x = rect.x + (vel.x * dt)
-                set rect.y = rect.y + (vel.y * dt)
-            }
+        every _,ms in :clock {
+            await :MOVENDO
+            var dt = ms/1000
+            set rect.x = rect.x + (vel.x * dt)
+            set rect.y = rect.y + (vel.y * dt)
+        }
     }with{
+        every :draw {
+            var path = get_img(cor,vel)
+            pico.output.draw.image(path, rect)
+        }
+    }
+    with{
         loop{
             await :clock
-            if (image.pub.collided){
+            if (colis.pub.collided){
                 break()
             }
         }
     }
-    image.pub.collided
+    colis.pub.collided
 }
 
 Pinguim
