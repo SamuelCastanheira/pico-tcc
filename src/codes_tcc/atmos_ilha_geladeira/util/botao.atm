@@ -1,13 +1,14 @@
-val Image_Clickable = require "util/image_clickable"
+val Image_Clickable_Persistent = require "util/image_clickable_persistent"
 
 func Botao(id, rect, off, on)
 {
-   pin image = spawn Image_Clickable(id, rect, off, on)
+   pin click =  spawn Clickable(id, rect)
+   spawn Image_Hover(id,rect,off,on)
 
     loop
     {
         await :clock
-        if (image.pub.click)
+        if (click.pub)
         {
             break()
         }

@@ -1,5 +1,10 @@
 func Image(rect, path)
 {
+    set pub = @{
+        id = id,
+        rect = rect
+    }
+    
     every :draw {
         pico.output.draw.image(path, rect)
     }

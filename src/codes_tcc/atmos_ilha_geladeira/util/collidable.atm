@@ -1,11 +1,5 @@
-val Image_Clickable = require "util/image_clickable"
-
 func Collidable(id, rect, other)
 {
-    set pub = @{
-        collided = nil,
-    }
-
     loop
     {
         await :clock
@@ -16,7 +10,7 @@ func Collidable(id, rect, other)
                 if col => set collided = e.pub.id
             }
         }
-        if collided => set pub.collided = collided
+        if collided => set pub = collided
     }
 }
 

@@ -1,0 +1,24 @@
+val Image_Hover = require "util/image_hover"
+val Clickable = require "util/clickable"
+
+func Image_Clickable_Non_Persistent(id, rect, off, on)
+{
+    set pub = @{
+        id = id,
+        rect = rect
+    }
+
+    spawn Image_Hover(id, rect, off, on)
+    pin click = spawn Clickable(id, rect)
+    
+    loop {
+        await :clock
+        if (click.pub)
+        {
+            break()
+        }
+    }
+    id
+}
+
+Image_Clickable_Non_Persistent

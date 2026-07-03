@@ -1,0 +1,11 @@
+func Clickable(id, rect)
+{
+    loop {
+        await :mouse.button.dn
+        val m  = pico.get.mouse('%')
+        set click = pico.vs.pos_rect(m, rect)
+        if click => set pub = true
+    }
+}
+
+Clickable

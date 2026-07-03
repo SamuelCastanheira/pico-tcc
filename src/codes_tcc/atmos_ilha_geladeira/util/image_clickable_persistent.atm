@@ -1,0 +1,16 @@
+val Image_Hover = require "util/image_hover"
+val Clickable = require "util/clickable"
+
+func Image_Clickable_Persistent(id, rect, off, on)
+{
+    set pub = @{
+        id = id,
+        rect = rect
+    }
+
+    pin image =  Image_Hover(id, rect, off, on)
+    spawn Clickable(id, rect)
+    
+}
+
+Image_Clickable_Persistent

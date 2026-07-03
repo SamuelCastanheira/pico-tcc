@@ -1,4 +1,5 @@
-val Collidable = require "util/image_collidable"
+val Image = require "util/image"
+var Collidable = require "util/collidable"
 val Vetor = require "util/vetor"
 
 
@@ -21,8 +22,11 @@ func get_img(cor, vel){
 func Pinguim(id, rect, cor, others)
 {
     var vel  = @{x=0, y=0}
-    
+    var path = get_img(cor,vel)
+
+    pin imagem = spawn Image(rect, path)
     pin colis = spawn Collidable(id, rect, others)
+    
     par_or{
         every :mouse.button.dn{
             var ponto = pico.get.mouse('%')
@@ -53,19 +57,18 @@ func Pinguim(id, rect, cor, others)
         }
     }with{
         every :draw {
-            var path = get_img(cor,vel)
-            pico.output.draw.image(path, rect)
+            set path = get_img(cor,vel)
         }
     }
     with{
         loop{
             await :clock
-            if (colis.pub.collided){
+            if (colis.pub){
                 break()
             }
         }
     }
-    colis.pub.collided
+    colis.pub
 }
 
 Pinguim

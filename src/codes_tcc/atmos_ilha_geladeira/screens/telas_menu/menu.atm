@@ -1,5 +1,5 @@
 val Image = require "util/image"
-val Botao = require "util/botao"
+val Image_Clickable_Non_Persistent = require "util/image_clickable_non_persistent"
 
 func Menu () {
     spawn Image(r, img) where {
@@ -13,17 +13,23 @@ func Menu () {
     }
 
     par_or {
-        await Botao(:CENTRO, @{ '%', x=0.5, y=0.5, w=0.55, h=0.15 },
+        await Image_Clickable_Non_Persistent(
+            :CENTRO, 
+            @{ '%', x=0.5, y=0.5, w=0.55, h=0.15 },
             "../../../assets/imgs/botoes/b_jogar.png",
             "../../../assets/imgs/botoes/b_jogar_clicado.png", 
         )
      } with {
-        await Botao(:PERSON, @{ '%', x=0.5, y=0.7, w=0.55, h=0.15 }, 
+        await Image_Clickable_Non_Persistent(
+            :PERSON, 
+            @{ '%', x=0.5, y=0.7, w=0.55, h=0.15 }, 
             "../../../assets/imgs/botoes/b_personalizar.png", 
             "../../../assets/imgs/botoes/b_personalizar_clicado.png", 
         )
     } with {
-        await Botao(:SAIR, @{ '%', x=0.5, y=0.9, w=0.55, h=0.15 }, 
+        await Image_Clickable_Non_Persistent(
+            :SAIR, 
+            @{ '%', x=0.5, y=0.9, w=0.55, h=0.15 }, 
             "../../../assets/imgs/botoes/b_sair.png", 
             "../../../assets/imgs/botoes/b_sair_clicado.png", 
         )
