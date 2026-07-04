@@ -5,8 +5,6 @@ func Clickable(id, rect)
             val m = pico.get.mouse('%')
             if pico.vs.pos_rect(m, rect) {
                 set pub = true
-                ;;await :frame
-                set pub = false
             }
         }
     }

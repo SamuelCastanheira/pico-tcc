@@ -13,10 +13,10 @@ func Image_Clickable_Persistent(id, rect, off, on)
     
     loop {
         await :clock
-        print(click.pub, pub.click)
         if (click.pub)
         {
             set pub.click = id
+            set click.pub = nil
         }
         else
         {
