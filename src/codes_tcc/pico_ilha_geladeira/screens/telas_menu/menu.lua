@@ -14,19 +14,19 @@ local logo = Objeto.create({
                     })
 
 local bt_jogar = Objeto.create({
-                        rect={'%', x=0.5, y=0.5, w=0.55, h=0.2},
+                        rect={'%', x=0.5, y=0.5, w=0.55, h=0.15},
                         img="../../../assets/imgs/botoes/b_jogar.png",
                         img_hover= "../../../assets/imgs/botoes/b_jogar_clicado.png"
                         })
                 
 local bt_personalizar = Objeto.create({
-                                rect={'%', x=0.5, y=0.7, w=0.55, h=0.2},
+                                rect={'%', x=0.5, y=0.7, w=0.55, h=0.15},
                                 img="../../../assets/imgs/botoes/b_personalizar.png",
                                 img_hover=  "../../../assets/imgs/botoes/b_personalizar_clicado.png"
                                 })  
 
 local bt_sair = Objeto.create({
-                        rect={'%', x=0.5, y=0.9, w=0.55, h=0.2},
+                        rect={'%', x=0.5, y=0.9, w=0.55, h=0.15},
                         img="../../../assets/imgs/botoes/b_sair.png",
                         img_hover= "../../../assets/imgs/botoes/b_sair_clicado.png"
                         })

@@ -16,10 +16,10 @@ func Image_Hover(id, rect, off, on)
     } with {
         loop {
             watching :on {
-                await Image(rect, off)
+                await Image(id,rect, off)
             }
             watching :off {
-                await Image(rect, on)
+                await Image(id, rect, on)
             }            
         }
     } 

@@ -19,10 +19,10 @@ func get_img(cor, vel){
     string.format("%s/%s/%03d.png", base, cor, direcao) 
 }
 
-func Pinguim(id, rect, cor, others)
+func Pinguim(id, rect, cor, predios, dest)
 {
     var vel  = @{x=0, y=0}
-    pin colis = spawn Collidable(id, rect, others)
+    pin colis = spawn Collidable(id, rect, predios)
 
     par_or{
         every :mouse.button.dn{
@@ -61,7 +61,7 @@ func Pinguim(id, rect, cor, others)
     with{
         loop{
             await :clock
-            if (colis.pub){
+            if (dest && colis.pub && (colis.pub==dest)){
                 break()
             }
         }

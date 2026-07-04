@@ -1,4 +1,4 @@
-func Image(rect, path)
+func Image(id, rect, path)
 {
     set pub = @{
         id = id,

@@ -2,12 +2,12 @@ val Image = require "util/image"
 val Image_Clickable_Non_Persistent = require "util/image_clickable_non_persistent"
 
 func Menu () {
-    spawn Image(r, img) where {
+    spawn Image(:NIL,r, img) where {
         r = @{ '%', x=0.5, y=0.5 }
         img = "../../../assets/imgs/background_menu.png"
     }
 
-    spawn Image(r, img) where {
+    spawn Image(:NIL, r, img) where {
         r = @{ '%', x=0.5, y=0.225, w=0.45, h=0.45 }
         img = "../../../assets/imgs//logo.png"
     }

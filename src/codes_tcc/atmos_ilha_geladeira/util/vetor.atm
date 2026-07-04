@@ -10,11 +10,12 @@ func Vetor.magnitude(v){
 
 func Vetor.normalize(v){
     var mag = Vetor.magnitude(v)
+    var v1 = @{x=0, y=0}
     if mag > 0 {
-        set v.x = v.x / mag
-        set v.y = v.y / mag
+        set v1.x = v.x / mag
+        set v1.y = v.y / mag
     }
-    v
+    v1
 }
 
 func Vetor.add(v1, v2){
