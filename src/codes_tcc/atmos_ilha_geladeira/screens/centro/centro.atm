@@ -31,7 +31,7 @@ func Centro(){
         {
             loop _,predio in predios{
                 if predio.pub.click{
-                    set dest = predio.pub.id
+                    set dest_final = predio.pub.id
                 }
             }
         }
