@@ -10,12 +10,13 @@ math.randomseed()
 
 val Menu = require "screens/telas_menu/menu"
 val Centro = require "screens/centro/centro"
+val Personalizar = require "screens/telas_menu/personalizar"
 
 loop {
     var v = await Menu()
     match v {
         :CENTRO => await Centro()
-        :PERSON => await Centro()
+        :PERSON => await Personalizar()
         :SAIR   => break()
     }
 }

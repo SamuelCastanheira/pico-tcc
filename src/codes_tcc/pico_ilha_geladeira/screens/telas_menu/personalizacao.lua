@@ -46,7 +46,6 @@ end
 
 local function mouse_em_cor(state, mouse)
     for _, cor in ipairs(cores) do
-        print(mouse.x, mouse.y)
         if pico.vs.pos_rect(mouse, cor.rect) then
             state.personData.cor_select = cor
         end 
