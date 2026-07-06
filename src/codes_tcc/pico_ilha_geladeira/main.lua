@@ -19,7 +19,7 @@ local gameState = {
 -- Inicializações do seu código original
 pico.init(true)
 local phy = {'!', w=1280, h=720}
-pico.set.view{grid=false}
+pico.set.effect{grid=false}
 pico.set.dim(phy)
 pico.set.expert(true, gameState.frames)
 

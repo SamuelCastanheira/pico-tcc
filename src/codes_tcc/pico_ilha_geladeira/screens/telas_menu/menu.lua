@@ -41,22 +41,22 @@ function Menu.update(state, event)
     bt_personalizar.hover = false
     bt_jogar.hover = false 
 
-    if pico.vs.pos_rect(mouse, bt_sair.rect) then
+    if pico.vs.pos.rect(mouse, bt_sair.rect) then
         bt_sair.hover = true
-    elseif pico.vs.pos_rect(mouse, bt_personalizar.rect) then 
+    elseif pico.vs.pos.rect(mouse, bt_personalizar.rect) then 
         bt_personalizar.hover = true
-    elseif pico.vs.pos_rect(mouse, bt_jogar.rect) then
+    elseif pico.vs.pos.rect(mouse, bt_jogar.rect) then
         bt_jogar.hover = true
     end
 
     if event then
-        if event.tag=='mouse.button.dn' and pico.vs.pos_rect(mouse, bt_sair.rect) then
+        if event.tag=='mouse.button.dn' and pico.vs.pos.rect(mouse, bt_sair.rect) then
             pico.quit()
         end
-        if event.tag=='mouse.button.dn' and pico.vs.pos_rect(mouse, bt_personalizar.rect) then
+        if event.tag=='mouse.button.dn' and pico.vs.pos.rect(mouse, bt_personalizar.rect) then
             state.nextScreen = "person"
         end
-        if event.tag=='mouse.button.dn' and pico.vs.pos_rect(mouse, bt_jogar.rect) then
+        if event.tag=='mouse.button.dn' and pico.vs.pos.rect(mouse, bt_jogar.rect) then
             state.nextScreen = "centro"
         end
     end

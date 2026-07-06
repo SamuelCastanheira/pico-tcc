@@ -30,9 +30,9 @@ local layer_place = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
 local function cria_layer_quadro()
     local dim = {w=600, h=400}
     local tile = {x=7, y=5}
-    pico.layer.empty('=', "quadro_gelo", {w=dim.w, h=dim.h})
+    pico.layer.empty('=', nil, "quadro_gelo", false, {'!', w=dim.w, h=dim.h})
     pico.set.layer("quadro_gelo")
-    pico.set.view{tile={w=dim.w/tile.x, h=dim.h/tile.y}}
+    pico.set.scene{tile={w=dim.w/tile.x, h=dim.h/tile.y}}
     local quadro_gelo = {'#', x=1, y=1, w=7, h=5, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro_gelo)
 
@@ -41,12 +41,12 @@ local function cria_layer_quadro()
         local path = string.format("%s/%d.png", base, cor.index)
         pico.output.draw.image(path, cor.rect)
     end
-    pico.set.layer(nil)
+    pico.set.layer("world")
 end
 
 local function mouse_em_cor(state, mouse)
     for _, cor in ipairs(cores) do
-        if pico.vs.pos_rect(mouse, cor.rect) then
+        if pico.vs.pos.rect(mouse, cor.rect) then
             state.personData.cor_select = cor
         end 
     end
@@ -63,7 +63,7 @@ function Personalizacao.update(state, event)
     local mouse = pico.get.mouse('!')
     
     if event and event.tag == 'mouse.button.dn' then
-        if pico.vs.pos_rect(mouse, voltar) then
+        if pico.vs.pos.rect(mouse, voltar) then
             state.nextScreen = "menu"
         end
     end
@@ -73,7 +73,7 @@ end
 
 function Personalizacao.draw(state)
     local mouse = pico.get.mouse('!')
-    local img_voltar = pico.vs.pos_rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
+    local img_voltar = pico.vs.pos.rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
     local base_pinguins = "../../../assets/imgs/personalizar/pinguim"
     local cor_select = state.personData.cor_select
 
