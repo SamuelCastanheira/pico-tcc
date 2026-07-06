@@ -3,8 +3,8 @@ set pico = require "pico"
 
 set W, H = (1280, 720)
 
-pico.zet.window @{ title="Ilha da Geladeira" }
-pico.zet.dim @{'!', w=1280, h=720}
+pico.set.window [ title="Ilha da Geladeira" ]
+pico.set.dim ['!', w=1280, h=720]
 
 math.randomseed()
 

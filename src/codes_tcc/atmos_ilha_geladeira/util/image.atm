@@ -1,11 +1,11 @@
-func Image(id, rect, path)
+task Image(id, rect, path)
 {
-    set pub = @{
+    set pub = [
         id = id,
         rect = rect
-    }
+    ]
     
-    every :draw {
+    loop on :draw {
         pico.output.draw.image(path, rect)
     }
 }

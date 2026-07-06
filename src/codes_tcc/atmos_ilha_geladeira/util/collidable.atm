@@ -1,4 +1,4 @@
-func Collidable(id, rect, other)
+task Collidable(id, rect, other)
 {
     loop
     {
@@ -6,7 +6,7 @@ func Collidable(id, rect, other)
         loop _,e in other{
             if (e && e.pub.rect)
             {
-                set col = pico.vs.rect_rect(e.pub.rect, rect)
+                set col = pico.vs.rect.rect(e.pub.rect, rect)
                 if col => set collided = e.pub.id
             }
         }

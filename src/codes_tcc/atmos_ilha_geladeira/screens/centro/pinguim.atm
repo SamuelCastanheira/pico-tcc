@@ -19,26 +19,26 @@ func get_img(cor, vel){
     string.format("%s/%s/%03d.png", base, cor, direcao) 
 }
 
-func Pinguim(id, rect, cor, predios)
+task Pinguim(id, rect, cor, predios)
 {
-    var vel  = @{x=0, y=0}
+    var vel  = [x=0, y=0]
     pin colis = spawn Collidable(id, rect, predios)
 
-    par_or{
-        every :mouse.button.dn{
+    par:any {
+        loop on :mouse.button.dn{
             var ponto = pico.get.mouse('%')
-            var delta = @{x=ponto.x -rect.x, y=ponto.y -rect.y}
+            var delta = [x=ponto.x -rect.x, y=ponto.y -rect.y]
             set dest = ponto
             set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
             emit :MOVENDO
         } 
     }
     with{
-        every :clock
+        loop on :clock
         {
             if dest
             {
-                var d = @{x=dest.x -rect.x, y=dest.y -rect.y}
+                var d = [x=dest.x -rect.x, y=dest.y -rect.y]
                 if Vetor.magnitude(d)>0.01{
                     emit :MOVENDO
                 }
@@ -46,14 +46,14 @@ func Pinguim(id, rect, cor, predios)
         }
     }
     with{
-        every _,ms in :clock {
+        loop us on :clock {
             await :MOVENDO
-            var dt = ms/1000
+            var dt = us/1s
             set rect.x = rect.x + (vel.x * dt)
             set rect.y = rect.y + (vel.y * dt)
         }
     }with{
-        every :draw {
+        loop on :draw {
             var path = get_img(cor,vel)
             pico.output.draw.image(path, rect)
         }

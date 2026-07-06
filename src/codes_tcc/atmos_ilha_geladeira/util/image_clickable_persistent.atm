@@ -1,14 +1,14 @@
 val Image_Hover = require "util/image_hover"
 val Clickable = require "util/clickable"
 
-func Image_Clickable_Persistent(id, rect, off, on)
+task Image_Clickable_Persistent(id, rect, off, on_)
 {
-    set pub = @{
+    set pub = [
         id = id,
         rect = rect
-    }
+    ]
 
-    spawn Image_Hover(id, rect, off, on)
+    spawn Image_Hover(id, rect, off, on_)
     pin click = spawn Clickable(id, rect)
     
     loop {

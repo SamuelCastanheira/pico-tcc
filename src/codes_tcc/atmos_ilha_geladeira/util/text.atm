@@ -1,25 +1,25 @@
-func Text(id, pos, ancora, text, font, font_size, style, color)
+task Text(id, pos, ancora, text, font, font_size, style, color)
 {
-    set pub = @{
+    set pub = [
         id = id,
-    }
+    ]
 
     var h = font_size / H
     var w = (#text * h)
 
-    every :draw {
-        ;;pico.zet.pencil(color, font, style)
+    loop on :draw {
+        ;;pico.set.pencil(color, font, style)
         print(W,H)
         print(w,h)
 
-        pico.output.draw.text(text, @{
+        pico.output.draw.text(text, [
             '%',
             x = pos.x,
             y = pos.y,
             w = w,
             h = h,
             anchor = ancora
-        })
+        ])
 
     }
 }

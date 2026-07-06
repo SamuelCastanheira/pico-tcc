@@ -1,9 +1,9 @@
-func Clickable(id, rect)
+task Clickable(id, rect)
 {
     loop {
-        every e in :mouse.button.dn {
+        loop e on :mouse.button.dn {
             val m = pico.get.mouse('%')
-            if pico.vs.pos_rect(m, rect) {
+            if pico.vs.pos.rect(m, rect) {
                 set pub = true
             }
         }

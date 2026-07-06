@@ -1,4 +1,4 @@
-var Vetor = @{}
+var Vetor = []
 
 func Vetor.magnitudeSquared(v){
     (v.x * v.x) + (v.y * v.y)
@@ -10,7 +10,7 @@ func Vetor.magnitude(v){
 
 func Vetor.normalize(v){
     var mag = Vetor.magnitude(v)
-    var v1 = @{x=0, y=0}
+    var v1 = [x=0, y=0]
     if mag > 0 {
         set v1.x = v.x / mag
         set v1.y = v.y / mag
@@ -19,19 +19,19 @@ func Vetor.normalize(v){
 }
 
 func Vetor.add(v1, v2){
-    @{x=v1.x + v2.x, y=v1.y + v2.y}
+    [x=v1.x + v2.x, y=v1.y + v2.y]
 }
 
 func Vetor.subtract(v1, v2){
-    @{x= v1.x - v2.x, y= v1.y - v2.y}
+    [x= v1.x - v2.x, y= v1.y - v2.y]
 }
 
 func Vetor.multiply(v, scalar){
-    @{x = v.x * scalar, y = v.y * scalar}
+    [x = v.x * scalar, y = v.y * scalar]
 }
 
 func Vetor.divide(v, scalar){
-    if scalar != 0 =>  @{x = v.x / scalar, y = v.y / scalar}
+    if scalar != 0 =>  [x = v.x / scalar, y = v.y / scalar]
 }
 
 func Vetor.dot(v1, v2){
@@ -57,11 +57,11 @@ func Vetor.rotate(v, angle){
     var sin = math.sin(angle)
     var x = (v.x * cos) - (v.y * sin)
     var y = (v.x * sin) + (v.y * cos)
-    @{x=x, y=y}
+    [x=x, y=y]
 }
 
 func Vetor.negate(v){
-    @{x=-v.x, y=-v.y}
+    [x=-v.x, y=-v.y]
 }
 
 func Vetor.clamp(v, maxMagnitude){
@@ -70,18 +70,18 @@ func Vetor.clamp(v, maxMagnitude){
 }
 
 func Vetor.lerp(v1, v2, t){
-    @{
+    [
         x= v1.x + ((v2.x - v1.x) * t),
         y= v1.y + ((v2.y - v1.y) * t)
-    }
+    ]
 }
 
 func Vetor.reflect(v, normal){
     var d = 2 * Vetor.dot(normal)
-    @{
+    [
         x = v.x - (d * normal.x),
         y = v.y - (d * normal.y)
-    }
+    ]
 }
 
 func Vetor.reflect(v, ponto, normal){
@@ -92,7 +92,7 @@ func Vetor.reflect(v, ponto, normal){
 }
 
 func Vetor.perpenicular(v){
-    @{x=-v.y, y=v.x}
+    [x=-v.y, y=v.x]
 }
 
 func Vetor.__eq(v1,v2){
