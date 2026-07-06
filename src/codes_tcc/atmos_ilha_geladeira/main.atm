@@ -12,6 +12,8 @@ val Menu = require "screens/telas_menu/menu"
 val Centro = require "screens/centro/centro"
 val Personalizar = require "screens/telas_menu/personalizar"
 
+set moedas = 0
+
 loop {
     var v = await Menu()
     match v {

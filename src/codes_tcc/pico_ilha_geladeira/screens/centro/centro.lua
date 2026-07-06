@@ -42,20 +42,26 @@ function Centro.update(state, event)
     local dt =  (agora - data.last)/1000
     data.last = agora
 
+    if pico.vs.pos_rect(mouse, petshop.rect) then
+        petshop.hover = true
+    elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
+        cafeteria.hover = true
+    elseif pico.vs.pos_rect(mouse, dojo.rect) then
+        dojo.hover = true
+    end
+
     if event and event.tag == 'mouse.button.dn' then
         data.pinguim:calcula_movimento(mouse)
 
         if pico.vs.pos_rect(mouse, petshop.rect) then
-            petshop.hover = true
             data.destino = "petshop"
         elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
-            cafeteria.hover = true
             data.destino = "cafeteria"
         elseif pico.vs.pos_rect(mouse, dojo.rect) then
-            dojo.hover = true
             data.destino = "dojo"
         end
     end
+
     if not data.pinguim:chegou_destino() then
         data.pinguim:atualiza_posicao(dt)
     end

@@ -1,0 +1,27 @@
+func Text(id, pos, ancora, text, font, font_size, style, color)
+{
+    set pub = @{
+        id = id,
+    }
+
+    var h = font_size / H
+    var w = (#text * h)
+
+    every :draw {
+        ;;pico.zet.pencil(color, font, style)
+        print(W,H)
+        print(w,h)
+
+        pico.output.draw.text(text, @{
+            '%',
+            x = pos.x,
+            y = pos.y,
+            w = w,
+            h = h,
+            anchor = ancora
+        })
+
+    }
+}
+
+Text

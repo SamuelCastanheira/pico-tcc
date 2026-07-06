@@ -1,6 +1,7 @@
 val Image = require "util/image"
 val Image_Clickable_Persistent = require "util/image_clickable_persistent"
 val Pinguim = require "screens/centro/pinguim"
+val Text = require "util/text"
 
 func Centro(){
     spawn Image(:NIL, r, img) where
@@ -8,6 +9,8 @@ func Centro(){
         r = @{ '%', x=0.5, y=0.5 }
         img = "../../../assets/imgs/centro.png"
     }
+
+    spawn Moeda()
 
     pin predios = tasks(3)
 
@@ -47,6 +50,20 @@ func Centro(){
         :BEAN_COUNTERS => print("1")
         :DOJO => print("2")
         :PEGA_PUFLES => print("3")
+    } 
+}
+
+func Moeda()
+{
+    spawn Image(:NIL, r ,img) where{
+    r = @{'%',x=0.05, y=0.05, w=0.05, h=0}
+    img = "../../../assets/imgs/moeda.png"}
+
+    every :draw
+    {
+        var moeda_num = @{'%',x=0.08, y=0, w=0.025*#tostring(moedas), h= 0.1, anchor='NW'}
+        pico.zet.color.draw('yellow')
+        pico.output.draw.text(moedas, moeda_num)
     } 
 }
 

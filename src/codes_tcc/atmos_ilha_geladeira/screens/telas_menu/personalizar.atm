@@ -6,7 +6,7 @@ func cria_layer_quadro(){
     var tile = @{x=7, y=5}
     pico.layer.empty('=', "quadro", @{w=dim.w, h=dim.h})
     pico.zet.layer("quadro")
-    pico.zet.view.tile(@{w=dim.w/tile.x, h=dim.h/tile.y})
+    ;;pico.zet.tile(@{w=dim.w/tile.x, h=dim.h/tile.y})
     var quadro = @{'#', x=1, y=1, w=7, h=5, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro)
     pico.zet.layer(nil)
@@ -23,6 +23,7 @@ func Personalizar () {
     par_or {
         await (
             every :draw{
+                pico.zet.color.draw('white')
                 pico.output.draw.text("Escolha sua cor",
                 @{'%', x=0.78, y=0.25, w=0.38, h=0.1})
 
