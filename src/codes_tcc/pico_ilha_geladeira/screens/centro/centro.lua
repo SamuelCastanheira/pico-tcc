@@ -42,22 +42,22 @@ function Centro.update(state, event)
     local dt =  (agora - data.last)/1000
     data.last = agora
 
-    if pico.vs.pos_rect(mouse, petshop.rect) then
+    if pico.vs.pos.rect(mouse, petshop.rect) then
         petshop.hover = true
-    elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
+    elseif pico.vs.pos.rect(mouse, cafeteria.rect) then
         cafeteria.hover = true
-    elseif pico.vs.pos_rect(mouse, dojo.rect) then
+    elseif pico.vs.pos.rect(mouse, dojo.rect) then
         dojo.hover = true
     end
 
     if event and event.tag == 'mouse.button.dn' then
         data.pinguim:calcula_movimento(mouse)
 
-        if pico.vs.pos_rect(mouse, petshop.rect) then
+        if pico.vs.pos.rect(mouse, petshop.rect) then
             data.destino = "petshop"
-        elseif pico.vs.pos_rect(mouse, cafeteria.rect) then
+        elseif pico.vs.pos.rect(mouse, cafeteria.rect) then
             data.destino = "cafeteria"
-        elseif pico.vs.pos_rect(mouse, dojo.rect) then
+        elseif pico.vs.pos.rect(mouse, dojo.rect) then
             data.destino = "dojo"
         end
     end
@@ -66,11 +66,11 @@ function Centro.update(state, event)
         data.pinguim:atualiza_posicao(dt)
     end
 
-    if data.destino and data.destino == "petshop" and pico.vs.pos_rect(data.pinguim.rect, petshop.rect) then
+    if data.destino and data.destino == "petshop" and pico.vs.pos.rect(data.pinguim.rect, petshop.rect) then
         state.nextScreen = "pega_puffle"
-    elseif data.destino and data.destino == "cafeteria" and pico.vs.pos_rect(data.pinguim.rect, cafeteria.rect) then
+    elseif data.destino and data.destino == "cafeteria" and pico.vs.pos.rect(data.pinguim.rect, cafeteria.rect) then
         state.nextScreen = "bean_counters"
-    elseif data.destino and data.destino == "dojo" and pico.vs.pos_rect(data.pinguim.rect, dojo.rect) then
+    elseif data.destino and data.destino == "dojo" and pico.vs.pos.rect(data.pinguim.rect, dojo.rect) then
         state.nextScreen = "dojo"
     end
 end
@@ -87,7 +87,7 @@ function Centro.draw(state)
     local moeda = {'%',x=0.05, y=0.05, w=0.05, h=0}
     local moeda_num = {'%',x=0.08, y=0, w=.025*#tostring(state.money), h= 0.1, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/moeda.png",moeda )
-    pico.set.color.draw('yellow')
+    pico.set.pencil { color='yellow' }
     pico.output.draw.text(state.money, moeda_num)
     pico.output.present()
 end
