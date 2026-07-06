@@ -16,7 +16,7 @@ task Personalizar () {
     cria_layer_quadro()
 
     spawn Image(:NIL,r, img) where {
-        r = [ '%', x=0.5, y=0.5 ]
+        r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
