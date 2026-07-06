@@ -1,5 +1,6 @@
 task Collidable(id, rect, other)
 {
+    var collided = false
     loop
     {
         await :clock
