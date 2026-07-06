@@ -2,14 +2,14 @@ val Image = require "util/image"
 val Image_Clickable_Non_Persistent = require "util/image_clickable_non_persistent"
 
 func cria_layer_quadro(){
-    pico.layer.empty('=', "quadro", @{w=dim.w, h=dim.h})
     var dim = [w=600, h=400]
     var tile = [x=7, y=5]
+    pico.layer.empty('=', nil, "quadro", false, ['!', w=dim.w, h=dim.h])
     pico.set.layer("quadro")
     ;;pico.set.tile([w=dim.w/tile.x, h=dim.h/tile.y])
     var quadro = ['#', x=1, y=1, w=7, h=5, anchor='NW']
     pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro)
-    pico.set.layer(nil)
+    pico.set.layer("world")
 }
 
 task Personalizar () {
@@ -23,7 +23,7 @@ task Personalizar () {
     par:any {
         await (
             loop on :draw{
-                pico.set.color.draw('white')
+                pico.set.pencil [ color = 'white' ]
                 pico.output.draw.text("Escolha sua cor",
                 ['%', x=0.78, y=0.25, w=0.38, h=0.1])
 
