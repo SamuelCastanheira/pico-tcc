@@ -1,0 +1,13 @@
+task Sub (up)
+{
+    set up.x = 10
+    print(up.x)
+}
+
+task Sup ()
+{
+    spawn Sub(pub)
+}
+
+pin s = spawn Sup()
+print(s.x)

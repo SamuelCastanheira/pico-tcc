@@ -1,5 +1,5 @@
-val Image = require "util/image"
-var Collidable = require "util/collidable"
+val Image = require "util/components/image"
+var Collidable = require "util/components/collidable"
 val Vetor = require "util/vetor"
 
 
@@ -59,8 +59,7 @@ task Pinguim(id, rect, cor, predios)
         }
     }
     with{
-        loop{
-            await :clock
+        loop on :clock{
             if (dest_final && colis.pub && (colis.pub==dest_final)){
                 break()
             }

@@ -1,7 +1,7 @@
-val Image = require "util/image"
-val Image_Clickable_Persistent = require "util/image_clickable_persistent"
+val Image = require "util/components/image"
+val Image_Clickable_Persistent = require "util/components/image_clickable_persistent"
 val Pinguim = require "screens/centro/pinguim"
-val Text = require "util/text"
+val Text = require "util/components/text"
 
 task Centro(){
     spawn Image(:NIL, r, img) where
@@ -30,6 +30,7 @@ task Centro(){
         "../../../assets/imgs/pet_shop_hover.png")
     
     spawn{
+        set dest_final = nil
         loop on :clock
         {
             loop _,predio in predios{

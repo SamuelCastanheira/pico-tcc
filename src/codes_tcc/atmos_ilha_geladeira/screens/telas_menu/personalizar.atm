@@ -1,14 +1,40 @@
-val Image = require "util/image"
-val Image_Clickable_Non_Persistent = require "util/image_clickable_non_persistent"
+val Image = require "util/components/image"
+val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
+
+val cores = [
+    "amarelo",
+    "avermelhado",
+    "azul_forte",
+    "ciano",
+    "cinza",
+    "azul_fraco",
+    "laranja",
+    "marrom",
+    "preto", 
+    "rosa_medio",
+    "roxo",     
+    "verde_forte",
+    "verde_medio",
+    "verde_vomito",
+    "vermelho"
+]
 
 func cria_layer_quadro(){
     var dim = [w=600, h=400]
     var tile = [x=7, y=5]
     pico.layer.empty('=', nil, "quadro", false, ['!', w=dim.w, h=dim.h])
     pico.set.layer("quadro")
-    ;;pico.set.tile([w=dim.w/tile.x, h=dim.h/tile.y])
+    pico.set.scene [tile = [w= dim.w/tile.x, h= dim.h/tile.y]]
     var quadro = ['#', x=1, y=1, w=7, h=5, anchor='NW']
     pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro)
+    loop i,cor in cores{
+        set i = i + -1
+        var path_cor = string.format("../../../assets/imgs/personalizar/%d.png", i) 
+        print(path_cor, 1+math.abs((i%5)), 1+math.floor(i/5))
+        pico.output.draw.image(path_cor,['#', x=2+(i%5), y=2+ math.floor(i/5), w=1, h=1])
+    }
+    
+
     pico.set.layer("world")
 }
 
@@ -32,6 +58,10 @@ task Personalizar () {
             }
         )
      } with {
+        spawn Image(:NIL,
+        ['%', x=0.3, y=0.35, w=0.3, h=0],
+        "../../../assets/imgs/personalizar/pinguim_amarelo.png")
+        
         await Image_Clickable_Non_Persistent(
             :PERSON, 
             ['%', x=0.3, y=0.8, w=0.3, h=0],

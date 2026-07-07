@@ -1,5 +1,6 @@
-val Image_Hover = require "util/image_hover"
-val Clickable = require "util/clickable"
+val Image_Hover = require "util/components/image_hover"
+val Clickable = require "util/components/clickable"
+
 
 task Image_Clickable_Non_Persistent(id, rect, off, on_)
 {

@@ -1,4 +1,4 @@
-val Image = require "util/image"
+val Image = require "util/components/image"
 
 task Image_Hover(id, rect, off, on_)
 {
