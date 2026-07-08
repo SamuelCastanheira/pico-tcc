@@ -1,5 +1,41 @@
+;;ordem errado de up e key de layer na api e sem retorno da key
+
 val Image = require "util/components/image"
 val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
+
+task Personalizar () {
+    cria_layer_quadro()
+
+    spawn Image(:NIL,r, img) where {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
+        img = "../../../assets/imgs/background_personalizar.png"
+    }
+
+    par:any {
+        await (
+            loop on :draw{
+                pico.set.pencil [ color = 'white' ]
+                pico.output.draw.text("Escolha sua cor",
+                ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+            }
+        )
+     } with {
+        spawn Image(:NIL,
+        ['%', x=0.3, y=0.35, w=0.3, h=0],
+        "../../../assets/imgs/personalizar/pinguim_amarelo.png")
+        
+        await Image_Clickable_Non_Persistent(
+            :PERSON, 
+            ['%', x=0.3, y=0.8, w=0.3, h=0],
+            "../../../assets/imgs/botoes/b_voltar.png", 
+            "../../../assets/imgs/botoes/b_voltar_clicado.png", 
+        )
+    } with{
+        loop on :clock{
+            mouse_em_cor()
+        }
+    }
+}
 
 val cores = [
     "amarelo",
@@ -19,55 +55,43 @@ val cores = [
     "vermelho"
 ]
 
+func mouse_em_cor(){
+    var m = pico.get.mouse('%')
+    
+    loop i, cor in cores{
+        
+        var i = i - 1
+        var path_cor = string.format("../../../assets/imgs/personalizar/%d.png", i) 
+        var rect = pico.cv.rect ('world',['%', x=0.5, y=0.5, w=1, h=1], 
+        path_cor,['%', x=0.5, y=0.5, w=1, h=1])
+
+        print('mouse',m.x,m.y)
+        print('rect',rect.x,rect.y,rect.w,rect.h)
+
+        if  pico.vs.pos.rect ('world', m,'quadro',['#', x=2+(i%5), y=2+(i/5), w=1, h=1]) {
+           print(cor)
+        } 
+    }
+}
+
 func cria_layer_quadro(){
     var dim = [w=600, h=400]
     var tile = [x=7, y=5]
-    pico.layer.empty('=', nil, "quadro", false, ['!', w=dim.w, h=dim.h])
-    pico.set.layer("quadro")
-    pico.set.scene [tile = [w= dim.w/tile.x, h= dim.h/tile.y]]
-    var quadro = ['#', x=1, y=1, w=7, h=5, anchor='NW']
-    pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro)
-    loop i,cor in cores{
-        set i = i + -1
-        var path_cor = string.format("../../../assets/imgs/personalizar/%d.png", i) 
-        print(path_cor, 1+math.abs((i%5)), 1+math.floor(i/5))
-        pico.output.draw.image(path_cor,['#', x=2+(i%5), y=2+ math.floor(i/5), w=1, h=1])
-    }
+
+    pico.layer.empty('=', 'world', 'quadro',false, ['!', w=dim.w, h=dim.h])
+    pico.set.layer('quadro')
+    pico.set.scene[tile = [w= dim.w/tile.x, h= dim.h/tile.y],
+                   target = ['%', x=0.78, y=0.5, w=0.4, h=0.5]]
+
+    pico.set.layer('world')
+
+    var ret = pico.layer.image('=','quadro', nil, "../../../assets/imgs/personalizar/quadro.png", ['#', x=1, y=1, w=7, h=5, anchor='NW'])
+    print(ret)
     
-
-    pico.set.layer("world")
-}
-
-task Personalizar () {
-    cria_layer_quadro()
-
-    spawn Image(:NIL,r, img) where {
-        r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
-        img = "../../../assets/imgs/background_personalizar.png"
-    }
-
-    par:any {
-        await (
-            loop on :draw{
-                pico.set.pencil [ color = 'white' ]
-                pico.output.draw.text("Escolha sua cor",
-                ['%', x=0.78, y=0.25, w=0.38, h=0.1])
-
-                 pico.output.draw.layer("quadro",
-                 ['%', x=0.78, y=0.5, w=0.4, h=0.5])
-            }
-        )
-     } with {
-        spawn Image(:NIL,
-        ['%', x=0.3, y=0.35, w=0.3, h=0],
-        "../../../assets/imgs/personalizar/pinguim_amarelo.png")
-        
-        await Image_Clickable_Non_Persistent(
-            :PERSON, 
-            ['%', x=0.3, y=0.8, w=0.3, h=0],
-            "../../../assets/imgs/botoes/b_voltar.png", 
-            "../../../assets/imgs/botoes/b_voltar_clicado.png", 
-        )
+    loop i,cor in cores{
+        set i = i- 1
+        var path_cor = string.format("../../../assets/imgs/personalizar/%d.png", i) 
+        pico.layer.image('=','quadro', nil, path_cor, ['#', x=2+(i%5), y=2+ math.floor(i/5), w=1, h=1])
     }
 }
 
