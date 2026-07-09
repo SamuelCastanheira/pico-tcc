@@ -1,7 +1,7 @@
 task XCollidable (me, others) {
     loop on :clock {
         loop _,e in others {
-            set col = pico.vs.pos.rect(me.pub.rect, e.pub.rect)
+            val col = pico.vs.pos.rect(me.pub.rect, e.pub.rect)
             if col {
                 emit @(me) :collided [id=e.pub.id]
             }
