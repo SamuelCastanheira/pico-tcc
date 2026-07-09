@@ -16,9 +16,11 @@ set moedas = 0
 
 loop {
     var v = await Menu()
+    pico.push()
     match v {
         :CENTRO => await Centro()
         :PERSON => await Personalizar()
         :SAIR   => break()
     }
+    pico.pop()
 }
