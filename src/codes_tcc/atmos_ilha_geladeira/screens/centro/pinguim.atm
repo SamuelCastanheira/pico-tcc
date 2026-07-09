@@ -1,10 +1,10 @@
 val Image = require "util/components/image"
-var Collidable = require "util/components/collidable"
+val Collidable = require "util/components/collidable"
+val XCollidable = require "util/components/xcollidable"
 val Vetor = require "util/vetor"
 
 
-func get_direcao(vel)
-{
+func get_direcao (vel) {
     var setor = 0
     if Vetor.magnitude(vel) != 0{
         var ang = Vetor.angle(vel)
@@ -13,59 +13,50 @@ func get_direcao(vel)
     (90 - (setor*45)) % 360
 }
 
-func get_img(cor, vel){
+func get_img (cor, vel) {
     var base = "../../../assets/imgs/pinguim"
     var direcao = get_direcao(vel)
     string.format("%s/%s/%03d.png", base, cor, direcao) 
 }
 
-task Pinguim(id, rect, cor, predios)
-{
+task Pinguim (id, rect, cor, predios) {
+    set pub = [ rect=rect ]
     var vel  = [x=0, y=0]
-    pin colis = spawn Collidable(id, rect, predios)
+    pin colis = spawn XCollidable(task, predios)
 
-    par:any {
-        loop on :mouse.button.dn{
-            var ponto = pico.get.mouse('%')
-            var delta = [x=ponto.x -rect.x, y=ponto.y -rect.y]
-            set dest = ponto
-            set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
-            emit :MOVENDO
-        } 
-    }
-    with{
-        loop on :clock
-        {
-            if dest
-            {
-                var d = [x=dest.x -rect.x, y=dest.y -rect.y]
-                if Vetor.magnitude(d)>0.01{
-                    emit :MOVENDO
+    watching :collided [id=dest_final] {
+        par {
+            loop on :mouse.button.dn {
+                var ponto = pico.get.mouse('%')
+                var delta = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+                set dest = ponto
+                set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
+                emit :MOVENDO
+            } 
+        } with {
+            loop on :clock {
+                if dest {
+                    var d = [x=dest.x -rect.x, y=dest.y -rect.y]
+                    if Vetor.magnitude(d) > 0.01 {
+                        emit :MOVENDO
+                    }
                 }
             }
-        }
-    }
-    with{
-        loop us on :clock {
-            await :MOVENDO
-            var dt = us/1s
-            set rect.x = rect.x + (vel.x * dt)
-            set rect.y = rect.y + (vel.y * dt)
-        }
-    }with{
-        loop on :draw {
-            var path = get_img(cor,vel)
-            pico.output.draw.image(path, rect)
-        }
-    }
-    with{
-        loop on :clock{
-            if (dest_final && colis.pub && (colis.pub==dest_final)){
-                break()
+        } with {
+            loop us on :clock {
+                await :MOVENDO
+                var dt = us/1s
+                set rect.x = rect.x + (vel.x * dt)
+                set rect.y = rect.y + (vel.y * dt)
+            }
+        } with {
+            loop on :draw {
+                var path = get_img(cor,vel)
+                pico.output.draw.image(path, rect)
             }
         }
     }
-    colis.pub
+    dest_final
 }
 
 Pinguim
