@@ -29,23 +29,22 @@ task Centro(){
         "../../../assets/imgs/pet_shop.png",
         "../../../assets/imgs/pet_shop_hover.png")
     
-    spawn{
-        set dest_final = nil
-        loop on :clock
-        {
-            loop _,predio in predios{
-                if predio.pub.click{
-                    set dest_final = predio.pub.id
+    pin p = spawn Pinguim(
+        ['%', x=0.5, y=0.7, w=0.08, h=0],
+        "amarelo",
+        predios)
+
+    spawn {
+        loop on :clock {
+            loop _,predio in predios {
+                if predio.pub.click {
+                    set p.pub.dest = predio.pub.id
                 }
             }
         }
     }
 
-    val v = await Pinguim(:NONE,
-        ['%', x=0.5, y=0.7, w=0.08, h=0],
-        "amarelo",
-        predios, dest)
-
+    val v = await(p)
     match v
     {
         :BEAN_COUNTERS => print("1")
