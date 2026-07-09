@@ -6,8 +6,9 @@ task Sub (up)
 
 task Sup ()
 {
+    set pub = []
     spawn Sub(pub)
 }
 
 pin s = spawn Sup()
-print(s.x)
+print(s.pub.x)
