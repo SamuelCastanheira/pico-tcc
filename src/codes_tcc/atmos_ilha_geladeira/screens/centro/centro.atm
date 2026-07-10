@@ -1,6 +1,6 @@
 val Image = require "util/components/image"
-val Image_Clickable_Persistent = require "util/components/image_clickable_persistent"
 val Pinguim = require "screens/centro/pinguim"
+val Predio = require "screens/centro/predio"
 val Text = require "util/components/text"
 
 task Centro(){
@@ -14,17 +14,17 @@ task Centro(){
 
     pin predios = tasks(3)
 
-    spawn @predios Image_Clickable_Persistent(:BEAN_COUNTERS,
+    spawn @predios Predio(:BEAN_COUNTERS,
         ['%', x=0.25, y=0.4, w=0.4, h=0.4],
         "../../../assets/imgs/coffe.png",
         "../../../assets/imgs/coffe_hover.png")
     
-    spawn @predios Image_Clickable_Persistent(:DOJO, 
+    spawn @predios Predio(:DOJO, 
         ['%', x=0.72, y=0.39, w=0.35, h=0.35],
         "../../../assets/imgs/dojo/dojo.png",
         "../../../assets/imgs/dojo/dojo_hover.png")
 
-    spawn @predios Image_Clickable_Persistent(:PEGA_PUFLES,
+    spawn @predios Predio(:PEGA_PUFLES,
         ['%', x=0.5, y=0.4, w=0.35, h=0.35],
         "../../../assets/imgs/pet_shop.png",
         "../../../assets/imgs/pet_shop_hover.png")
@@ -33,16 +33,6 @@ task Centro(){
         ['%', x=0.5, y=0.7, w=0.08, h=0],
         "amarelo",
         predios)
-
-    spawn {
-        loop on :clock {
-            loop _,predio in predios {
-                if predio.pub.click {
-                    set p.pub.dest = predio.pub.id
-                }
-            }
-        }
-    }
 
     val v = await(p)
     match v

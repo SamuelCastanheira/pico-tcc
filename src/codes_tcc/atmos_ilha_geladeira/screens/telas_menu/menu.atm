@@ -9,7 +9,7 @@ task Menu () {
 
     spawn Image(:NIL, r, img) where {
         r = [ '%', x=0.5, y=0.225, w=0.45, h=0.45 ]
-        img = "../../../assets/imgs//logo.png"
+        img = "../../../assets/imgs/logo.png"
     }
 
     par:any {

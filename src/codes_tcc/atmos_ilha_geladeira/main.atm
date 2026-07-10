@@ -13,7 +13,7 @@ val Centro = require "screens/centro/centro"
 val Personalizar = require "screens/telas_menu/personalizar"
 
 set moedas = 0
-
+set cor_pinguim = "amarelo"
 loop {
     var v = await Menu()
     pico.push()

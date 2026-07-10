@@ -1,7 +1,9 @@
 val Image_Hover = require "util/components/image_hover"
 val XClickable = require "util/components/xclickable"
 
-task Image_Clickable_Non_Persistent(id, rect, off, on_)
+;;nao consegui usar global
+
+task Predio(id, rect, off, on_)
 {
     set pub = [
         id = id,
@@ -10,9 +12,11 @@ task Image_Clickable_Non_Persistent(id, rect, off, on_)
 
     spawn Image_Hover(id, rect, off, on_)
     spawn XClickable(task)
-    
-    await :clicked
-    id
+
+    loop on :clicked
+    {
+        emit @(global) :DEFINE_DESTINO [id = id]
+    }
 }
 
-Image_Clickable_Non_Persistent
+Predio

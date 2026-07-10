@@ -2,37 +2,49 @@ val Image = require "util/components/image"
 val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
 
 task Personalizar () {
+    var path_pinguim = "../../../assets/imgs/personalizar/pinguim_amarelo.png"
+
     cria_layer_quadro()
 
-    spawn Image(:NIL,r, img) where {
-        r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
+    spawn Image (:NIL,r, img) where {
+        r = ['%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
-    par:any {
-        await (
-            loop on :draw{
-                pico.set.pencil [ color = 'white' ]
-                pico.output.draw.text("Escolha sua cor",
-                ['%', x=0.78, y=0.25, w=0.38, h=0.1])
-            }
-        )
-     } with {
-        spawn Image(:NIL,
-        ['%', x=0.3, y=0.35, w=0.3, h=0],
-        "../../../assets/imgs/personalizar/pinguim_amarelo.png")
-        
-        await Image_Clickable_Non_Persistent(
-            :PERSON, 
-            ['%', x=0.3, y=0.8, w=0.3, h=0],
-            "../../../assets/imgs/botoes/b_voltar.png", 
-            "../../../assets/imgs/botoes/b_voltar_clicado.png", 
-        )
-    } with{
-        loop on :clock{
-            mouse_em_cor()
+    spawn {
+        loop on :draw {
+            pico.set.pencil [color = 'white']
+            pico.output.draw.text("Escolha sua cor",
+            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
         }
     }
+
+    spawn {
+        loop
+        {
+            par :any {
+                await :mouse.button.dn
+                mouse_em_cor()
+            } with {
+                var cor = await :MUDA_COR
+                set path_pinguim = cor.id
+            } with {
+                spawn Image(:NIL,r, img) where {
+                    r = ['%', x=0.3, y=0.35, w=0.3, h=0]
+                    img = path_pinguim
+                }
+                await :MUDA_COR
+            }
+        }
+    }
+    
+    await Image_Clickable_Non_Persistent(
+        :PERSON, 
+        ['%', x=0.3, y=0.8, w=0.3, h=0],
+        "../../../assets/imgs/botoes/b_voltar.png", 
+        "../../../assets/imgs/botoes/b_voltar_clicado.png", 
+    )
+    
 }
 
 val cores = [
@@ -57,15 +69,13 @@ func mouse_em_cor(){
     var m = pico.get.mouse('%')
     loop i, cor in cores {
         set i = i - 1
-        val v = ['%',
-            x = 0.2 + ((i%5)*0.15),
-            y = 0.25 + (math.floor(i/5)*0.15),
-            w = 0.15,
-            h = 0.15,
-        ]
-
-        if pico.vs.pos.rect(m, :quadro, v) {
-            print(cor)
+        val path = string.format("../../../assets/imgs/personalizar/%d.png", i)
+        
+        if pico.vs.pos.rect(m, path) {
+            val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
+            set path_pinguim = string.format("%s_%s.png", base_pinguins, cor)
+            set cor_pinguim = cor
+            emit :MUDA_COR[id = path_pinguim]
         } 
     }
 }
@@ -91,9 +101,8 @@ func cria_layer_quadro(){
             path  = cor,
             target = ['%',
                 x = 0.2 + ((i%5)*0.15),
-                y = 0.25 + (math.floor(i/5)*0.15),
-                w = 0.15,
-                h = 0.15,
+                y = 0.3 + (math.floor(i/5)*0.2),
+                h = 0.2,
             ]
         ]
     }

@@ -1,5 +1,4 @@
 val Image = require "util/components/image"
-val Collidable = require "util/components/collidable"
 val XCollidable = require "util/components/xcollidable"
 val Vetor = require "util/vetor"
 
@@ -16,7 +15,7 @@ func get_direcao (vel) {
 func get_img (cor, vel) {
     var base = "../../../assets/imgs/pinguim"
     var direcao = get_direcao(vel)
-    string.format("%s/%s/%03d.png", base, cor, direcao) 
+    string.format("%s/%s/%03d.png", base, cor_pinguim, direcao) 
 }
 
 task Pinguim (rect, cor, predios) {
@@ -27,31 +26,34 @@ task Pinguim (rect, cor, predios) {
     var vel  = [x=0, y=0]
     pin colis = spawn XCollidable(task, predios)
 
-    var tmp
-    watching :collided until it.id==pub.dest {
+    spawn{
+        loop on :DEFINE_DESTINO{
+            print("oi")
+        }
+    }
+
+    watching :collided {
         par {
-            loop on :mouse.button.dn {
+            await :mouse.button.dn
+            loop {
                 var ponto = pico.get.mouse('%')
                 var delta = [x=ponto.x -rect.x, y=ponto.y -rect.y]
-                set tmp = ponto
                 set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
-                emit :MOVENDO
-            } 
-        } with {
-            loop on :clock {
-                if tmp {
-                    var d = [x=tmp.x -rect.x, y=tmp.y -rect.y]
-                    if Vetor.magnitude(d) > 0.01 {
-                        emit :MOVENDO
+
+                watching :mouse.button.dn {
+                    var d = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+
+                    watching until Vetor.magnitude(d) <= 0.01  {
+
+                        loop us on :clock {
+                            var dt = us/1s
+                            set rect.x = rect.x + (vel.x * dt)
+                            set rect.y = rect.y + (vel.y * dt)
+                            set d = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+                        }
                     }
+                    await(false)
                 }
-            }
-        } with {
-            loop us on :clock {
-                await :MOVENDO
-                var dt = us/1s
-                set rect.x = rect.x + (vel.x * dt)
-                set rect.y = rect.y + (vel.y * dt)
             }
         } with {
             loop on :draw {
@@ -60,7 +62,6 @@ task Pinguim (rect, cor, predios) {
             }
         }
     }
-    pub.dest
 }
 
 Pinguim

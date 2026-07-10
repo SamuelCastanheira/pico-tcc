@@ -1,5 +1,5 @@
 val Image_Hover = require "util/components/image_hover"
-val Clickable = require "util/components/clickable"
+val XClickable = require "util/components/xclickable"
 
 
 task Image_Clickable_Persistent(id, rect, off, on_)
@@ -10,20 +10,7 @@ task Image_Clickable_Persistent(id, rect, off, on_)
     ]
 
     spawn Image_Hover(id, rect, off, on_)
-    pin click = spawn Clickable(id, rect)
-    
-    loop on :clock{
-        if (click.pub)
-        {
-            print(click.pub)
-            set pub.click = id
-            set click.pub = nil
-        }
-        else
-        {
-            set pub.click = false
-        }
-    }
+    pin click = await XClickable(task)
 }
 
 Image_Clickable_Persistent
