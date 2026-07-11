@@ -15,7 +15,7 @@ task Centro(){
     pin predios = tasks(3)
 
     spawn @predios Predio(:BEAN_COUNTERS,
-        ['%', x=0.25, y=0.4, w=0.4, h=0.4],
+        ['%', x=0.20, y=0.4, w=0.4, h=0.4],
         "../../../assets/imgs/coffe.png",
         "../../../assets/imgs/coffe_hover.png")
     

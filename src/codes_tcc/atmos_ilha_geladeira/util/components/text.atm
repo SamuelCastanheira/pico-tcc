@@ -1,24 +1,42 @@
-task Text(id, pos, ancora, text, font, font_size, style, color)
+task Text(opts)
 {
     set pub = [
-        id = id,
+        id = opts.id || nil,
+        rect = opts.rect,
     ]
+    var w = 1.1
+    var h = 1.1
+    var fator = 0.9
 
-    var h = font_size / H
-    var w = (#text * h)
-
+;;nao entendi o erro
+   watching until [w < opts.rect.w] {
+        set h = opts.font_size / H
+        set w = (#opts.text * h * fator)
+        set fator = fator - 0.05
+        print(w, h,opts.rect.w)
+    }
+    
     loop on :draw {
-        ;;pico.set.pencil(color, font, style)
-        print(W,H)
-        print(w,h)
+        if (opts.color)
+        {
+            pico.set.pencil[color=opts.color]
+        }
+        if (opts.font)
+        {
+            pico.set.pencil[font=opts.font]
+        }
+        if (opts.style)
+        {
+            pico.set.pencil[style=opts.style]
+        }
 
-        pico.output.draw.text(text, [
+        pico.output.draw.text(opts.text, [
             '%',
-            x = pos.x,
-            y = pos.y,
+            x = opts.rect.x,
+            y = opts.rect.y,
             w = w,
             h = h,
-            anchor = ancora
+            anchor = opts.rect.anchor || :C
         ])
 
     }

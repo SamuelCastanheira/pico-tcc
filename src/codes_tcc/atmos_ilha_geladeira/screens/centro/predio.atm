@@ -15,7 +15,7 @@ task Predio(id, rect, off, on_)
 
     loop on :clicked
     {
-        emit @(global) :DEFINE_DESTINO [id = id]
+        emit @global :DEFINE_DESTINO [id = id]
     }
 }
 

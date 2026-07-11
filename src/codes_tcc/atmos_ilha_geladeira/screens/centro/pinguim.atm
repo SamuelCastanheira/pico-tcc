@@ -2,7 +2,6 @@ val Image = require "util/components/image"
 val XCollidable = require "util/components/xcollidable"
 val Vetor = require "util/vetor"
 
-
 func get_direcao (vel) {
     var setor = 0
     if Vetor.magnitude(vel) != 0{
@@ -27,8 +26,9 @@ task Pinguim (rect, cor, predios) {
     pin colis = spawn XCollidable(task, predios)
 
     spawn{
-        loop on :DEFINE_DESTINO{
-            print("oi")
+        loop {
+            var d = await :DEFINE_DESTINO
+            print(d)
         }
     }
 

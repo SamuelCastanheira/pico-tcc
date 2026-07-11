@@ -1,9 +1,8 @@
 val Image = require "util/components/image"
+val Text = require "util/components/text"
 val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
 
 task Personalizar () {
-    var path_pinguim = "../../../assets/imgs/personalizar/pinguim_amarelo.png"
-
     cria_layer_quadro()
 
     spawn Image (:NIL,r, img) where {
@@ -11,13 +10,11 @@ task Personalizar () {
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
-    spawn {
-        loop on :draw {
-            pico.set.pencil [color = 'white']
-            pico.output.draw.text("Escolha sua cor",
-            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
-        }
-    }
+    spawn Text[
+        text = "Escolha sua cor",
+        rect = ['%', x=0.78, y=0.25, w=0.38, h=0.1],
+        color = :white,
+        font_size = 32]
 
     spawn {
         loop
@@ -27,8 +24,12 @@ task Personalizar () {
                 mouse_em_cor()
             } with {
                 var cor = await :MUDA_COR
-                set path_pinguim = cor.id
+                set cor_pinguim = cor.id
             } with {
+
+                val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
+                val path_pinguim = string.format("%s_%s.png", base_pinguins, cor_pinguim)
+
                 spawn Image(:NIL,r, img) where {
                     r = ['%', x=0.3, y=0.35, w=0.3, h=0]
                     img = path_pinguim
@@ -44,7 +45,6 @@ task Personalizar () {
         "../../../assets/imgs/botoes/b_voltar.png", 
         "../../../assets/imgs/botoes/b_voltar_clicado.png", 
     )
-    
 }
 
 val cores = [
@@ -69,13 +69,11 @@ func mouse_em_cor(){
     var m = pico.get.mouse('%')
     loop i, cor in cores {
         set i = i - 1
-        val path = string.format("../../../assets/imgs/personalizar/%d.png", i)
+        val layer_cor = string.format("../../../assets/imgs/personalizar/%d.png", i)
         
-        if pico.vs.pos.rect(m, path) {
-            val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-            set path_pinguim = string.format("%s_%s.png", base_pinguins, cor)
+        if pico.vs.pos.rect(m, layer_cor) {
             set cor_pinguim = cor
-            emit :MUDA_COR[id = path_pinguim]
+            emit :MUDA_COR[id = cor]
         } 
     }
 }
