@@ -2,54 +2,6 @@ val Image = require "util/components/image"
 val Text = require "util/components/text"
 val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
 
-task Personalizar () {
-    cria_layer_quadro()
-
-    spawn Image (:NIL,r, img) where {
-        r = ['%', x=0.5, y=0.5, w=1, h=1]
-        img = "../../../assets/imgs/background_personalizar.png"
-    }
-
-    var text = "Escolha sua cor"
-    spawn {
-        loop on :draw {
-            pico.set.pencil [color = 'white']
-            pico.output.draw.text(text,
-            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
-        }
-    }
-
-    spawn {
-        loop
-        {
-            par :any {
-                await :mouse.button.dn
-                mouse_em_cor()
-            } with {
-                var cor = await :MUDA_COR
-                set cor_pinguim = cor.id
-            } with {
-
-                val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-                val path_pinguim = string.format("%s_%s.png", base_pinguins, cor_pinguim)
-
-                spawn Image(:NIL,r, img) where {
-                    r = ['%', x=0.3, y=0.35, w=0.3, h=0]
-                    img = path_pinguim
-                }
-                await :MUDA_COR
-            }
-        }
-    }
-    
-    await Image_Clickable_Non_Persistent(
-        :PERSON, 
-        ['%', x=0.3, y=0.8, w=0.3, h=0],
-        "../../../assets/imgs/botoes/b_voltar.png", 
-        "../../../assets/imgs/botoes/b_voltar_clicado.png", 
-    )
-}
-
 val cores = [
     "amarelo",
     "avermelhado",
@@ -68,17 +20,48 @@ val cores = [
     "vermelho"
 ]
 
-func mouse_em_cor(){
-    var m = pico.get.mouse('%')
-    loop i, cor in cores {
-        set i = i - 1
-        val layer_cor = string.format("../../../assets/imgs/personalizar/%d.png", i)
-        
-        if pico.vs.pos.rect(m, layer_cor) {
-            set cor_pinguim = cor
-            emit :MUDA_COR[id = cor]
-        } 
+task Personalizar () {
+    cria_layer_quadro()
+
+    spawn Image (:NIL,r, img) where {
+        r = ['%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../../assets/imgs/background_personalizar.png"
     }
+
+    var text = "Escolha sua cor"
+    spawn {
+        loop on :draw {
+            pico.set.pencil [color = 'white']
+            pico.output.draw.text(text,
+            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+        }
+    }
+
+    spawn {
+        loop {
+            spawn Image(:NIL,r, img) where {
+                r = ['%', x=0.3, y=0.35, w=0.3, h=0]
+                base_pinguins = "../../../assets/imgs/personalizar/pinguim"
+                img = string.format("%s_%s.png", base_pinguins, cor_pinguim)
+            }
+            await :mouse.button.dn
+            var m = pico.get.mouse('%')
+            loop i, cor in cores {
+                val lay = string.format("../../../assets/imgs/personalizar/%d.png", i-1)
+                if pico.vs.pos.rect(m, lay) {
+                    set cor_pinguim = cor
+                    break()
+                } 
+            }
+        }
+    }
+    
+    await Image_Clickable_Non_Persistent(
+        :PERSON, 
+        ['%', x=0.3, y=0.8, w=0.3, h=0],
+        "../../../assets/imgs/botoes/b_voltar.png", 
+        "../../../assets/imgs/botoes/b_voltar_clicado.png", 
+    )
 }
 
 func cria_layer_quadro(){
