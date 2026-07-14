@@ -10,11 +10,14 @@ task Personalizar () {
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
-    spawn Text[
-        text = "Escolha sua cor",
-        rect = ['%', x=0.78, y=0.25, w=0.38, h=0.1],
-        color = :white,
-        font_size = 32]
+    var text = "Escolha sua cor"
+    spawn {
+        loop on :draw {
+            pico.set.pencil [color = 'white']
+            pico.output.draw.text(text,
+            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+        }
+    }
 
     spawn {
         loop

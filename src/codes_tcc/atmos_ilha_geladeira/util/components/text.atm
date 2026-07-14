@@ -4,18 +4,7 @@ task Text(opts)
         id = opts.id || nil,
         rect = opts.rect,
     ]
-    var w = 1.1
-    var h = 1.1
-    var fator = 0.9
 
-;;nao entendi o erro
-   watching until [w < opts.rect.w] {
-        set h = opts.font_size / H
-        set w = (#opts.text * h * fator)
-        set fator = fator - 0.05
-        print(w, h,opts.rect.w)
-    }
-    
     loop on :draw {
         if (opts.color)
         {
@@ -30,14 +19,7 @@ task Text(opts)
             pico.set.pencil[style=opts.style]
         }
 
-        pico.output.draw.text(opts.text, [
-            '%',
-            x = opts.rect.x,
-            y = opts.rect.y,
-            w = w,
-            h = h,
-            anchor = opts.rect.anchor || :C
-        ])
+        pico.output.draw.text(opts.text, opts.rect)
 
     }
 }
