@@ -1,0 +1,36 @@
+val Image = require "util/components/image"
+val XClickable = require "util/components/xclickable"
+
+task Carta(me, player , rect, path, elem, power)
+{
+    set pub = []
+    set pub.rect = rect
+    var battle_rect
+    if player => set battle_rect = ['%', x=0.8, y=0.3, w=0.2, h=0]
+    if !player => set battle_rect = ['%', x=0.2, y=0.3, w=0.2, h=0]
+    var verso = "../../../assets/imgs/dojo/carta_azul.png"
+
+    
+    spawn XClickable(task)
+
+    spawn {
+        loop on :clicked {   
+            if player => emit @(me) :battle
+        }
+    }
+
+    loop {
+        watching :present {
+            if player {
+                await Image(id, pub.rect, path)
+            } else {
+                await Image(id, pub.rect, verso)
+            }
+        }
+        
+        spawn Image(id, battle_rect, path)
+        await 1s    
+    }
+}
+
+Carta

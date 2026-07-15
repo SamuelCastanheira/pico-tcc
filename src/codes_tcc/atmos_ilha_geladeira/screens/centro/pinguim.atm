@@ -27,12 +27,12 @@ task Pinguim (rect, cor, predios) {
 
     spawn{
         loop {
-            var d = await :DEFINE_DESTINO
-            print(d)
+            val d = await :DEFINE_DESTINO
+            set pub.dest = d.id 
         }
     }
 
-    watching :collided {
+    watching :collided until it.id==pub.dest{
         par {
             await :mouse.button.dn
             loop {
@@ -62,6 +62,7 @@ task Pinguim (rect, cor, predios) {
             }
         }
     }
+    pub.dest
 }
 
 Pinguim

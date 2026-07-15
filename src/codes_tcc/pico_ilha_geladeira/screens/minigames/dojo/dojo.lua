@@ -145,7 +145,7 @@ function Dojo.update(state, event)
 
     if event and event.tag == 'mouse.button.dn' and jogo.estado == DuelState.SELECIONANDO then
         for _, carta in ipairs(jogo.cartasJogador) do
-            if pico.vs.pos_rect(mouse, carta.rect) then
+            if pico.vs.pos.rect(mouse, carta.rect) then
                 jogo.cartaSelecionada = carta
                 break
             end
@@ -155,7 +155,7 @@ function Dojo.update(state, event)
     if jogo.estado == DuelState.SELECIONANDO then
         if event and event.tag == 'mouse.button.dn' then
             for _, carta in ipairs(jogo.cartasJogador) do
-                if pico.vs.pos_rect(mouse, carta.rect) then
+                if pico.vs.pos.rect(mouse, carta.rect) then
                     jogo.cartaSelecionada = carta
                     break
                 end

@@ -1,8 +1,6 @@
 val Image_Hover = require "util/components/image_hover"
 val XClickable = require "util/components/xclickable"
 
-;;nao consegui usar global
-
 task Predio(id, rect, off, on_)
 {
     set pub = [
@@ -15,7 +13,7 @@ task Predio(id, rect, off, on_)
 
     loop on :clicked
     {
-        emit @global :DEFINE_DESTINO [id = id]
+        emit @(:global) :DEFINE_DESTINO [id = id]
     }
 }
 

@@ -1,6 +1,6 @@
 val Image = require "util/components/image"
 val Text = require "util/components/text"
-val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
+val Botao = require "util/components/botao"
 
 val cores = [
     "amarelo",
@@ -56,7 +56,7 @@ task Personalizar () {
         }
     }
     
-    await Image_Clickable_Non_Persistent(
+    await Botao(
         :PERSON, 
         ['%', x=0.3, y=0.8, w=0.3, h=0],
         "../../../assets/imgs/botoes/b_voltar.png", 

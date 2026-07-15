@@ -1,0 +1,81 @@
+val Image = require "util/components/image"
+val Carta = require "screens/minigames/dojo/carta"
+
+val num_cartas = 3
+
+val cartas = [
+        [
+            elem = :AGUA, 
+            power = 3, 
+            img="../../../assets/imgs/dojo/agua_3.png"],
+        [
+            elem = :FOGO,
+            power = 4, 
+            img="../../../assets/imgs/dojo/fogo_4.png"],
+        [
+            elem = :FOGO, 
+            powero = 7, 
+            img="../../../assets/imgs/dojo/fogo_7.png"],
+        [
+            elem = :GELO, 
+            power=5, 
+            img="../../../assets/imgs/dojo/gelo_5.png"],
+        [
+            elem =  :GELO, 
+            power =6, 
+            img="../../../assets/imgs/dojo/gelo_6.png"]
+]
+
+task Dojo(){
+    spawn Image(:NIL, r, img) where
+    {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../../assets/imgs/dojo/background.png"
+    }
+
+    pin playerDeck = tasks(num_cartas)
+    sorteiaCartas(true, playerDeck)
+
+    pin enemyDeck = tasks(num_cartas)
+    sorteiaCartas(false, enemyDeck)
+
+    watching until #playerDeck == 0 {
+        loop on :battle
+        {
+            val enemyCard = math.random(1, #enemyDeck)
+            emit @(enemyDeck@enemyCard) :present
+        } 
+
+    }
+}
+
+func sorteiaCartas(player, deck) {
+    var x
+    if player => set x = 0.8
+    if !player => set x = 0.2
+
+    do {
+        var idx
+        var cartas_sort = []
+        watching until #deck == num_cartas
+        { 
+            loop {
+                await 1us
+                set idx = math.random(1, #cartas)
+                if !cartas_sort@idx {
+                    set cartas_sort@idx = true
+                    val carta = cartas@idx
+                    spawn @(deck) Carta(task, 
+                    player,
+                    ['%', x = x + ((#deck-1)* 0.12), y = 0.88, w = 0.1, h = 0.2],
+                    carta.img, 
+                    carta.elem, 
+                    carta.power)
+                }
+            }
+        }
+    }
+}
+
+
+Dojo

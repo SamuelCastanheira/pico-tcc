@@ -1,5 +1,5 @@
 val Image = require "util/components/image"
-val Image_Clickable_Non_Persistent = require "util/components/image_clickable_non_persistent"
+val Botao = require "util/components/botao"
 
 task Menu () {
     spawn Image(:NIL,r, img) where {
@@ -13,21 +13,21 @@ task Menu () {
     }
 
     par:any {
-        await Image_Clickable_Non_Persistent(
+        await Botao(
             :CENTRO, 
             [ '%', x=0.5, y=0.5, w=0.55, h=0.15 ],
             "../../../assets/imgs/botoes/b_jogar.png",
             "../../../assets/imgs/botoes/b_jogar_clicado.png", 
         )
      } with {
-        await Image_Clickable_Non_Persistent(
+        await Botao(
             :PERSON, 
             [ '%', x=0.5, y=0.7, w=0.55, h=0.15 ], 
             "../../../assets/imgs/botoes/b_personalizar.png", 
             "../../../assets/imgs/botoes/b_personalizar_clicado.png", 
         )
     } with {
-        await Image_Clickable_Non_Persistent(
+        await Botao(
             :SAIR, 
             [ '%', x=0.5, y=0.9, w=0.55, h=0.15 ],
             "../../../assets/imgs/botoes/b_sair.png", 

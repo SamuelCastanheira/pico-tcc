@@ -1,7 +1,7 @@
 val Image_Hover = require "util/components/image_hover"
 val XClickable = require "util/components/xclickable"
 
-task Image_Clickable_Non_Persistent(id, rect, off, on_)
+task Botao(id, rect, off, on_)
 {
     set pub = [
         id = id,
@@ -15,4 +15,4 @@ task Image_Clickable_Non_Persistent(id, rect, off, on_)
     id
 }
 
-Image_Clickable_Non_Persistent
+Botao

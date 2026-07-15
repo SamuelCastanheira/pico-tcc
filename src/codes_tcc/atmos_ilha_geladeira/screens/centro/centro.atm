@@ -1,12 +1,14 @@
 val Image = require "util/components/image"
 val Pinguim = require "screens/centro/pinguim"
 val Predio = require "screens/centro/predio"
-val Text = require "util/components/text"
+val Dojo = require "screens/minigames/dojo/dojo"
+;;val BeanCounters = require "screens/minigames/bean_counters/bean_counters"
+;;val PegaPuffles = require "screens/minigames/pega_puffles/pega_puffles"
 
 task Centro(){
     spawn Image(:NIL, r, img) where
     {
-        r = [ '%', x=0.5, y=0.5 ]
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/centro.png"
     }
 
@@ -35,11 +37,12 @@ task Centro(){
         predios)
 
     val v = await(p)
+    print(v)
     match v
     {
-        :BEAN_COUNTERS => print("1")
-        :DOJO => print("2")
-        :PEGA_PUFLES => print("3")
+        :BEAN_COUNTERS => await BeanCounters()
+        :DOJO => await Dojo()
+        :PEGA_PUFLES => await PegaPuffles()
     } 
 }
 
