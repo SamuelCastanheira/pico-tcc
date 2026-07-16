@@ -1,35 +1,57 @@
 val Image = require "util/components/image"
 val XClickable = require "util/components/xclickable"
 
-task Carta(me, player , rect, path, elem, power)
+task Carta(me, player, rect, path, elem, power)
 {
     set pub = []
     set pub.rect = rect
-    var battle_rect
-    if player => set battle_rect = ['%', x=0.8, y=0.3, w=0.2, h=0]
-    if !player => set battle_rect = ['%', x=0.2, y=0.3, w=0.2, h=0]
+    var battle_rect = if player => ['%', x=0.8, y=0.3, w=0.2, h=0] => 
+    ['%', x=0.2, y=0.3, w=0.2, h=0]
     var verso = "../../../assets/imgs/dojo/carta_azul.png"
-
     
-    spawn XClickable(task)
+    if player => spawn XClickable(task)
 
     spawn {
-        loop on :clicked {   
-            if player => emit @(me) :battle
+        if player{
+            loop on :clicked {   
+                emit @(me) :player_chose [id = task, elem = elem, power = power]  
+            }
+        }
+        else{
+            loop on :make_enemy_chose { 
+                emit @(me) :enemy_chose [id = task, elem = elem, power = power]
+            }
         }
     }
 
-    loop {
+    par :all
+    {
         watching :present {
-            if player {
-                await Image(id, pub.rect, path)
-            } else {
-                await Image(id, pub.rect, verso)
+            loop on :draw {
+                if player {
+                    pico.output.draw.image(path, pub.rect)
+                } else {
+                    pico.output.draw.image(verso, pub.rect)
+                } 
             }
         }
-        
+    } with {
+        val r = await :present
         spawn Image(id, battle_rect, path)
-        await 1s    
+        par :all {
+            par :any { 
+                await :won 
+                await Image(id, battle_rect, "../../../assets/imgs/dojo/ok.png")
+            }
+            with {
+                await :lose
+                await Image(id, battle_rect, "../../../assets/imgs/dojo/x.png")
+            } with {
+                await 2s
+            }   
+        } with {
+            emit (if (r.resul >-1) => :won => :lose)
+        }
     }
 }
 
