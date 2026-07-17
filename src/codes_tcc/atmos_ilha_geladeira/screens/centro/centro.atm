@@ -3,7 +3,7 @@ val Pinguim = require "screens/centro/pinguim"
 val Predio = require "screens/centro/predio"
 val Dojo = require "screens/minigames/dojo/dojo"
 ;;val BeanCounters = require "screens/minigames/bean_counters/bean_counters"
-;;val PegaPuffles = require "screens/minigames/pega_puffles/pega_puffles"
+val PegaPuffles = require "screens/minigames/pega_puffles/pega_puffles"
 
 task Centro(){
     spawn Image(:NIL, r, img) where

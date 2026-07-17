@@ -1,5 +1,4 @@
 val Image = require "util/components/image"
-val Text = require "util/components/text"
 val Botao = require "util/components/botao"
 
 val cores = [

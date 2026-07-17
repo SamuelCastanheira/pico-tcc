@@ -78,8 +78,6 @@ task Dojo(){
             if #playerDeck == 0 => emit :finalizado 
         }
     }
-    print(player_wins)
-    print(enemy_wins)
     ifs{
         player_wins > enemy_wins => set moedas = moedas + 100
         player_wins == enemy_wins => set moedas = moedas + 50

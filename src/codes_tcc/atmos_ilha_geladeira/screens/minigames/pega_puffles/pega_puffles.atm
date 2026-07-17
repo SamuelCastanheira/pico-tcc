@@ -1,0 +1,64 @@
+val Image = require "util/components/image"
+val Timer = require "util/components/timer"
+
+val path_puffles = [
+    "../../../assets/imgs/puffle_roundup/puffle_amarelo.png",
+    "../../../assets/imgs/puffle_roundup/puffle_azul.png",
+    "../../../assets/imgs/puffle_roundup/puffle_branco.png",
+    "../../../assets/imgs/puffle_roundup/puffle_vermelho.png",
+    "../../../assets/imgs/puffle_roundup/puffle_verde.png",
+    "../../../assets/imgs/puffle_roundup/puffle_laranja.png",
+    "../../../assets/imgs/puffle_roundup/puffle_rosa.png",
+    "../../../assets/imgs/puffle_roundup/puffle_roxo.png",
+    "../../../assets/imgs/puffle_roundup/puffle_preto.png",
+    "../../../assets/imgs/puffle_roundup/puffle_marrom.png"
+]
+
+val dur = 100s
+
+task PegaPuffles(){
+    spawn Image(:NIL, r, img) where
+    {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../../assets/imgs/puffle_roundup/background.png"
+    }
+    
+    spawn Image(:NIL, r, img) where
+    {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../../assets/imgs/puffle_roundup/arvores.png"
+    }
+    
+    pin timer = spawn Timer(task, 3s)
+    emit @(timer) :timer_start
+
+   
+        watching :timer_end {
+            loop on :clock{
+            }
+        }
+
+        emit @(timer) :timer_reset
+        watching :timer_end {
+            loop on :clock{
+                print(timer.pub.tempo_decorrido)
+            }
+        }
+    
+
+    pin puffles = tasks(#path_puffles)
+
+    loop _,cor in path_puffles {   
+        print(cor)     
+        val x = math.random(5, 90) / 100
+        val y = math.random(10, 50) / 100
+
+        spawn @(puffles) Image(:NIL,
+                ['%', x= x,y= y,w=0.05, h=0.05],
+                cor)
+    }
+    
+    await(false)
+}
+
+PegaPuffles
