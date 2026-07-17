@@ -1,30 +1,22 @@
 task Timer(me, dur) {
     set pub = []
-    set pub.dur = dur
-    set pub.tempo_atual = 0
-    set pub.tempo_decorrido = 0
-    set pub.tempo_restante = dur
-    set pub.progresso = 0
+
+    await :timer_start
     
-    par :any
-    {
-        loop on :timer_reset {
-            emit :timer_start
-        } 
-    } with {
-        loop on :timer_start {
-            print("porra")
+    loop {
+        watching :timer_reset {
             var inicio = pico.get.now()
-            set pub.tempo_atual = inicio
-            set pub.tempo_decorrido = pub.tempo_atual - inicio
+            set pub.dur = dur
+            set pub.tempo_atual = 0
+            set pub.tempo_decorrido = 0
             set pub.tempo_restante = dur
             set pub.progresso = 0
+
             watching until pub.tempo_decorrido >= pub.dur
             {
-                watching :timer_pause until it.pause ==true
-                {
-                    loop on :clock{
-                        print("ai dentro")
+                toggle on :timer_pause {
+                    loop on :clock {
+                        print(pub.tempo_decorrido)
                         set pub.tempo_atual = pico.get.now()
                         set pub.tempo_decorrido = (pub.tempo_atual - inicio)*1ms
                         set pub.tempo_restante = math.max(0,pub.dur - pub.tempo_decorrido)
@@ -32,10 +24,10 @@ task Timer(me, dur) {
                     }
                 }
             }
-            emit @(me) :timer_end [id = id]
-            print("saiu?")
+            emit @(me) :timer_end
+            await :timer_reset
         }
-    }
+    } 
 }
 
 Timer

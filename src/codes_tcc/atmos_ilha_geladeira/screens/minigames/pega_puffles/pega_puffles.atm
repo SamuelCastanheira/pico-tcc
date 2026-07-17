@@ -29,22 +29,7 @@ task PegaPuffles(){
         img = "../../../assets/imgs/puffle_roundup/arvores.png"
     }
     
-    pin timer = spawn Timer(task, 3s)
-    emit @(timer) :timer_start
-
-   
-        watching :timer_end {
-            loop on :clock{
-            }
-        }
-
-        emit @(timer) :timer_reset
-        watching :timer_end {
-            loop on :clock{
-                print(timer.pub.tempo_decorrido)
-            }
-        }
-    
+    pin timer = spawn Timer(task, 10s)
 
     pin puffles = tasks(#path_puffles)
 
@@ -57,6 +42,18 @@ task PegaPuffles(){
                 ['%', x= x,y= y,w=0.05, h=0.05],
                 cor)
     }
+
+    ;;emit @(timer) :timer_start
+    ;;await 2s
+    ;;print("pause")
+    ;;emit @(timer) (:timer_pause[false])
+    ;;await 5s
+    ;;print("continue")
+    ;;emit @(timer) (:timer_pause[true])
+    ;;await 8s
+    ;;print("reiniciou")
+    ;;emit @(timer) :timer_reset
+
     
     await(false)
 }
