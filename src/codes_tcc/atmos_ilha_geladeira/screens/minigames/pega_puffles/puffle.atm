@@ -2,7 +2,7 @@ val XCollidable = require "util/components/xcollidable"
 val Image = require "util/components/image"
 val Vetor = require "util/vetor"
 
-task Puffle (me, rect, hitbox, img, dist_max, puffles){
+task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
     set pub = [
         id = task,
         rect = rect,
@@ -14,18 +14,40 @@ task Puffle (me, rect, hitbox, img, dist_max, puffles){
     var vel_esc = 0.4
     var vel_vet = [x = 0 ,y = 0]
     var direcao = [x=0, y=0]
-    watching until dentro_do_mapa(pub.rect) {
-        par :any
-        {
-            loop {
-                val p = await :collided
-                var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
-                if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
-                {
-                    emit @(p.id) :colis_puffle [dir = dir]
+
+    spawn {
+        loop {
+            var col = false
+            watching until col==true {
+                loop on :clock {
+                    set col = pico.vs.rect.rect(pub.rect, cerca)
                 }
             }
-        } with {
+            emit @(me) :chegou_na_cerca
+
+            set col = true
+            watching until col==false {
+                loop on :clock {
+                    set col = pico.vs.rect.rect(pub.rect, cerca)
+                }
+            }
+            emit @(me) :saiu_da_cerca
+        }
+    }
+
+    spawn {
+        loop {
+            val p = await :collided
+            var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
+            if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
+            {
+                emit @(p.id) :colis_puffle [dir = dir]
+            }
+        }
+    }
+
+    watching until dentro_do_mapa(pub.rect) {
+        spawn {
             loop us on :clock
             {
                 var mouse = pico.get.mouse('%')
@@ -44,13 +66,29 @@ task Puffle (me, rect, hitbox, img, dist_max, puffles){
                     ]
                 } 
             }
-        } with {
+        } 
+
+        spawn {
             val influencia = 0.5
             loop {
                 val p = await :colis_puffle
                 set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
             }
-        } with {
+        } 
+
+        spawn {
+            loop on :clock {
+                loop _,parede in paredes {
+                    val col = pico.vs.rect.rect(pub.rect, parede)
+                    if col {
+                        val aux = slide_cerca(pub.rect, parede, direcao)
+                        set direcao = [x=direcao.x + aux.x, y=direcao.y + aux.y]
+                    }
+                }
+            }
+        } 
+        
+        par :all {
             loop us on :clock {
                 set vel_vet= Vetor.multiply(
                     Vetor.normalize(direcao, vel_esc), 
@@ -88,6 +126,41 @@ func dentro_do_mapa(rect) {
         ((dy * dy) / (ry * ry))
 
     !((valor <= 1) && (rect.x < 1) && (rect.x > 0)) 
+}
+
+func slide_cerca(rect, parede, direcao) {
+    var normal = [x=0, y=0]
+
+    val dx = rect.x - parede.x
+    val dy = rect.y - parede.y
+
+    val overlapX = ((parede.w/2) + (rect.w/2)) - math.abs(dx)
+    val overlapY = ((parede.h/2) + (rect.h/2)) - math.abs(dy)
+
+    ;; colisão horizontal
+    if overlapX < overlapY {
+        if dx > 0 {
+            set normal = [x=1, y=0]
+        } else {
+            set normal = [x=-1, y=0]
+        }
+    } else {
+        ;; colisão vertical
+        if dy > 0 {
+            set normal = [x=0, y=1]
+        } else {
+            set normal = [x=0, y=-1]
+        }
+    }
+
+    val dot = Vetor.dot(direcao,normal)
+
+    if dot < 0 {
+        set direcao.x = direcao.x - (dot * normal.x)
+        set direcao.y = direcao.y - (dot * normal.y)
+    }
+
+    Vetor.multiply(direcao, 0.1)
 }
 
 Puffle

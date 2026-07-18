@@ -38,6 +38,12 @@ task PegaPuffles(){
 
     pin puffles = tasks(#path_puffles)
 
+    val cercado = [
+        esquerda = ['%', x=0.43, y=0.65, w=0.02, h=0.3, anchor='C'],
+        direita =  ['%', x=0.58, y=0.65, w=0.02, h=0.3, anchor='C'],
+        baixo =    ['%', x=0.5, y=0.8, w=0.15, h=0.02, anchor='C']
+    ]
+
     loop _,cor in path_puffles {     
         val x = math.random(5, 90) / 100
         val y = math.random(10, 50) / 100
@@ -45,7 +51,8 @@ task PegaPuffles(){
         spawn @(puffles) Puffle(task,
         ['%', x= x,y= y,w=0.05, h=0.05],
         ['%', x= x,y= y,w=0.05, h=0.05],
-        cor, dist_max, puffles)
+        ['%', x=0.5, y=0.65, w=0.15, h=0.25],
+        cercado, cor, dist_max, puffles)
     }
 
     spawn {
@@ -77,8 +84,16 @@ task PegaPuffles(){
         }
     } with {
         watching until num_capturados == (#puffles) {
-            loop on :algo {
-                set num_capturados = num_capturados + 1
+            par :any {
+                loop on :chegou_na_cerca
+                {
+                    set num_capturados = num_capturados + 1
+                }
+            } with {
+                loop on :saiu_da_cerca
+                {
+                    set num_capturados = num_capturados - 1
+                }
             }
         }  
     }
