@@ -16,7 +16,6 @@ task Timer(me, dur) {
             {
                 toggle on :timer_pause {
                     loop on :clock {
-                        print(pub.tempo_decorrido)
                         set pub.tempo_atual = pico.get.now()
                         set pub.tempo_decorrido = (pub.tempo_atual - inicio)*1ms
                         set pub.tempo_restante = math.max(0,pub.dur - pub.tempo_decorrido)

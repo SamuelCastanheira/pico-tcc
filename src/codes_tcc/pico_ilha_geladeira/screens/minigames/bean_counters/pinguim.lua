@@ -61,7 +61,7 @@ function Pinguim:chegou_destino()
 end
 
 function Pinguim:colidou_carga(carga)
-    if pico.vs.rect_rect(self.rect, carga.rect) then
+    if pico.vs.rect.rect(self.rect, carga.rect) then
         return true
     end
     return false

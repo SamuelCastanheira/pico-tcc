@@ -17,7 +17,7 @@ function verifica_vitoria(data)
     -- Verifica vitória
     data.capturados = 0
     for _, puffle in ipairs(data.puffles) do
-        if pico.vs.pos_rect(puffle.rect, data.cercado) then
+        if pico.vs.pos.rect(puffle.rect, data.cercado) then
              data.capturados = data.capturados + 1
         end
     end 
@@ -84,7 +84,7 @@ local function direcao_fuga_parede(puffle, data)
     local normais = {}
 
     for _, parede in pairs(data.hitboxes) do
-        if pico.vs.rect_rect(puffle.rect, parede) then
+        if pico.vs.rect.rect(puffle.rect, parede) then
             
             local dx = puffle.rect.x - parede.x
             local dy = puffle.rect.y - parede.y
@@ -213,7 +213,7 @@ function PegaPuffle.draw(state)
     end
 
     pico.output.draw.image("../../../assets/imgs/puffle_roundup/arvores.png", arvores)
-    pico.set.color.draw('yellow')
+    pico.set.pencil{color = 'yellow'}
     local s_capturados = string.format("%s: %d", "Capturados", data.capturados)
     local s_fugiram = string.format("%s: %d", "Fugiram", data.fugiram)
     local s_timer = string.format("%s: %d", "Timer", math.floor(data.timer:getRestante()/1000))

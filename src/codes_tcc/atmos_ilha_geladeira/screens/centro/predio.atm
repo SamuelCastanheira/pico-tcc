@@ -1,11 +1,12 @@
 val Image_Hover = require "util/components/image_hover"
 val XClickable = require "util/components/xclickable"
 
-task Predio(id, rect, off, on_)
+task Predio(id, rect, hitbox, off, on_)
 {
     set pub = [
         id = id,
-        rect = rect
+        rect = rect,
+        hitbox = hitbox,
     ]
 
     spawn Image_Hover(id, rect, off, on_)

@@ -1,4 +1,5 @@
 val Image = require "util/components/image"
+val Puffle = require "screens/minigames/pega_puffles/puffle"
 val Timer = require "util/components/timer"
 
 val path_puffles = [
@@ -14,9 +15,15 @@ val path_puffles = [
     "../../../assets/imgs/puffle_roundup/puffle_marrom.png"
 ]
 
-val dur = 100s
-
 task PegaPuffles(){
+    val dur = 100s
+    val dist_max = 0.2
+    pin timer = spawn Timer(task, dur)
+    emit @(timer) :timer_start
+
+    var num_capturados = 0
+    var num_fugiram = 0
+
     spawn Image(:NIL, r, img) where
     {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
@@ -28,34 +35,53 @@ task PegaPuffles(){
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/puffle_roundup/arvores.png"
     }
-    
-    pin timer = spawn Timer(task, 10s)
 
     pin puffles = tasks(#path_puffles)
 
-    loop _,cor in path_puffles {   
-        print(cor)     
+    loop _,cor in path_puffles {     
         val x = math.random(5, 90) / 100
         val y = math.random(10, 50) / 100
 
-        spawn @(puffles) Image(:NIL,
-                ['%', x= x,y= y,w=0.05, h=0.05],
-                cor)
+        spawn @(puffles) Puffle(task,
+        ['%', x= x,y= y,w=0.05, h=0.05],
+        ['%', x= x,y= y,w=0.05, h=0.05],
+        cor, dist_max, puffles)
     }
 
-    ;;emit @(timer) :timer_start
-    ;;await 2s
-    ;;print("pause")
-    ;;emit @(timer) (:timer_pause[false])
-    ;;await 5s
-    ;;print("continue")
-    ;;emit @(timer) (:timer_pause[true])
-    ;;await 8s
-    ;;print("reiniciou")
-    ;;emit @(timer) :timer_reset
+    spawn {
+        loop on :draw {
+            pico.set.pencil[color = "yellow"]
 
-    
-    await(false)
+            val s_timer = string.format("%s: %d", "Timer", 
+            math.floor(timer.pub.tempo_restante/1s))
+            pico.output.draw.text(s_timer, 
+            ['%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'])
+
+            val s_capturados = string.format("%s: %d", "Capturados", num_capturados)
+            pico.output.draw.text(s_capturados, 
+            ['%', x=0.02, y=0.02, w=0.008*#s_capturados, h=0.05, anchor='NW'])
+            
+            val s_fugiram = string.format("%s: %d", "Fugiram", num_fugiram)
+            pico.output.draw.text(s_fugiram, 
+            ['%', x=0.02, y=0.06, w=0.008*#s_fugiram, h=0.05, anchor='NW'])
+        }
+    } 
+
+    par :any {
+        await :timer_end
+    } with {
+        watching until num_fugiram == (#path_puffles) {
+            loop on :fugiu {
+                set num_fugiram = num_fugiram + 1
+            }
+        }
+    } with {
+        watching until num_capturados == (#puffles) {
+            loop on :algo {
+                set num_capturados = num_capturados + 1
+            }
+        }  
+    }
 }
 
 PegaPuffles

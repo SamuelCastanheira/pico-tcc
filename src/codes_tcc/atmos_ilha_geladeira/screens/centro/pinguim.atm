@@ -17,11 +17,13 @@ func get_img (cor, vel) {
     string.format("%s/%s/%03d.png", base, cor_pinguim, direcao) 
 }
 
-task Pinguim (rect, cor, predios) {
+task Pinguim (rect, hitbox, cor, predios) {
     set pub = [
+        hitbox = hitbox,
         rect = rect,
         dest = false,
     ]
+
     var vel  = [x=0, y=0]
     pin colis = spawn XCollidable(task, predios)
 
@@ -37,19 +39,21 @@ task Pinguim (rect, cor, predios) {
             await :mouse.button.dn
             loop {
                 var ponto = pico.get.mouse('%')
-                var delta = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+                var delta = [x=ponto.x -pub.rect.x, y=ponto.y -pub.rect.y]
                 set vel = Vetor.multiply(Vetor.normalize(delta), 0.2)
 
                 watching :mouse.button.dn {
-                    var d = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+                    var d = [x=ponto.x -pub.rect.x, y=ponto.y -pub.rect.y]
 
                     watching until Vetor.magnitude(d) <= 0.01  {
 
                         loop us on :clock {
                             var dt = us/1s
-                            set rect.x = rect.x + (vel.x * dt)
-                            set rect.y = rect.y + (vel.y * dt)
-                            set d = [x=ponto.x -rect.x, y=ponto.y -rect.y]
+                            set pub.rect.x = pub.rect.x + (vel.x * dt)
+                            set pub.rect.y = pub.rect.y + (vel.y * dt)
+                            set pub.hitbox.x = pub.rect.x
+                            set pub.hitbox.y = pub.rect.y
+                            set d = [x=ponto.x -pub.rect.x, y=ponto.y -pub.rect.y]
                         }
                     }
                     await(false)
@@ -58,7 +62,7 @@ task Pinguim (rect, cor, predios) {
         } with {
             loop on :draw {
                 var path = get_img(cor,vel)
-                pico.output.draw.image(path, rect)
+                pico.output.draw.image(path, pub.rect)
             }
         }
     }

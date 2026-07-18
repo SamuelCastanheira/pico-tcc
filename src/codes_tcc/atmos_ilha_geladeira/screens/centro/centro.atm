@@ -18,26 +18,29 @@ task Centro(){
 
     spawn @predios Predio(:BEAN_COUNTERS,
         ['%', x=0.20, y=0.4, w=0.4, h=0.4],
+        ['%', x=0.20, y=0.4, w=0.21, h=0.21],
         "../../../assets/imgs/coffe.png",
         "../../../assets/imgs/coffe_hover.png")
     
     spawn @predios Predio(:DOJO, 
         ['%', x=0.72, y=0.39, w=0.35, h=0.35],
+        ['%', x=0.72, y=0.39, w=0.21, h=0.21],
         "../../../assets/imgs/dojo/dojo.png",
         "../../../assets/imgs/dojo/dojo_hover.png")
 
     spawn @predios Predio(:PEGA_PUFLES,
         ['%', x=0.5, y=0.4, w=0.35, h=0.35],
+        ['%', x=0.5, y=0.4, w=0.21, h=0.21],
         "../../../assets/imgs/pet_shop.png",
         "../../../assets/imgs/pet_shop_hover.png")
     
     pin p = spawn Pinguim(
-        ['%', x=0.5, y=0.7, w=0.08, h=0],
+        ['%', x=0.5, y=0.7, w=0.08, h=0.2],
+        ['%', x=0.5, y=0.7, w=0.08, h=0.1],
         "amarelo",
         predios)
 
     val v = await(p)
-    print(v)
     match v
     {
         :BEAN_COUNTERS => await BeanCounters()

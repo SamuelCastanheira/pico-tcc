@@ -1,0 +1,93 @@
+val XCollidable = require "util/components/xcollidable"
+val Image = require "util/components/image"
+val Vetor = require "util/vetor"
+
+task Puffle (me, rect, hitbox, img, dist_max, puffles){
+    set pub = [
+        id = task,
+        rect = rect,
+        hitbox = hitbox
+    ]
+
+    pin colis = spawn XCollidable(task, puffles)
+
+    var vel_esc = 0.4
+    var vel_vet = [x = 0 ,y = 0]
+    var direcao = [x=0, y=0]
+    watching until dentro_do_mapa(pub.rect) {
+        par :any
+        {
+            loop {
+                val p = await :collided
+                var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
+                if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
+                {
+                    emit @(p.id) :colis_puffle [dir = dir]
+                }
+            }
+        } with {
+            loop us on :clock
+            {
+                var mouse = pico.get.mouse('%')
+                var delta = [x= mouse.x - pub.rect.x , y=mouse.y - pub.rect.y]
+                var dist = Vetor.magnitude(delta)
+
+                if ((dist > 0.001) && (dist <= dist_max)) {
+                    val destino = [
+                        x = mouse.x - (2 * delta.x),
+                        y = mouse.y - (2 * delta.y)
+                    ]
+                    
+                    set direcao = [
+                        x = direcao.x + (destino.x - pub.rect.x),
+                        y = direcao.y + (destino.y - pub.rect.y)
+                    ]
+                } 
+            }
+        } with {
+            val influencia = 0.5
+            loop {
+                val p = await :colis_puffle
+                set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
+            }
+        } with {
+            loop us on :clock {
+                set vel_vet= Vetor.multiply(
+                    Vetor.normalize(direcao, vel_esc), 
+                    vel_esc)
+                
+                val dt = us/1s
+                set pub.rect.x = pub.rect.x + (vel_vet.x * dt)
+                set pub.rect.y = pub.rect.y + (vel_vet.y * dt)
+                set pub.hitbox.x = pub.rect.x
+                set pub.hitbox.y = pub.rect.y
+
+                set direcao = [x = 0, y = 0]
+                set vel_vet = [x = 0, y = 0]
+            }
+        } with {
+            loop on :draw {
+                pico.output.draw.image(img, pub.rect)
+            }
+        }
+    }
+    emit @(me) :fugiu
+}
+
+func dentro_do_mapa(rect) {
+    val centro =[x = 0.5, y = 0.5]
+
+    val rx = 1.53 / 2
+    val ry = 0.9 / 2
+
+    val dx = rect.x - centro.x
+    val dy = rect.y - centro.y
+
+    val valor =
+        ((dx * dx) / (rx * rx)) +
+        ((dy * dy) / (ry * ry))
+
+    !((valor <= 1) && (rect.x < 1) && (rect.x > 0)) 
+}
+
+Puffle
