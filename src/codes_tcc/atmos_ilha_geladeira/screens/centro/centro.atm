@@ -59,7 +59,7 @@ task Moeda()
     {
         var moeda_num = ['%',x=0.08, y=0, w=0.025*#tostring(moedas), h= 0.1, anchor='NW']
         pico.set.pencil [ color='yellow' ]
-        pico.output.draw.text(moedas, moeda_num)
+        pico.output.draw.text.dyn(:moedas, moedas, moeda_num)
     } 
 }
 

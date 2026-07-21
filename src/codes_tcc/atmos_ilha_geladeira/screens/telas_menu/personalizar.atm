@@ -31,7 +31,7 @@ task Personalizar () {
     spawn {
         loop on :draw {
             pico.set.pencil [color = 'white']
-            pico.output.draw.text(text,
+            pico.output.draw.text.fix(text,
             ['%', x=0.78, y=0.25, w=0.38, h=0.1])
         }
     }
