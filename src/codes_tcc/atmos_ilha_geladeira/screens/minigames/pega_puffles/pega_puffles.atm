@@ -1,6 +1,5 @@
 val Image = require "util/components/image"
 val Puffle = require "screens/minigames/pega_puffles/puffle"
-val Timer = require "util/components/timer"
 
 val path_puffles = [
     "../../../assets/imgs/puffle_roundup/puffle_amarelo.png",
@@ -18,9 +17,6 @@ val path_puffles = [
 task PegaPuffles(){
     val dur = 100s
     val dist_max = 0.2
-    pin timer = spawn Timer(task, dur)
-    emit @(timer) :timer_start
-
     var num_capturados = 0
     var num_fugiram = 0
 
@@ -55,12 +51,20 @@ task PegaPuffles(){
         cercado, cor, dist_max, puffles)
     }
 
+    var tempo = 100
+    spawn {
+        loop {
+            await 1s
+            set tempo = tempo - 1 
+        }
+    }
+
     spawn {
         loop on :draw {
             pico.set.pencil[color = "yellow"]
 
             val s_timer = string.format("%s: %d", "Timer", 
-            math.floor(timer.pub.tempo_restante/1s))
+            tempo)
             pico.output.draw.text(s_timer, 
             ['%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'])
 
@@ -75,7 +79,7 @@ task PegaPuffles(){
     } 
 
     par :any {
-        await :timer_end
+        await 100s
     } with {
         watching until num_fugiram == (#path_puffles) {
             loop on :fugiu {
