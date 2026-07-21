@@ -1,0 +1,32 @@
+val Image = require "util/components/image"
+val Pinguim = require "screens/minigames/bean_counters/pinguim"
+
+task BeanCounters() {
+    spawn Image(:NIL, r, img) where
+    {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../../assets/imgs/bean_counters/background.png"
+    }
+
+    spawn Image(:NIL, r, img) where
+    {
+        r = ['%', x=1, y=1, w=0.20, h=0.85, anchor='SE']
+        img = "../../../assets/imgs/bean_counters/trucker.png"
+    }
+
+    spawn Image(:NIL, r, img) where
+    {
+        r = ['%', x=0.5, y=1, w=1, h=0.4, anchor='S']
+        img = "../../../assets/imgs/bean_counters/neve.png"
+    }
+
+     spawn Image(:NIL, r, img) where
+    {
+        r = ['%', x=0.13, y=0.86, w=0.30, h=0.15]
+        img = "../../../assets/imgs/bean_counters/plataforma.png"
+    }
+
+    await Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25])
+}
+
+BeanCounters
