@@ -1,0 +1,81 @@
+val Image = require "util/components/image"
+val XCollidable = require "util/components/xcollidable"
+
+task Pinguim(id, rect, hitbox, cargas) {
+    set pub = [
+        rect = rect,
+        hitbox = hitbox,
+        cargas = 0,
+    ]
+
+    var vidas = 3
+    var vel = 0 
+    var img = "../../../assets/imgs/bean_counters/penguin0.webp"
+    val carga_maxima = 5
+
+    ;;spawn Xcollidable(task, cargas)
+
+    spawn {
+        par :any {
+            loop {
+                await :colid_cafe
+                set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+            }   
+            }
+
+        } with
+        { 
+            par :any {
+               await colid_flower 
+                set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+            } with {
+                loop on :colid_fish {
+                    set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
+                }   
+            }with {
+                loop on :colid_bigorna {
+                    set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
+                }   
+            }
+        }
+        await 3s
+    }
+
+    watching until vidas == 0 {
+        par :any {
+            var dt = 0
+            par :any {
+                loop {
+                    val us = await :clock
+                    set dt = us/1s
+                }
+            } with {
+                loop{
+                        par :any {
+                            await :key.dn until it.key == :Right
+                            set vel = 7
+                        } with {
+                            await :key.dn until it.key == :Left
+                            set vel = -7
+                        }
+                        var new_x = pub.rect.x + (vel*((carga_maxima - pub.cargas)/carga_maxima) * dt)
+                        if new_x < 0.25 {  
+                            set new_x = 0.25
+                        }
+                        else {
+                            if new_x > 0.8 {
+                                set new_x = 0.8
+                            }
+                        }
+                        set pub.rect.x = new_x
+                    }
+            }
+        } with {
+            loop on :draw {
+                pico.output.draw.image(img, pub.rect)
+            }
+        }
+    } 
+}
+
+Pinguim

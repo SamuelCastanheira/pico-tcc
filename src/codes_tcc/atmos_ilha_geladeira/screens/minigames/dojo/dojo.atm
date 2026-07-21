@@ -36,10 +36,9 @@ task Dojo(){
     }
 
     pin playerDeck = tasks(num_cartas)
-    var cardsPlayer = sorteiaCartas(true, playerDeck)
-
+    sorteiaCartas(true, playerDeck)
     pin enemyDeck = tasks(num_cartas)
-    var cardsEnemy = sorteiaCartas(false, enemyDeck)
+    sorteiaCartas(false, enemyDeck)
 
     watching :finalizado {
         loop{
@@ -52,11 +51,19 @@ task Dojo(){
                 set e = await :enemy_chose
             } with {
                 var sorted_indx = math.random(1, #enemyDeck)
-                var card = cardsEnemy@sorted_indx
-                emit @(cardsEnemy@sorted_indx) :make_enemy_chose
+                var card
+                loop i,c in enemyDeck {
+                    if i==sorted_indx {
+                        set carta = c
+                    }
+                }
+                emit @(carta) :make_enemy_chose
             } with {
                 set p = await :player_chose
             }
+
+            ordenaCartas(true, playerDeck, p.id)
+            ordenaCartas(false, enemyDeck, e.id)
 
             par :all {
                 set r = await :resultado
@@ -69,8 +76,6 @@ task Dojo(){
                 r.resul < 0 => set enemy_wins = enemy_wins + 1
             }
 
-            set cardsEnemy = ordenaCartas(false, cardsEnemy, e.id)
-            set cardsPlayer = ordenaCartas(true, cardsPlayer, p.id)
             emit @(p.id) :present [resul = r.resul]
             emit @(e.id) :present [resul = -r.resul]
 
@@ -84,51 +89,39 @@ task Dojo(){
     }
 }
 
-func ordenaCartas(player, cartas, carta){
-    var saida = []
+func ordenaCartas(player, deck, carta){
     var x = if player => 0.9 => 0.1
     var dir = if player => -1 => 1
-    loop i in (#cartas) {
-        if carta != cartas@i
+    var cont = 0
+    loop i,c in deck {
+        if carta != c
         {
-            var cartaOrd = cartas@i
-            set cartaOrd.pub.rect = ['%', x = x + (dir*#saida* 0.12), y = 0.88, w = 0.1, h = 0.2]
-            set saida@+ = cartas@i
-            
+            set c.pub.rect = ['%', x = x + (dir*cont * 0.12), y = 0.88, w = 0.1, h = 0.2]
+            set cont = cont + 1
         }
     }
-    saida
 }
 
 func sorteiaCartas(player, deck) {
-    var saida = []
-
-    do {
-        var x = if player => 0.9 => 0.1
-        var dir = if player => -1 => 1 
-        var i = 0
-        var idx
-        var cartas_sort = []
-
-        watching until (#deck == num_cartas)
-        { 
-            loop {
-                await 1us
-                set idx = math.random(1, #cartas)
-                if !cartas_sort@idx {
-                    set cartas_sort@idx = true
-                    val carta = cartas@idx
-                    
-                    set saida@+ = spawn @(deck) Carta(task, player, 
-                    ['%', x = x + (dir*#deck* 0.12), y = 0.88, w = 0.1, h = 0.2],
-                    carta.img, 
-                    carta.elem, 
-                    carta.power)
-                }
+    var x = if player => 0.9 => 0.1
+    var dir = if player => -1 => 1 
+    var i = 0
+    var idx
+    var cartas_sort = []
+        loop {
+            until (#deck == num_cartas)
+            set idx = math.random(1, #cartas)
+            if !cartas_sort@idx {
+                set cartas_sort@idx = true
+                val carta = cartas@idx
+                
+               spawn @(deck) Carta(task, player, 
+                ['%', x = x + (dir*#deck* 0.12), y = 0.88, w = 0.1, h = 0.2],
+                carta.img, 
+                carta.elem, 
+                carta.power)
             }
-        }
     }
-    saida
 }
 
 func comparaCartas(me, p, e){
