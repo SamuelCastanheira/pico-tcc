@@ -110,7 +110,7 @@ func sorteiaCartas(player, deck) {
         var idx
         var cartas_sort = []
 
-        watching until #deck == num_cartas
+        watching until (#deck == num_cartas)
         { 
             loop {
                 await 1us

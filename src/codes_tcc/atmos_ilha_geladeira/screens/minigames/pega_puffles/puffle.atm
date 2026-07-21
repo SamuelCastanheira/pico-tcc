@@ -18,7 +18,7 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
     spawn {
         loop {
             var col = false
-            watching until col==true {
+            watching until (col==true) {
                 loop on :clock {
                     set col = pico.vs.rect.rect(pub.rect, cerca)
                 }
@@ -26,7 +26,7 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
             emit @(me) :chegou_na_cerca
 
             set col = true
-            watching until col==false {
+            watching until (col==false) {
                 loop on :clock {
                     set col = pico.vs.rect.rect(pub.rect, cerca)
                 }
@@ -46,7 +46,7 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
         }
     }
 
-    watching until dentro_do_mapa(pub.rect) {
+    watching until (dentro_do_mapa(pub.rect)) {
         spawn {
             loop us on :clock
             {

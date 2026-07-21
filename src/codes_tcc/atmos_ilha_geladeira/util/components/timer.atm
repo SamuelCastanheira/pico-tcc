@@ -12,7 +12,7 @@ task Timer(me, dur) {
             set pub.tempo_restante = dur
             set pub.progresso = 0
 
-            watching until pub.tempo_decorrido >= pub.dur
+            watching until (pub.tempo_decorrido >= pub.dur)
             {
                 toggle on :timer_pause {
                     loop on :clock {

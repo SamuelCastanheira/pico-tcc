@@ -34,7 +34,7 @@ task Pinguim (rect, hitbox, cor, predios) {
         }
     }
 
-    watching :collided until it.id==pub.dest{
+    watching :collided until (it.id==pub.dest) {
         par {
             await :mouse.button.dn
             loop {
@@ -45,7 +45,7 @@ task Pinguim (rect, hitbox, cor, predios) {
                 watching :mouse.button.dn {
                     var d = [x=ponto.x -pub.rect.x, y=ponto.y -pub.rect.y]
 
-                    watching until Vetor.magnitude(d) <= 0.01  {
+                    watching until (Vetor.magnitude(d) <= 0.01)  {
 
                         loop us on :clock {
                             var dt = us/1s

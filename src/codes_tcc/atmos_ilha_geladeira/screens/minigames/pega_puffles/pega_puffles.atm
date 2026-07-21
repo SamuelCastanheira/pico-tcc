@@ -77,13 +77,13 @@ task PegaPuffles(){
     par :any {
         await :timer_end
     } with {
-        watching until num_fugiram == (#path_puffles) {
+        watching until (num_fugiram == #path_puffles) {
             loop on :fugiu {
                 set num_fugiram = num_fugiram + 1
             }
         }
     } with {
-        watching until num_capturados == (#puffles) {
+        watching until (num_capturados == #puffles) {
             par :any {
                 loop on :chegou_na_cerca
                 {
