@@ -41,7 +41,7 @@ task Pinguim(id, rect, hitbox, cargas) {
         await 3s
     }
 
-    watching until vidas == 0 {
+    watching until (vidas == 0) {
         par :any {
             var dt = 0
             par :any {

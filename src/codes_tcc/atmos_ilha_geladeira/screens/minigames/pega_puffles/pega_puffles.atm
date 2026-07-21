@@ -65,7 +65,7 @@ task PegaPuffles(){
 
             val s_timer = string.format("%s: %d", "Timer", 
             tempo)
-            pico.output.draw.text(s_timer, 
+            pico.output.draw.text.dyn(:puf.timer, s_timer,
             ['%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'])
 
             val s_capturados = string.format("%s: %d", "Capturados", num_capturados)
