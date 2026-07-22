@@ -1,5 +1,6 @@
 val Image = require "util/components/image"
 val Pinguim = require "screens/minigames/bean_counters/pinguim"
+val Carga = require "screens/minigames/bean_counters/carga"
 
 task BeanCounters() {
     spawn Image(:NIL, r, img) where
@@ -26,7 +27,10 @@ task BeanCounters() {
         img = "../../../assets/imgs/bean_counters/plataforma.png"
     }
 
-    await Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25])
+    pin cargas = tasks()
+
+    await Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
+                        ['%', x=0.3, y=0.80, w=0.12, h=0.25], cargas)
 }
 
 BeanCounters
