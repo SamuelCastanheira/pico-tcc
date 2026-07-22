@@ -65,15 +65,15 @@ task PegaPuffles(){
 
             val s_timer = string.format("%s: %d", "Timer", 
             tempo)
-            pico.output.draw.text(s_timer, 
+            pico.output.draw.text.dyn(:puf.timer, s_timer,
             ['%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'])
 
             val s_capturados = string.format("%s: %d", "Capturados", num_capturados)
-            pico.output.draw.text(s_capturados, 
+            pico.output.draw.text.dyn(:puf.caps, s_capturados, 
             ['%', x=0.02, y=0.02, w=0.008*#s_capturados, h=0.05, anchor='NW'])
             
             val s_fugiram = string.format("%s: %d", "Fugiram", num_fugiram)
-            pico.output.draw.text(s_fugiram, 
+            pico.output.draw.text.dyn(:puf.fugs, s_fugiram, 
             ['%', x=0.02, y=0.06, w=0.008*#s_fugiram, h=0.05, anchor='NW'])
         }
     } 
@@ -81,13 +81,13 @@ task PegaPuffles(){
     par :any {
         await 100s
     } with {
-        watching until num_fugiram == (#path_puffles) {
+        watching until (num_fugiram == #path_puffles) {
             loop on :fugiu {
                 set num_fugiram = num_fugiram + 1
             }
         }
     } with {
-        watching until num_capturados == (#puffles) {
+        watching until (num_capturados == #puffles) {
             par :any {
                 loop on :chegou_na_cerca
                 {
