@@ -93,12 +93,14 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
         }
     } 
 
+    ;; redesenho
     spawn {
         loop on :draw {
             pico.output.draw.image(img, pub.rect)
         }
     }
 
+    ;; condicao de termino
     await until (fora_do_mapa(pub.rect))
     emit @2 :puffle.fugiu
 }
