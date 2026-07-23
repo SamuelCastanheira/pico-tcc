@@ -2,7 +2,7 @@ val XCollidable = require "util/components/xcollidable"
 val Image = require "util/components/image"
 val Vetor = require "util/vetor"
 
-task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
+task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
     set pub = [
         id = task,
         rect = rect,
@@ -15,41 +15,42 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
     var vel_vet = [x = 0 ,y = 0]
     var direcao = [x=0, y=0]
 
+    ;; entrada e saida da cerca
     spawn {
         loop {
-            var col = false
-            watching until (col==true) {
-                loop on :clock {
-                    set col = pico.vs.rect.rect(pub.rect, cerca)
-                }
+            loop on :clock {
+                until (pico.vs.rect.rect(pub.rect, cerca))
             }
-            emit @(me) :chegou_na_cerca
-
-            set col = true
-            watching until (col==false) {
-                loop on :clock {
-                    set col = pico.vs.rect.rect(pub.rect, cerca)
-                }
+            emit @2 :puffle.entrou
+            loop on :clock {
+                until (!pico.vs.rect.rect(pub.rect, cerca))
             }
-            emit @(me) :saiu_da_cerca
+            emit @2 :puffle.saiu
         }
     }
 
+    ;; colisao com outros puffles
     spawn {
         loop {
             val p = await :collided
             var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
             if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
             {
-                emit @(p.id) :colis_puffle [dir = dir]
+                emit @(p.id) :puffle.colis [dir = dir]
             }
         }
     }
+    spawn {
+        val influencia = 0.5
+        loop p on :puffle.colis {
+            set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
+        }
+    } 
 
-    watching until (dentro_do_mapa(pub.rect)) {
-        spawn {
-            loop us on :clock
-            {
+    ;; movimento dos puffles
+    spawn {
+        loop us on :clock {
+            do {
                 var mouse = pico.get.mouse('%')
                 var delta = [x= mouse.x - pub.rect.x , y=mouse.y - pub.rect.y]
                 var dist = Vetor.magnitude(delta)
@@ -66,18 +67,7 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
                     ]
                 } 
             }
-        } 
-
-        spawn {
-            val influencia = 0.5
-            loop {
-                val p = await :colis_puffle
-                set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
-            }
-        } 
-
-        spawn {
-            loop on :clock {
+            do {
                 loop _,parede in paredes {
                     val col = pico.vs.rect.rect(pub.rect, parede)
                     if col {
@@ -86,10 +76,7 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
                     }
                 }
             }
-        } 
-        
-        par :all {
-            loop us on :clock {
+            do {
                 set vel_vet= Vetor.multiply(
                     Vetor.normalize(direcao, vel_esc), 
                     vel_esc)
@@ -103,16 +90,20 @@ task Puffle (me, rect, hitbox, cerca, paredes, img, dist_max, puffles){
                 set direcao = [x = 0, y = 0]
                 set vel_vet = [x = 0, y = 0]
             }
-        } with {
-            loop on :draw {
-                pico.output.draw.image(img, pub.rect)
-            }
+        }
+    } 
+
+    spawn {
+        loop on :draw {
+            pico.output.draw.image(img, pub.rect)
         }
     }
-    emit @(me) :fugiu
+
+    await until (fora_do_mapa(pub.rect))
+    emit @2 :puffle.fugiu
 }
 
-func dentro_do_mapa(rect) {
+func fora_do_mapa(rect) {
     val centro =[x = 0.5, y = 0.5]
 
     val rx = 1.53 / 2

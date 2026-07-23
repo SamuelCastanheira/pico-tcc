@@ -14,20 +14,18 @@ val path_puffles = [
     "../../../assets/imgs/puffle_roundup/puffle_marrom.png"
 ]
 
-task PegaPuffles(){
+task PegaPuffles () {
     val dur = 100s
     val dist_max = 0.2
     var num_capturados = 0
     var num_fugiram = 0
 
-    spawn Image(:NIL, r, img) where
-    {
+    spawn Image(:NIL, r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/puffle_roundup/background.png"
     }
     
-    spawn Image(:NIL, r, img) where
-    {
+    spawn Image(:NIL, r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/puffle_roundup/arvores.png"
     }
@@ -44,7 +42,7 @@ task PegaPuffles(){
         val x = math.random(5, 90) / 100
         val y = math.random(10, 50) / 100
 
-        spawn @(puffles) Puffle(task,
+        spawn @(puffles) Puffle(
         ['%', x= x,y= y,w=0.05, h=0.05],
         ['%', x= x,y= y,w=0.05, h=0.05],
         ['%', x=0.5, y=0.65, w=0.15, h=0.25],
@@ -53,8 +51,7 @@ task PegaPuffles(){
 
     var tempo = 100
     spawn {
-        loop {
-            await 1s
+        loop on 1s {
             set tempo = tempo - 1 
         }
     }
@@ -82,20 +79,18 @@ task PegaPuffles(){
         await 100s
     } with {
         watching until (num_fugiram == #path_puffles) {
-            loop on :fugiu {
+            loop on :puffle.fugiu {
                 set num_fugiram = num_fugiram + 1
             }
         }
     } with {
         watching until (num_capturados == #puffles) {
-            par :any {
-                loop on :chegou_na_cerca
-                {
+            par {
+                loop on :puffle.entrou {
                     set num_capturados = num_capturados + 1
                 }
             } with {
-                loop on :saiu_da_cerca
-                {
+                loop on :puffle.saiu {
                     set num_capturados = num_capturados - 1
                 }
             }
