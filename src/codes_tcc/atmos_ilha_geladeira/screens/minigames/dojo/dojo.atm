@@ -40,56 +40,44 @@ task Dojo(){
     pin enemyDeck = tasks(num_cartas)
     sorteiaCartas(false, enemyDeck)
 
-    watching :finalizado {
-        loop{
-            var p
-            var e
-            var r
+   
+    loop in num_cartas{
+        ;;escolha da carta do player
+        val player_card = await :player.chose 
 
-            par :all
-            {
-                set e = await :enemy_chose
-            } with {
-                var sorted_indx = math.random(1, #enemyDeck)
-                var card
-                loop i,c in enemyDeck {
-                    if i==sorted_indx {
-                        set carta = c
-                    }
-                }
-                emit @(carta) :make_enemy_chose
-            } with {
-                set p = await :player_chose
+        ;;escolha imediata da carta do inimigo
+        val idx = math.random(1, #enemyDeck)
+        var enemy_card
+        loop i,card in enemyDeck {
+            if i == idx {
+                set enemy_card = card
             }
-
-            ordenaCartas(true, playerDeck, p.id)
-            ordenaCartas(false, enemyDeck, e.id)
-
-            par :all {
-                set r = await :resultado
-            } with {
-                comparaCartas(task,p,e)
-            }
-
-            ifs{
-                r.resul > 0 => set player_wins = player_wins + 1
-                r.resul < 0 => set enemy_wins = enemy_wins + 1
-            }
-
-            emit @(p.id) :present [resul = r.resul]
-            emit @(e.id) :present [resul = -r.resul]
-
-            await 2s
-            if #playerDeck == 0 => emit :finalizado 
         }
+        
+        ;;atualiza posicoes das cartas na mesa
+        ordenaCartas(true, playerDeck, player_card.ref)
+        ordenaCartas(false, enemyDeck, enemy_card)
+                
+        val resul = comparaCartas(player_card, enemy_card)
+        
+        ifs {
+            (resul > 0) => set player_wins = player_wins + 1
+            (resul < 0) => set enemy_wins = enemy_wins + 1
+        }
+
+        emit @(player_card.ref) :present [resul = resul]
+        emit @(enemy_card) :present [resul = -resul]
+
+        await 2s 
     }
-    ifs{
-        player_wins > enemy_wins => set moedas = moedas + 100
-        player_wins == enemy_wins => set moedas = moedas + 50
+    
+    set moedas = moedas + ifs {
+        player_wins > enemy_wins =>  100
+        player_wins == enemy_wins =>  50
     }
 }
 
-func ordenaCartas(player, deck, carta){
+func ordenaCartas(player, deck, carta) {
     var x = if player => 0.9 => 0.1
     var dir = if player => -1 => 1
     var cont = 0
@@ -124,27 +112,29 @@ func sorteiaCartas(player, deck) {
     }
 }
 
-func comparaCartas(me, p, e){
+func comparaCartas(p, e) {
+    var resul = -1
     if p.elem == e.elem {
         if p.power > e.power { 
-            emit @(me) :resultado [resul = 1]
+            set resul = 1
         }
         if p.power < e.power { 
-            emit @(me) :resultado [resul = -1] 
+           set resul = -1
         }
         else {
-            emit @(me) :resultado [resul = 0]
+            set resul = 0
         }
     }
     
     if ((p.elem == "GELO") && (e.elem == "AGUA")) ||
        ((p.elem == "AGUA") && (e.elem == "FOGO")) ||
        ((p.elem == "FOGO") && (e.elem == "GELO")) {
-        emit @(me) :resultado [resul = 1]
+        set resul = 1
     }
     else {
-        emit @(me) :resultado [resul = -1]
+        set resul = 1
     }
+    return(resul)
 }
 
 Dojo

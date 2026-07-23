@@ -11,71 +11,62 @@ task Pinguim(id, rect, hitbox, ts) {
     
     var vel = 0 
     var img 
-    val carga_maxima = 5
+    val carga_maxima = 6
     var carga = 0
 
     pin colis_c = spawn XCollidable(task, ts@1)
     pin colis_p = spawn XCollidable(task, ts@2)
 
-    print(#ts@2)
-    spawn {
-        loop {
-            val c = await :collided
-            match c.id.pub.tipo {
-                :Anvil => emit :colid_anvil 
-                :Flower_pot => emit :colid_flower 
-                :Coffe_bag => emit :colid_coffe 
-                :Fish_bean_counters => emit :colid_fish 
-                :Plataforma => {
-                    if carga > 0 {
-                        emit @(:global) :colid_plataforma
-                        emit :diminui_carga
-                        await 250ms
-                        }
-                    }
-            }
-
-            emit @(c.id) :collided 
-        }
-    }
-
     spawn {
         loop{
-            set img = "../../../assets/imgs/bean_counters/penguin0.webp"
+            set carga = 0
+            set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
             par :any {
-                par :any {
-                    loop {
-                        until (carga > carga_maxima)
-                        await :colid_coffe
-                        set carga = carga + 1
-                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
-                    }
-                
-                    await :colid_coffe
-                    set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima + 1)
-                } with {
-                    loop on :diminui_carga
+                spawn {
+                    loop
                     {
-                        set carga = carga -1
-                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                        await <:collided until (it.id.pub.tipo==:Plataforma)>
+                        if carga > 0 { 
+                            set carga = carga -1
+                            set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                            emit @(:global) :pinguim.colid_plataforma
+                            await 250ms
+                        }
                     }
                 }
+
+                loop {
+                    until (carga >= carga_maxima)
+                    val c = await <:collided until (it.id.pub.tipo==:Coffe_bag)>
+                    emit @(c.id) :collided 
+                    set carga = carga + 1
+                    set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                }
+
             } with {
-                await :colid_flower 
+
+                val c = await <:collided until (it.id.pub.tipo==:Flower_pot)> 
+                emit @(c.id) :collided
                 set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+
             } with {
-                await :colid_fish 
+
+                val c = await <:collided until (it.id.pub.tipo==:Fish_bean_counters)> 
+                emit @(c.id) :collided 
                 set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
+
             }with {
-                await :colid_anvil
+
+                val c = await <:collided until (it.id.pub.tipo==:Anvil)> 
+                emit @(c.id) :collided
                 set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
+
             }
 
-            set carga = 0
             set pub.vidas = pub.vidas - 1
             set pub.rect.h = 0.15
-            emit @(:global) :pinguim_atordoado
-            emit :pinguim_atordoado
+            emit @(2) :pinguim.atordoado
+            emit :pinguim.atordoado
             await 2s
             set pub.rect.h = 0.25
         }
@@ -90,7 +81,7 @@ task Pinguim(id, rect, hitbox, ts) {
             }
         } with {
             loop{
-                watching :pinguim_atordoado {
+                watching :pinguim.atordoado {
                     loop {
                         par :any {
                             await :key.dn until (it.key == :Right)

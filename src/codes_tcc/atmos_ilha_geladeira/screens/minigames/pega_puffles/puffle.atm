@@ -33,17 +33,19 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
     spawn {
         loop {
             val p = await :collided
-            var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
+            var dir = [x = p.id.pub.rect.x - pub.rect.x,  y= p.id.pub.rect.y - pub.rect.y]
             if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
             {
+                val influencia = 0.5
+                set dir = Vetor.multiply(dir, influencia)
                 emit @(p.id) :puffle.colis [dir = dir]
             }
         }
     }
+    
     spawn {
-        val influencia = 0.5
         loop p on :puffle.colis {
-            set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
+            set direcao = Vetor.add(direcao, p.dir)
         }
     } 
 
@@ -93,12 +95,14 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
         }
     } 
 
+    ;; redesenho
     spawn {
         loop on :draw {
             pico.output.draw.image(img, pub.rect)
         }
     }
 
+    ;; condicao de termino
     await until (fora_do_mapa(pub.rect))
     emit @2 :puffle.fugiu
 }

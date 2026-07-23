@@ -23,7 +23,7 @@ task BeanCounters() {
         img = "../../../assets/imgs/bean_counters/neve.png"
     }
 
-    pin plataforma = tasks(1)
+    pin plataforma = tasks()
     spawn @(plataforma) Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
     "../../../assets/imgs/bean_counters/plataforma.png")
 
@@ -32,7 +32,7 @@ task BeanCounters() {
     spawn {
         await 0.5s
         loop{
-            watching :pinguim_atordoado {
+            watching :pinguim.atordoado {
                 loop {
                     val t_espera = 0.2 + (math.random() * 0.8)  ;; entre 0.2s e 2.5s
                     pin timer = spawn Timer(task,t_espera*1000000)
@@ -63,7 +63,7 @@ task BeanCounters() {
         await until (pinguim.pub.vidas == 0)
         await 0.5s
     } with {
-        await :plataforma_cheia
+        await :plataforma.cheia
         await 0.5s
     }
 }

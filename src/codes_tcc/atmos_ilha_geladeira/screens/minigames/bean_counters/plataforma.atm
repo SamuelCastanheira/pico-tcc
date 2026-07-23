@@ -9,24 +9,22 @@ task Plataforma(rect, img) {
         hitbox = rect,
         tipo = :Plataforma
     ]
-    pin pilha1 = spawn Pilha(0.1, 0.85)
-    pin pilha2 = spawn Pilha(0.15, 0.85)
+
+    pin pilha1 = spawn Pilha(0.1, 0.85, 10)
+    pin pilha2 = spawn Pilha(0.15, 0.85, 10)
 
     spawn {
-        await :pilha_cheia
-        print("p1")
-        await :pilha_cheia
-        print("p2")
-        emit @(:global) :plataforma_cheia
-        print("p")
+        await :pilha.cheia
+        await :pilha.cheia
+        emit @(2) :plataforma.cheia
     }
 
-    loop on :colid_plataforma {
+    loop on :pinguim.colid_plataforma {
         if (pilha1.pub.qnt + 1) <= pilha1.pub.qnt_max {
-            emit @(pilha1) :entrega_coffe
+            emit @(pilha1) :plataforma.entrega
         } else {
             if  (pilha2.pub.qnt + 1) <= pilha2.pub.qnt_max {
-                emit @(pilha2) :entrega_coffe
+                emit @(pilha2) :plataforma.entrega
             }
         }
     } 
