@@ -1,0 +1,34 @@
+val Image = require "util/components/image"
+val XCollidable = require "util/components/xcollidable"
+
+task Pilha(x,y) {
+    set pub = [
+        rect = rect,
+        qnt = 0,
+        qnt_max = 10
+    ]
+
+    val img = "../../../assets/imgs/bean_counters/Coffe_bag.webp"
+
+    par :any {
+        watching until (pub.qnt_max == pub.qnt) {
+            loop on :entrega_coffe {
+                set pub.qnt = pub.qnt + 1
+            }
+        }
+        emit @(:global) :pilha_cheia
+        await(false)
+    } with {
+        loop on :draw {
+            loop i in pub.qnt {
+                pico.layer.image[path = img]
+                pico.set.layer(img)
+                pico.set.effect[rotate = [angle=0, anchor ='C']]
+                pico.set.layer(:world)
+                pico.output.draw.image(img, ['%', x = x, y = y - (0.03*(i-1)), w = 0.1, h = 0.1])
+            }
+        }
+    }
+}
+
+Pilha

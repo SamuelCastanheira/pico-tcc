@@ -49,7 +49,6 @@ function Carga.lanca_carga(dt)
     if Carga.spawn_timer >= Carga.spawn_interval then
         Carga.spawn_timer = 0
         Carga.spawn_interval = 0.2 + math.random() * 0.8  -- entre 0.2s e 2.5s
-        print(Carga.spawn_interval)
         return Carga.new()
     end
 
@@ -105,11 +104,6 @@ function Carga:inicializacao()
 
     local denom = 2 * (cos * cos) * (dx * tan - dy)
 
-    -- evita divisão por zero / ângulo inválido
-    if denom <= 0 then
-        return self:inicializacao() -- tenta de novo
-    end
-
     local v0 = math.sqrt((g * dx * dx) / denom)
 
     -- componentes da velocidade
@@ -117,11 +111,6 @@ function Carga:inicializacao()
     local vy = -v0 * math.sin(angle)
 
     local h_max = y0 + (vy * vy) / (2 * g)
-    local LIMITE_ALTURA = 0.95  -- escolhe o máximo que quiser
-
-    if h_max > LIMITE_ALTURA then
-        return self:inicializacao() -- sorteia outro
-    end
 
     self.p_lancamento = {x=x0, y=y0}
     self.destino = {x=xf, y= yf}

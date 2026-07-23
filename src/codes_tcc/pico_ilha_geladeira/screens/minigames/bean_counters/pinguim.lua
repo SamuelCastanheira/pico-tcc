@@ -84,7 +84,6 @@ function Pinguim:troca_img(carga)
         end
     end
     if self.cargas >= 6 or carga.tipo.key ~= "cafe" then
-        print(self.cargas)
         self.rect.w = 0.12
         self.rect.h = 0.15
         self.derrubado = true

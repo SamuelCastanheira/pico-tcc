@@ -88,7 +88,7 @@ function Centro.draw(state)
     local moeda_num = {'%',x=0.08, y=0, w=.025*#tostring(state.money), h= 0.1, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/moeda.png",moeda )
     pico.set.pencil { color='yellow' }
-    pico.output.draw.text(state.money, moeda_num)
+    pico.output.draw.text.fix(state.money, moeda_num)
     pico.output.present()
 end
 

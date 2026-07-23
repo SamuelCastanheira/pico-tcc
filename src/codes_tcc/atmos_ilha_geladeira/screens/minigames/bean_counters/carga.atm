@@ -1,30 +1,85 @@
 val tipos = [
-    "Anvil",
-    "Flower_pot",
-    "Coffe_bag",
-    "Fish_bean_counters"
+    :Anvil,
+    :Flower_pot,
+    :Coffe_bag,
+    :Fish_bean_counters
 ]
 
-task Carga(id, rect, hitbox) {
+task Carga() {
     
     set pub = [
-        rect = rect,
-        hitbox = hitbox,
-        id = tipos@(math.random(1,#tipos))
+        id = task,
+        tipo = tipos@(math.random(1,#tipos))
     ]
-    
+
     val base = "../../../assets/imgs/bean_counters"
     val img = string.format("%s/%s.webp", base, pub.tipo)
-
+    var g = 9.8
+    var lim_e = 0.25
+    var lim_d = 0.75
+    var p_lancamento = [x = 0.85, y = 0.5]
+    var p_destino
+    var angle
+    var  vel 
     pico.layer.image[path=img]
+
+    ;;inicializacao
+    spawn {
+        set p_destino = [x = (math.random() * (lim_d - lim_e)) + lim_e, y = 0.9]
+
+        val min = math.pi/4      ;; 45°
+        val max = math.pi/3      ;; 60°
+
+        val delta = [x = p_destino.x - p_lancamento.x, y = p_lancamento.y - p_destino.y]
+
+        if delta.x >= 0 {
+            set angle = (math.random() * (max - min)) + min
+        } else {
+            set angle = (math.random() * (math.pi - max - (math.pi - min))) + (math.pi - max)
+        }
+
+        val cos = math.cos(angle)
+        val tan = math.tan(angle)
+
+        val denom = 2 * (cos * cos) * ((delta.x * tan) - delta.y)
+
+        val v0 = math.sqrt((g * delta.x * delta.x) / denom)
+
+        ;; componentes da velocidade
+        set vel = [x = v0 * cos, y = (-v0 )* math.sin(angle)]
+
+        set pub.rect = ['%', x = p_lancamento.x, y = p_lancamento.y , w = 0.08, h = 0.08]
+        set pub.hitbox = pub.rect
+    }
     
     par :any {
         await :collided
     } with {
-        watching until pub.rect.y > 0.9 {
-            loop on :draw {
-                if pub.id != :Anvil {
-                    
+        watching until (pub.rect.y > 0.9) {
+            par :any {
+                loop us on :clock {
+                    val dt = (us*0.5)/1s
+                    set vel  = [x = vel.x, y = vel.y + (g*dt)]
+                    set pub.rect.x = pub.rect.x + (vel.x * dt)
+                    set pub.hitbox.x = pub.rect.x
+                    set pub.rect.y = pub.rect.y + (vel.y * dt) + ((g*math.pow(dt,2))/2)
+                    set pub.hitbox.y = pub.rect.y
+                }
+            } with {
+                loop on :draw {
+                    if pub.tipo == :Coffe_bag {
+                        val delta = (pub.rect.x - p_lancamento.x)/(p_destino.x - p_lancamento.x)
+                        ifs{
+                            delta < 0.25 => set angle = 0
+                            delta < 0.50 => set angle = 45
+                            delta < 0.75 => set angle = 135
+                            else =>  set angle = 180
+                        }
+                        pico.set.layer(img)
+                        pico.set.effect[rotate = [angle = angle, anchor = 'C']]
+                        pico.set.layer(:world)
+                    }
+                pico.output.draw.layer(img, pub.rect)
                 }
             }
         }

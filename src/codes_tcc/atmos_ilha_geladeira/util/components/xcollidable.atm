@@ -1,6 +1,6 @@
 task XCollidable (me, others) {
     loop on :clock {
-        if (#others > 0) {
+        if (#others >= 1) {
             loop _,e in others {
                 if (me.pub.id != e.pub.id)
                 {

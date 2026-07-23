@@ -184,8 +184,8 @@ function BeanCounters.draw(state)
 
         local score = string.format("%s: %d", "Score", data.pinguim.score)
         local life = string.format("%s: %d", "Vidas", data.pinguim.vidas)
-        pico.output.draw.text(score, {'%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'})
-        pico.output.draw.text(life, {'%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'})
+        pico.output.draw.text.fix(score, {'%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'})
+        pico.output.draw.text.fix(life, {'%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'})
         
 
         for _, carga in pairs(data.cargas) do
@@ -208,9 +208,9 @@ function BeanCounters.draw(state)
         end
 
         for i = 1, data.pilha2.num_cafes do
-            pico.layer.image(data.pilha2:get_img())
+            pico.layer.image{path =data.pilha2:get_img()}
             pico.set.layer(data.pilha2:get_img())
-            pico.set.view{rotate={angle=0, anchor='C'}}
+            pico.set.effect{rotate={angle=0, anchor='C'}}
             pico.set.layer()
             pico.output.draw.image(data.pilha2:get_img(), {'%', x=0.15, y=0.85 - (0.03*(i-1)), w=0.1,h=0.1})
         end

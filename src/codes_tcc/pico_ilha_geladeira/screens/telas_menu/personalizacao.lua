@@ -30,7 +30,7 @@ local layer_place = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
 local function cria_layer_quadro()
     local dim = {w=600, h=400}
     local tile = {x=7, y=5}
-    pico.layer.empty('=', nil, "quadro_gelo", false, {'!', w=dim.w, h=dim.h})
+    pico.layer.empty('=', nil,nil, "quadro_gelo", false, {'!', w=dim.w, h=dim.h})
     pico.set.layer("quadro_gelo")
     pico.set.scene{tile={w=dim.w/tile.x, h=dim.h/tile.y}}
     local quadro_gelo = {'#', x=1, y=1, w=7, h=5, anchor='NW'}
@@ -79,9 +79,9 @@ function Personalizacao.draw(state)
 
     pico.output.clear()
     pico.output.draw.image("../../../assets/imgs/background_personalizar.png", background)
-    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.texto), pinguim)
+    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.text.fixo), pinguim)
     pico.output.draw.image(img_voltar, voltar)
-    pico.output.draw.text("Escolha sua cor", texto_escolha)
+    pico.output.draw.text.fix("Escolha sua cor", texto_escolha)
     pico.output.draw.layer("quadro_gelo", layer_place)
 end
 

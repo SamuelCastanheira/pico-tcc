@@ -1,96 +1,126 @@
 val Image = require "util/components/image"
 val XCollidable = require "util/components/xcollidable"
 
-task Pinguim(id, rect, hitbox, cargas) {
+task Pinguim(id, rect, hitbox, ts) {
     set pub = [
         rect = rect,
         hitbox = hitbox,
-        cargas = 0,
+        vidas = 3
     ]
 
-    var vidas = 3
+    
     var vel = 0 
-    var img = "../../../assets/imgs/bean_counters/penguin0.webp"
+    var img 
     val carga_maxima = 5
+    var carga = 0
 
-    pin colis_c = spawn XCollidable(task, cargas)
+    pin colis_c = spawn XCollidable(task, ts@1)
+    pin colis_p = spawn XCollidable(task, ts@2)
 
+    print(#ts@2)
     spawn {
         loop {
             val c = await :collided
-            match c.id {
-                :Anvil => emit :colid_anvil
-                :Flower_pot => emit :colid_flower
-                :Coffe_bag => emit :colid_coffe
-                :Fish_bean_counters => emit :colid_fish
-            } 
+            match c.id.pub.tipo {
+                :Anvil => emit :colid_anvil 
+                :Flower_pot => emit :colid_flower 
+                :Coffe_bag => emit :colid_coffe 
+                :Fish_bean_counters => emit :colid_fish 
+                :Plataforma => {
+                    if carga > 0 {
+                        emit @(:global) :colid_plataforma
+                        emit :diminui_carga
+                        await 250ms
+                        }
+                    }
+            }
+
+            emit @(c.id) :collided 
         }
     }
 
     spawn {
-        par :any {
-            loop {
-                await :colid_coffe
-                set img = "../../../assets/imgs/bean_counters/penguin0.webp"
-
-                loop _ in 5 {
-                    await :colid_coffe
-                    set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",i)
-                }
-                emit @(me) :limite_carga
-            }   
-        } with { 
-            loop {
+        loop{
+            set img = "../../../assets/imgs/bean_counters/penguin0.webp"
+            par :any {
                 par :any {
-                    await :colid_flower 
-                    set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+                    loop {
+                        until (carga > carga_maxima)
+                        await :colid_coffe
+                        set carga = carga + 1
+                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                    }
+                
+                    await :colid_coffe
+                    set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima + 1)
                 } with {
-                    await :colid_fish 
-                    set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
-                }with {
-                    await :colid_anvil
-                    set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
+                    loop on :diminui_carga
+                    {
+                        set carga = carga -1
+                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                    }
                 }
-                await 3s
+            } with {
+                await :colid_flower 
+                set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+            } with {
+                await :colid_fish 
+                set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
+            }with {
+                await :colid_anvil
+                set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
             }
+
+            set carga = 0
+            set pub.vidas = pub.vidas - 1
+            set pub.rect.h = 0.15
+            emit @(:global) :pinguim_atordoado
+            emit :pinguim_atordoado
+            await 2s
+            set pub.rect.h = 0.25
         }
     }
 
-    watching until (vidas == 0) {
+    par :any {
+        var dt = 0
         par :any {
-            var dt = 0
-            par :any {
-                loop {
-                    val us = await :clock
-                    set dt = us/1s
-                }
-            } with {
-                loop{
-                    par :any {
-                        await :key.dn until it.key == :Right
-                        set vel = 7
-                    } with {
-                        await :key.dn until it.key == :Left
-                        set vel = -7
-                    }
-                    var new_x = pub.rect.x + (vel*((carga_maxima - pub.cargas)/carga_maxima) * dt)
-                    if new_x < 0.25 {  
-                        set new_x = 0.25
-                    }
-                    else {
-                        if new_x > 0.8 {
-                            set new_x = 0.8
-                        }
-                    }
-                    set pub.rect.x = new_x
-                }
+            loop {
+                val us = await :clock
+                set dt = us/1s
             }
         } with {
-            loop on :draw {
-                pico.output.draw.image(img, pub.rect)
+            loop{
+                watching :pinguim_atordoado {
+                    loop {
+                        par :any {
+                            await :key.dn until (it.key == :Right)
+                            set vel = 10 * ((carga_maxima - carga)/carga_maxima)
+                        } with {
+                            await :key.dn until (it.key == :Left)
+                            set vel = -10 * ((carga_maxima - carga)/carga_maxima)
+                        }
+        
+                        var new_x = pub.rect.x + (vel* (1/60))
+                        if new_x < 0.25 {  
+                            set new_x = 0.25
+                        }
+                        else {
+                            if new_x > 0.8 {
+                                set new_x = 0.8
+                            }
+                        }
+                        set pub.rect.x = new_x
+                        set pub.hitbox.x = new_x
+                    }
+                }
+                await 2s
             }
         }
-    } 
+    } with {
+        loop on :draw {
+            pico.output.draw.image(img, pub.rect)
+        }
+    }
 }
 
 Pinguim

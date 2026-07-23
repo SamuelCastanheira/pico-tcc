@@ -1,6 +1,8 @@
 val Image = require "util/components/image"
 val Pinguim = require "screens/minigames/bean_counters/pinguim"
 val Carga = require "screens/minigames/bean_counters/carga"
+val Plataforma = require "screens/minigames/bean_counters/plataforma"
+val Timer = require "util/components/timer"
 
 task BeanCounters() {
     spawn Image(:NIL, r, img) where
@@ -21,16 +23,49 @@ task BeanCounters() {
         img = "../../../assets/imgs/bean_counters/neve.png"
     }
 
-     spawn Image(:NIL, r, img) where
-    {
-        r = ['%', x=0.13, y=0.86, w=0.30, h=0.15]
-        img = "../../../assets/imgs/bean_counters/plataforma.png"
-    }
+    pin plataforma = tasks(1)
+    spawn @(plataforma) Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
+    "../../../assets/imgs/bean_counters/plataforma.png")
 
     pin cargas = tasks()
+    
+    spawn {
+        await 0.5s
+        loop{
+            watching :pinguim_atordoado {
+                loop {
+                    val t_espera = 0.2 + (math.random() * 0.8)  ;; entre 0.2s e 2.5s
+                    pin timer = spawn Timer(task,t_espera*1000000)
+                    emit @(timer) :timer_start
+                    spawn @(cargas) Carga()
+                    await :timer_end
+                }
+            }
+            await 2s
+        }
+    }
 
-    await Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
-                        ['%', x=0.3, y=0.80, w=0.12, h=0.25], cargas)
+    val ts = [cargas,plataforma]
+    
+    pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
+                        ['%', x=0.3, y=0.80, w=0.12, h=0.25], ts)
+
+    spawn {
+        loop on :draw {
+            val score = string.format("%s: %d", "Score", 0)
+            val life = string.format("%s: %d", "Vidas", pinguim.pub.vidas)
+            pico.output.draw.text.fix(score,['%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'])
+            pico.output.draw.text.fix(life, ['%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'])
+        }
+    }
+
+    par :any {
+        await until (pinguim.pub.vidas == 0)
+        await 0.5s
+    } with {
+        await :plataforma_cheia
+        await 0.5s
+    }
 }
 
 BeanCounters

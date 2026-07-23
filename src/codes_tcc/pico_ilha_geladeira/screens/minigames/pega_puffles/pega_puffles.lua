@@ -217,9 +217,9 @@ function PegaPuffle.draw(state)
     local s_capturados = string.format("%s: %d", "Capturados", data.capturados)
     local s_fugiram = string.format("%s: %d", "Fugiram", data.fugiram)
     local s_timer = string.format("%s: %d", "Timer", math.floor(data.timer:getRestante()/1000))
-    pico.output.draw.text(s_capturados, {'%', x=0.02, y=0.02, w=0.008*#s_capturados, h=0.05, anchor='NW'})
-    pico.output.draw.text(s_fugiram, {'%', x=0.02, y=0.06, w=0.008*#s_fugiram, h=0.05, anchor='NW'})
-    pico.output.draw.text(s_timer, {'%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'})
+    pico.output.draw.text.fix(s_capturados, {'%', x=0.02, y=0.02, w=0.008*#s_capturados, h=0.05, anchor='NW'})
+    pico.output.draw.text.fix(s_fugiram, {'%', x=0.02, y=0.06, w=0.008*#s_fugiram, h=0.05, anchor='NW'})
+    pico.output.draw.text.fix(s_timer, {'%', x=0.9, y=0.02, w=0.008*#s_timer, h=0.1, anchor='NW'})
 
 end
 
