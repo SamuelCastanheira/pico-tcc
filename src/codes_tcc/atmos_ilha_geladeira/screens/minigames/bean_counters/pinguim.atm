@@ -22,7 +22,8 @@ task Pinguim(id, rect, hitbox, ts) {
             set carga = 0
             set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
             par :any {
-                spawn {
+
+                pin spawn_plataforma = spawn {
                     loop
                     {
                         await <:collided until (it.id.pub.tipo==:Plataforma)>
@@ -32,6 +33,15 @@ task Pinguim(id, rect, hitbox, ts) {
                             emit @(:global) :pinguim.colid_plataforma
                             await 250ms
                         }
+                    }
+                }
+
+                spawn {
+                    loop {
+                        await <:collided until (it.id.pub.tipo==:Coffe_bag)>
+                        toggle spawn_plataforma(false)
+                        await 250ms
+                        toggle spawn_plataforma(true)
                     }
                 }
 
