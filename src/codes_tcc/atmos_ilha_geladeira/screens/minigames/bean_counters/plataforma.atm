@@ -13,21 +13,23 @@ task Plataforma(rect, img) {
     pin pilha1 = spawn Pilha(0.1, 0.85, 10)
     pin pilha2 = spawn Pilha(0.15, 0.85, 10)
 
-    spawn {
-        await :pilha.cheia
-        await :pilha.cheia
-        emit @(2) :plataforma.cheia
+    watching :pilha.cheia {
+        loop {
+            await :pinguim.colid_plataforma
+            emit @(pilha1) :plataforma.entrega
+        }
     }
 
-    loop on :pinguim.colid_plataforma {
-        if (pilha1.pub.qnt + 1) <= pilha1.pub.qnt_max {
-            emit @(pilha1) :plataforma.entrega
-        } else {
-            if  (pilha2.pub.qnt + 1) <= pilha2.pub.qnt_max {
-                emit @(pilha2) :plataforma.entrega
-            }
+    watching :pilha.cheia {
+        loop {
+            await :pinguim.colid_plataforma
+            emit @(pilha2) :plataforma.entrega
         }
-    } 
+    }
+
+    emit @(2) :plataforma.cheia
+    await(false)
+  
 }
 
 Plataforma

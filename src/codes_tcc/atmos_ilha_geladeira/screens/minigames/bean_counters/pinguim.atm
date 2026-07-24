@@ -8,7 +8,6 @@ task Pinguim(id, rect, hitbox, ts) {
         vidas = 3
     ]
 
-    
     var vel = 0 
     var img 
     val carga_maxima = 6
@@ -70,7 +69,6 @@ task Pinguim(id, rect, hitbox, ts) {
                 val c = await <:collided until (it.id.pub.tipo==:Anvil)> 
                 emit @(c.id) :collided
                 set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
-
             }
 
             set pub.vidas = pub.vidas - 1
@@ -82,45 +80,39 @@ task Pinguim(id, rect, hitbox, ts) {
         }
     }
 
-    par :any {
-        var dt = 0
-        par :any {
-            loop {
-                val us = await :clock
-                set dt = us/1s
-            }
-        } with {
-            loop{
-                watching :pinguim.atordoado {
-                    loop {
-                        par :any {
-                            await :key.dn until (it.key == :Right)
-                            set vel = 10 * ((carga_maxima - carga)/carga_maxima)
-                        } with {
-                            await :key.dn until (it.key == :Left)
-                            set vel = -10 * ((carga_maxima - carga)/carga_maxima)
-                        }
-        
-                        var new_x = pub.rect.x + (vel* (1/60))
-                        if new_x < 0.25 {  
-                            set new_x = 0.25
-                        }
-                        else {
-                            if new_x > 0.8 {
-                                set new_x = 0.8
-                            }
-                        }
-                        set pub.rect.x = new_x
-                        set pub.hitbox.x = new_x
+    ;;atualiza movimento
+    spawn {
+        loop{
+            watching :pinguim.atordoado {
+                loop {
+                    par :any {
+                        await :key.dn until (it.key == :Right)
+                        set vel = 10 * ((carga_maxima - carga)/carga_maxima)
+                    } with {
+                        await :key.dn until (it.key == :Left)
+                        set vel = -10 * ((carga_maxima - carga)/carga_maxima)
                     }
+    
+                    var new_x = pub.rect.x + (vel* (1/60))
+                    if new_x < 0.25 {  
+                        set new_x = 0.25
+                    }
+                    else {
+                        if new_x > 0.8 {
+                            set new_x = 0.8
+                        }
+                    }
+                    set pub.rect.x = new_x
+                    set pub.hitbox.x = new_x
                 }
-                await 2s
             }
+            await 2s
         }
-    } with {
-        loop on :draw {
-            pico.output.draw.image(img, pub.rect)
-        }
+    }
+    
+    ;;redesenho
+    loop on :draw {
+        pico.output.draw.image(img, pub.rect)
     }
 }
 

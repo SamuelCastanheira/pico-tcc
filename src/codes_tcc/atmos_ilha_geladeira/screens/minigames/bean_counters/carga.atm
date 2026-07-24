@@ -14,17 +14,19 @@ task Carga() {
 
     val base = "../../../assets/imgs/bean_counters"
     val img = string.format("%s/%s.webp", base, pub.tipo)
-    var g = 9.8
-    var lim_e = 0.25
-    var lim_d = 0.75
+    pico.layer.image[path=img]
+
     var p_lancamento = [x = 0.85, y = 0.5]
     var p_destino
+    var g = 9.8
     var angle
     var  vel 
-    pico.layer.image[path=img]
 
     ;;calcula tragetória
     do{
+        var lim_e = 0.25
+        var lim_d = 0.75
+
         set p_destino = [x = (math.random() * (lim_d - lim_e)) + lim_e, y = 0.9]
 
         val min = math.pi/4      ;; 45°
