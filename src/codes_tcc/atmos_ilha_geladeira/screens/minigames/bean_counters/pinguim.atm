@@ -27,6 +27,7 @@ task Pinguim(id, rect, hitbox, ts) {
                     {
                         await <:collided until (it.id.pub.tipo==:Plataforma)>
                         if carga > 0 { 
+                            emit @(2) :pinguim.entrega
                             set carga = carga -1
                             set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
                             emit @(:global) :pinguim.colid_plataforma
@@ -47,6 +48,7 @@ task Pinguim(id, rect, hitbox, ts) {
                 loop {
                     until (carga >= carga_maxima)
                     val c = await <:collided until (it.id.pub.tipo==:Coffe_bag)>
+                    emit @(2) :pinguim.coleta
                     emit @(c.id) :collided 
                     set carga = carga + 1
                     set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)

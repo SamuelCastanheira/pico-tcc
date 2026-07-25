@@ -50,9 +50,22 @@ task BeanCounters() {
     pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
                         ['%', x=0.3, y=0.80, w=0.12, h=0.25], ts)
 
+    var score = 0
+    spawn {
+        loop {
+            par :any {
+                await :pinguim.coleta
+                set score = score + 2
+            } with {
+                await :pinguim.entrega
+                set score = score + 3
+            }
+        }
+    }
+
     spawn {
         loop on :draw {
-            val score = string.format("%s: %d", "Score", 0)
+            val score = string.format("%s: %d", "Score", score)
             val life = string.format("%s: %d", "Vidas", pinguim.pub.vidas)
             pico.output.draw.text.fix(score,['%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'])
             pico.output.draw.text.fix(life, ['%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'])
@@ -66,6 +79,8 @@ task BeanCounters() {
         await :plataforma.cheia
         await 0.5s
     }
+
+    set moedas = moedas + score
 }
 
 BeanCounters

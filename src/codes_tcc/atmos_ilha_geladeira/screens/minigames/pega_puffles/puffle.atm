@@ -33,19 +33,15 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
     spawn {
         loop {
             val p = await :collided
-            var dir = [x = p.id.pub.rect.x - pub.rect.x,  y= p.id.pub.rect.y - pub.rect.y]
-            if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
-            {
-                val influencia = 0.5
-                set dir = Vetor.multiply(dir, influencia)
-                emit @(p.id) :puffle.colis [dir = dir]
-            }
+            var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
+            if Vetor.magnitude(direcao) > 0 => emit @(p.id) :puffle.empurrado [dir = dir]
         }
     }
-    
+
     spawn {
-        loop p on :puffle.colis {
-            set direcao = Vetor.add(direcao, p.dir)
+        val influencia = 0.5
+        loop p on :puffle.empurrado {
+            set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
         }
     } 
 
@@ -78,6 +74,7 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
                     }
                 }
             }
+            
             do {
                 set vel_vet= Vetor.multiply(
                     Vetor.normalize(direcao, vel_esc), 
