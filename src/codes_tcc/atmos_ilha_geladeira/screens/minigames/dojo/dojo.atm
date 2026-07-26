@@ -36,14 +36,14 @@ task Dojo(){
     }
 
     pin playerDeck = tasks(num_cartas)
-    sorteiaCartas(true, playerDeck)
+    sorteiaCartas(:player, playerDeck)
     pin enemyDeck = tasks(num_cartas)
-    sorteiaCartas(false, enemyDeck)
+    sorteiaCartas(:enemy, enemyDeck)
 
    
     loop in num_cartas{
         ;;escolha da carta do player
-        val player_card = await :player.chose 
+        val player_card = await :clicked
 
         ;;escolha imediata da carta do inimigo
         val idx = math.random(1, #enemyDeck)
@@ -55,17 +55,17 @@ task Dojo(){
         }
         
         ;;atualiza posicoes das cartas na mesa
-        ordenaCartas(true, playerDeck, player_card.ref)
-        ordenaCartas(false, enemyDeck, enemy_card)
+        ordenaCartas(:player, playerDeck, player_card.me)
+        ordenaCartas(:enemy, enemyDeck, enemy_card)
                 
-        val resul = comparaCartas(player_card, enemy_card)
+        val resul = comparaCartas(player_card.me, enemy_card)
         
         ifs {
             (resul > 0) => set player_wins = player_wins + 1
             (resul < 0) => set enemy_wins = enemy_wins + 1
         }
 
-        emit @(player_card.ref) :present [resul = resul]
+        emit @(player_card.me) :present [resul = resul]
         emit @(enemy_card) :present [resul = -resul]
 
         await 2s 
@@ -77,9 +77,9 @@ task Dojo(){
     }
 }
 
-func ordenaCartas(player, deck, carta) {
-    var x = if player => 0.9 => 0.1
-    var dir = if player => -1 => 1
+func ordenaCartas(id, deck, carta) {
+    var x = if (id == :player) => 0.9 => 0.1
+    var dir = if (id == :player) => -1 => 1
     var cont = 0
     loop i,c in deck {
         if carta != c
@@ -90,9 +90,9 @@ func ordenaCartas(player, deck, carta) {
     }
 }
 
-func sorteiaCartas(player, deck) {
-    var x = if player => 0.9 => 0.1
-    var dir = if player => -1 => 1 
+func sorteiaCartas(id, deck) {
+    var x = if (id == :player) => 0.9 => 0.1
+    var dir = if (id == :player) => -1 => 1 
     var i = 0
     var idx
     var cartas_sort = []
@@ -103,7 +103,7 @@ func sorteiaCartas(player, deck) {
                 set cartas_sort@idx = true
                 val carta = cartas@idx
                 
-               spawn @(deck) Carta(task, player, 
+               spawn @(deck) Carta(id, 
                 ['%', x = x + (dir*#deck* 0.12), y = 0.88, w = 0.1, h = 0.2],
                 carta.img, 
                 carta.elem, 
@@ -114,11 +114,11 @@ func sorteiaCartas(player, deck) {
 
 func comparaCartas(p, e) {
     var resul = -1
-    if p.elem == e.elem {
-        if p.power > e.power { 
+    if p.pub.elem == e.pub.elem {
+        if p.pub.power > e.pub.power { 
             set resul = 1
         }
-        if p.power < e.power { 
+        if p.pub.power < e.pub.power { 
            set resul = -1
         }
         else {
@@ -126,9 +126,9 @@ func comparaCartas(p, e) {
         }
     }
     
-    if ((p.elem == "GELO") && (e.elem == "AGUA")) ||
-       ((p.elem == "AGUA") && (e.elem == "FOGO")) ||
-       ((p.elem == "FOGO") && (e.elem == "GELO")) {
+    if ((p.pub.elem == "GELO") && (e.pub.elem == "AGUA")) ||
+       ((p.pub.elem == "AGUA") && (e.pub.elem == "FOGO")) ||
+       ((p.pub.elem == "FOGO") && (e.pub.elem == "GELO")) {
         set resul = 1
     }
     else {

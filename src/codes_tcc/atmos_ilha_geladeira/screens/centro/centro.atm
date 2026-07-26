@@ -36,14 +36,21 @@ task Centro(){
                 ['%', x=0.5, y=0.4, w=0.21, h=0.21],
                 "../../../assets/imgs/pet_shop.png",
                 "../../../assets/imgs/pet_shop_hover.png")
-            
-            pin p = spawn Pinguim(
+   
+            pin pinguim = spawn Pinguim(
                 ['%', x=0.5, y=0.7, w=0.08, h=0.2],
                 ['%', x=0.5, y=0.7, w=0.08, h=0.1],
                 "amarelo",
                 predios)
 
-            val v = await(p)
+            spawn{
+                loop {
+                    val d = await :clicked
+                    emit @(pinguim) :DEFINE_DESTINO [id = d.id]
+                }
+            }
+
+            val v = await(pinguim)
             match v
             {
                 :BEAN_COUNTERS => await BeanCounters()

@@ -4,10 +4,9 @@ task Plataforma(rect, img) {
     spawn Image(:NIL, rect, img)
 
     set pub = [
-        id = task,
+        id = :Plataforma,
         rect = rect,
-        hitbox = rect,
-        tipo = :Plataforma
+        hitbox = rect
     ]
 
     pin pilha1 = spawn Pilha(0.1, 0.85, 10)
@@ -29,7 +28,6 @@ task Plataforma(rect, img) {
 
     emit @(2) :plataforma.cheia
     await(false)
-  
 }
 
 Plataforma

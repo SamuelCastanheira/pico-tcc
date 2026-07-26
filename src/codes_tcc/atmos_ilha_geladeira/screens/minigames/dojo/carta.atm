@@ -1,30 +1,25 @@
 val Image = require "util/components/image"
 val XClickable = require "util/components/xclickable"
 
-task Carta(me, player, rect, path, elem, power)
+task Carta(id, rect, path, elem, power)
 {
     set pub = [
+        id = id,
         rect = rect,
         elem = elem,
         power = power
     ]
 
-    var battle_rect = if player => ['%', x=0.8, y=0.3, w=0.2, h=0] => 
+    var battle_rect = if (id == :player) => ['%', x=0.8, y=0.3, w=0.2, h=0] => 
     ['%', x=0.2, y=0.3, w=0.2, h=0]
 
     var verso = "../../../assets/imgs/dojo/carta_azul.png"
     
-    if player => spawn XClickable(task)
-
-    spawn {
-        loop on :clicked {   
-            emit @(me) :player.chose [ref = task, elem = elem, power = power]  
-        }
-    }
+    if (id == :player) => spawn XClickable(2,task)
 
    val r = watching :present {
         loop on :draw {
-            if player {
+            if (id == :player) {
                 pico.output.draw.image(path, pub.rect)
             } else {
                 pico.output.draw.image(verso, pub.rect)

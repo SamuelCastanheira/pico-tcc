@@ -1,10 +1,9 @@
-task XClickable(me)
+task XClickable(tgt, me)
 {
-    
     loop on :mouse.button.dn {
         var m = pico.get.mouse('%')
         if pico.vs.pos.rect(m, me.pub.rect) {
-            emit @me :clicked
+            emit @(1+tgt) :clicked [me = me, id = me.pub.id]
         }
     }
     

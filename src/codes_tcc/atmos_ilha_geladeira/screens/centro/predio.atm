@@ -10,12 +10,9 @@ task Predio(id, rect, hitbox, off, on_)
     ]
 
     spawn Image_Hover(id, rect, off, on_)
-    spawn XClickable(task)
+    spawn XClickable(2,task)
 
-    loop on :clicked
-    {
-        emit @(:global) :DEFINE_DESTINO [id = id]
-    }
+    await(false)
 }
 
 Predio

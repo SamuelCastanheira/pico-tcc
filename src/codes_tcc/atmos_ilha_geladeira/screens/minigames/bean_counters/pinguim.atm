@@ -8,13 +8,16 @@ task Pinguim(id, rect, hitbox, ts) {
         vidas = 3
     ]
 
+    val cargas = ts@1
+    val plataforma = ts@2
+
     var vel = 0 
     var img 
     val carga_maxima = 6
     var carga = 0
 
-    pin colis_c = spawn XCollidable(task, ts@1)
-    pin colis_p = spawn XCollidable(task, ts@2)
+    pin colis_c = spawn XCollidable(1, task, ts@1)
+    pin colis_p = spawn XCollidable(1, task, ts@2)
 
     spawn {
         loop{
@@ -25,12 +28,12 @@ task Pinguim(id, rect, hitbox, ts) {
                 pin spawn_plataforma = spawn {
                     loop
                     {
-                        await <:collided until (it.id.pub.tipo==:Plataforma)>
+                        val plat = await <:collided until (it.id==:Plataforma)>
                         if carga > 0 { 
                             emit @(2) :pinguim.entrega
                             set carga = carga -1
                             set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
-                            emit @(:global) :pinguim.colid_plataforma
+                            emit @(plat.me) :pinguim.colid_plataforma
                             await 250ms
                         }
                     }
@@ -38,7 +41,7 @@ task Pinguim(id, rect, hitbox, ts) {
 
                 spawn {
                     loop {
-                        await <:collided until (it.id.pub.tipo==:Coffe_bag)>
+                        await <:collided until (it.id==:Coffe_bag)>
                         toggle spawn_plataforma(false)
                         await 250ms
                         toggle spawn_plataforma(true)
@@ -47,29 +50,29 @@ task Pinguim(id, rect, hitbox, ts) {
 
                 loop {
                     until (carga >= carga_maxima)
-                    val c = await <:collided until (it.id.pub.tipo==:Coffe_bag)>
+                    val c = await <:collided until (it.id==:Coffe_bag)>
                     emit @(2) :pinguim.coleta
-                    emit @(c.id) :collided 
+                    emit @(c.me) :pinguim.colidiu
                     set carga = carga + 1
                     set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
                 }
 
             } with {
 
-                val c = await <:collided until (it.id.pub.tipo==:Flower_pot)> 
-                emit @(c.id) :collided
+                val c = await <:collided until (it.id==:Flower_pot)> 
+                emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
 
             } with {
 
-                val c = await <:collided until (it.id.pub.tipo==:Fish_bean_counters)> 
-                emit @(c.id) :collided 
+                val c = await <:collided until (it.id==:Fish_bean_counters)> 
+                emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
 
             }with {
 
-                val c = await <:collided until (it.id.pub.tipo==:Anvil)> 
-                emit @(c.id) :collided
+                val c = await <:collided until (it.id==:Anvil)> 
+                emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
             }
 

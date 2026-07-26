@@ -8,12 +8,11 @@ val tipos = [
 task Carga() {
     
     set pub = [
-        id = task,
-        tipo = tipos@(math.random(1,#tipos))
+        id = tipos@(math.random(1,#tipos))
     ]
 
     val base = "../../../assets/imgs/bean_counters"
-    val img = string.format("%s/%s.webp", base, pub.tipo)
+    val img = string.format("%s/%s.webp", base, pub.id)
     pico.layer.image[path=img]
 
     var p_lancamento = [x = 0.85, y = 0.5]
@@ -87,7 +86,7 @@ task Carga() {
 
     ;;condições de parada
     par :any {  
-        await :collided
+        await :pinguim.colidiu
     } with {
         await until (pub.rect.y > 0.9)
     }
