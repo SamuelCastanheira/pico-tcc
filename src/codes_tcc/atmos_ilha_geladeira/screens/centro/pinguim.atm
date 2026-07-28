@@ -25,7 +25,7 @@ task Pinguim (rect, hitbox, cor, predios) {
     ]
 
     var vel  = [x=0, y=0]
-    pin colis = spawn XCollidable(1,task, predios)
+    spawn XCollidable(0, task, predios)
 
     spawn {
         loop d on :clicked {

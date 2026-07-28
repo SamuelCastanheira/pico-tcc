@@ -16,8 +16,8 @@ task Pinguim(id, rect, hitbox, ts) {
     val carga_maxima = 6
     var carga = 0
 
-    pin colis_c = spawn XCollidable(1, task, ts@1)
-    pin colis_p = spawn XCollidable(1, task, ts@2)
+    spawn XCollidable(0, task, ts@1)
+    spawn XCollidable(0, task, ts@2)
 
     spawn {
         loop{

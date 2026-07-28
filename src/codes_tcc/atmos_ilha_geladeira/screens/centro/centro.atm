@@ -10,7 +10,6 @@ task Centro(){
     {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/centro.png"
-
     }
 
     spawn Moeda()
