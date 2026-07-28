@@ -43,11 +43,8 @@ task Dojo(){
 
         ;;escolha imediata da carta do inimigo
         val idx = math.random(1, #enemyDeck)
-        var enemy_card
-        loop i,card in enemyDeck {
-            if i == idx {
-                set enemy_card = card
-            }
+        val enemy_card = loop i,card in enemyDeck {
+            until(i == idx, card)
         }
         
         ;;atualiza posicoes das cartas na mesa
