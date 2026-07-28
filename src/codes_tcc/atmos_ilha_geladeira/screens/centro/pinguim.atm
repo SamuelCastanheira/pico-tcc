@@ -27,9 +27,8 @@ task Pinguim (rect, hitbox, cor, predios) {
     var vel  = [x=0, y=0]
     pin colis = spawn XCollidable(1,task, predios)
 
-    spawn{
-        loop {
-            val d = await :DEFINE_DESTINO
+    spawn {
+        loop d on :clicked {
             set pub.dest = d.id 
         }
     }
