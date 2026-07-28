@@ -2,7 +2,6 @@ val Image = require "util/components/image"
 val Pinguim = require "screens/minigames/bean_counters/pinguim"
 val Carga = require "screens/minigames/bean_counters/carga"
 val Plataforma = require "screens/minigames/bean_counters/plataforma"
-val Timer = require "util/components/timer"
 
 task BeanCounters() {
     spawn Image(:NIL, r, img) where {
