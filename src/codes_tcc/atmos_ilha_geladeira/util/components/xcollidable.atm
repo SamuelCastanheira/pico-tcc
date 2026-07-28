@@ -1,16 +1,16 @@
-task XCollidable (me, others) {
+task XCollidable (tgt, me, others) {
     loop on :clock {
-        if (#others >= 1) {
+        
             loop _,e in others {
-                if (me.pub.id != e.pub.id)
+                if (me != e)
                 {
                     val col = pico.vs.rect.rect(me.pub.hitbox, e.pub.hitbox)
                     if col {
-                        emit @(me) :collided [id=e.pub.id]
+                        emit @(tgt) :collided [me=e, id=e.pub.id]
                     }
                 }
             }
-        }
+        
     }
 }
 

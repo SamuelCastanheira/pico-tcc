@@ -9,7 +9,7 @@ task Botao(id, rect, off, on_)
     ]
 
     spawn Image_Hover(id, rect, off, on_)
-    spawn XClickable(task)
+    spawn XClickable(0,task)
     
     await :clicked
     id

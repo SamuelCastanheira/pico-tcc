@@ -4,16 +4,15 @@ val Vetor = require "util/vetor"
 
 task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
     set pub = [
-        id = task,
+        id = cor,
         rect = rect,
         hitbox = hitbox
     ]
 
-    pin colis = spawn XCollidable(task, puffles)
-
     var vel_esc = 0.4
     var vel_vet = [x = 0 ,y = 0]
-    var direcao = [x=0, y=0]
+
+    var direcao = [x = 0, y = 0]
 
     ;; entrada e saida da cerca
     spawn {
@@ -29,68 +28,69 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
         }
     }
 
-    ;; colisao com outros puffles
-    spawn {
-        loop {
-            val p = await :collided
-            var dir = [x= p.id.pub.rect.x - pub.rect.x, y= p.id.pub.rect.y -pub.rect.y]
-            if (Vetor.magnitude(dir) < 0.05) && (Vetor.magnitude(dir) > 0)
-            {
-                emit @(p.id) :puffle.colis [dir = dir]
-            }
-        }
-    }
-    spawn {
-        val influencia = 0.5
-        loop p on :puffle.colis {
-            set direcao = Vetor.add(direcao, Vetor.multiply(p.dir, influencia))
-        }
-    } 
-
     ;; movimento dos puffles
     spawn {
-        loop us on :clock {
-            do {
-                var mouse = pico.get.mouse('%')
-                var delta = [x= mouse.x - pub.rect.x , y=mouse.y - pub.rect.y]
-                var dist = Vetor.magnitude(delta)
+        par :all {
+            loop p on :puffle.empurrado {
+                set direcao = Vetor.add(direcao, p.dir_empurrao)
+            }            
+        } with {
+            loop us on :clock {
+                do {
+                    var mouse = pico.get.mouse('%')
+                    var delta = [x= mouse.x - pub.rect.x , y=mouse.y - pub.rect.y]
+                    var dist = Vetor.magnitude(delta)
 
-                if ((dist > 0.001) && (dist <= dist_max)) {
-                    val destino = [
-                        x = mouse.x - (2 * delta.x),
-                        y = mouse.y - (2 * delta.y)
-                    ]
-                    
-                    set direcao = [
-                        x = direcao.x + (destino.x - pub.rect.x),
-                        y = direcao.y + (destino.y - pub.rect.y)
-                    ]
-                } 
-            }
-            do {
-                loop _,parede in paredes {
-                    val col = pico.vs.rect.rect(pub.rect, parede)
-                    if col {
-                        val aux = slide_cerca(pub.rect, parede, direcao)
-                        set direcao = [x=direcao.x + aux.x, y=direcao.y + aux.y]
+                    if ((dist > 0.001) && (dist <= dist_max)) {
+                        val destino = [
+                            x = mouse.x - (2 * delta.x),
+                            y = mouse.y - (2 * delta.y)
+                        ]
+                        
+                        set direcao = [
+                            x = (destino.x - pub.rect.x),
+                            y = (destino.y - pub.rect.y)
+                        ]
+                    } 
+                }
+                do {
+                    val influencia = 0.5
+                    loop _, outro in puffles {
+                        if outro != task {
+                            val delta = [x = outro.pub.rect.x - pub.rect.x, y = outro.pub.rect.y - pub.rect.y]
+
+                            if (Vetor.magnitude(delta) < 0.05) && (Vetor.magnitude(delta) > 0) {
+                                set direcao = Vetor.subtract(direcao, Vetor.multiply(delta,influencia))
+                            }
+                        }
                     }
                 }
-            }
-            do {
-                set vel_vet= Vetor.multiply(
-                    Vetor.normalize(direcao, vel_esc), 
-                    vel_esc)
-                
-                val dt = us/1s
-                set pub.rect.x = pub.rect.x + (vel_vet.x * dt)
-                set pub.rect.y = pub.rect.y + (vel_vet.y * dt)
-                set pub.hitbox.x = pub.rect.x
-                set pub.hitbox.y = pub.rect.y
+                do {
+                    loop _,parede in paredes {
+                        val col = pico.vs.rect.rect(pub.rect, parede)
+                        if col {
+                            val slide = slide_cerca(pub.rect, parede, direcao)
+                            set direcao = Vetor.add(direcao, slide)
+                        }
+                    }
+                }
 
-                set direcao = [x = 0, y = 0]
-                set vel_vet = [x = 0, y = 0]
+                do {
+                    set vel_vet= Vetor.multiply(
+                        Vetor.normalize(direcao, vel_esc), 
+                        vel_esc)
+                    
+                    val dt = us/1s
+                    set pub.rect.x = pub.rect.x + (vel_vet.x * dt)
+                    set pub.rect.y = pub.rect.y + (vel_vet.y * dt)
+                    set pub.hitbox.x = pub.rect.x
+                    set pub.hitbox.y = pub.rect.y
+
+                    set direcao = [x = 0, y = 0]
+                    set vel_vet = [x = 0, y = 0]
+                }
             }
-        }
+        }   
     } 
 
     ;; redesenho

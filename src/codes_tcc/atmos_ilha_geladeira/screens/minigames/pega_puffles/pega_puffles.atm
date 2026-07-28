@@ -57,6 +57,24 @@ task PegaPuffles () {
     }
 
     spawn {
+        loop on :puffle.fugiu {
+                set num_fugiram = num_fugiram + 1
+            }
+    }
+
+    spawn {
+        loop on :puffle.entrou {
+            set num_capturados = num_capturados + 1
+        }
+    }
+
+    spawn {
+        loop on :puffle.saiu {
+            set num_capturados = num_capturados - 1
+        }
+    }
+
+    spawn {
         loop on :draw {
             pico.set.pencil[color = "yellow"]
 
@@ -77,25 +95,15 @@ task PegaPuffles () {
 
     par :any {
         await 100s
-    } with {
-        watching until (num_fugiram == #path_puffles) {
-            loop on :puffle.fugiu {
-                set num_fugiram = num_fugiram + 1
-            }
-        }
-    } with {
-        watching until (num_capturados == #puffles) {
-            par {
-                loop on :puffle.entrou {
-                    set num_capturados = num_capturados + 1
-                }
-            } with {
-                loop on :puffle.saiu {
-                    set num_capturados = num_capturados - 1
-                }
-            }
-        }  
     }
+    with {
+        await until (num_capturados == #puffles)
+    }
+    with {
+        await until (num_fugiram == #path_puffles)
+    }
+    
+    set moedas = moedas + (num_capturados*10)
 }
 
 PegaPuffles

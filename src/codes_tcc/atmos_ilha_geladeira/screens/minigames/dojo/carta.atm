@@ -1,56 +1,39 @@
 val Image = require "util/components/image"
 val XClickable = require "util/components/xclickable"
 
-task Carta(me, player, rect, path, elem, power)
+task Carta(id, rect, path, elem, power)
 {
-    set pub = []
-    set pub.rect = rect
-    var battle_rect = if player => ['%', x=0.8, y=0.3, w=0.2, h=0] => 
+    set pub = [
+        id = id,
+        rect = rect,
+        elem = elem,
+        power = power
+    ]
+
+    var battle_rect = if (id == :player) => ['%', x=0.8, y=0.3, w=0.2, h=0] => 
     ['%', x=0.2, y=0.3, w=0.2, h=0]
+
     var verso = "../../../assets/imgs/dojo/carta_azul.png"
     
-    if player => spawn XClickable(task)
+    if (id == :player) => spawn XClickable(2,task)
 
-    spawn {
-        if player{
-            loop on :clicked {   
-                emit @(me) :player_chose [id = task, elem = elem, power = power]  
-            }
-        }
-        else{
-            loop on :make_enemy_chose { 
-                emit @(me) :enemy_chose [id = task, elem = elem, power = power]
-            }
+   val r = watching :present {
+        loop on :draw {
+            if (id == :player) {
+                pico.output.draw.image(path, pub.rect)
+            } else {
+                pico.output.draw.image(verso, pub.rect)
+            } 
         }
     }
 
-    par :all
-    {
-        watching :present {
-            loop on :draw {
-                if player {
-                    pico.output.draw.image(path, pub.rect)
-                } else {
-                    pico.output.draw.image(verso, pub.rect)
-                } 
-            }
-        }
-    } with {
-        val r = await :present
-        spawn Image(id, battle_rect, path)
-        par :all {
-            par :any { 
-                await :won 
-                await Image(id, battle_rect, "../../../assets/imgs/dojo/ok.png")
-            }
-            with {
-                await :lose
-                await Image(id, battle_rect, "../../../assets/imgs/dojo/x.png")
-            } with {
-                await 2s
-            }   
-        } with {
-            emit (if (r.resul >-1) => :won => :lose)
+    spawn Image(id, battle_rect, path)
+
+    watching 2s {
+        if r.resul > -1 {
+            await Image(id, battle_rect, "../../../assets/imgs/dojo/ok.png")
+        } else {
+            await Image(id, battle_rect, "../../../assets/imgs/dojo/x.png")
         }
     }
 }
