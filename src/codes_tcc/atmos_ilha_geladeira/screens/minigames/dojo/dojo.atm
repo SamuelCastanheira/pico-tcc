@@ -3,11 +3,7 @@ val Carta = require "screens/minigames/dojo/carta"
 
 val num_cartas = 3
 
-val cartas = [
-    [   elem = :AGUA, 
-        power = 3, 
-        img="../../../assets/imgs/dojo/agua_3.png"],
-    
+val cartas = [  
     [   elem = :FOGO,
         power = 4, 
         img="../../../assets/imgs/dojo/fogo_4.png"],
@@ -17,11 +13,11 @@ val cartas = [
         img="../../../assets/imgs/dojo/fogo_7.png"],
     
     [   elem = :GELO, 
-        power=5, 
+        power= 5, 
         img="../../../assets/imgs/dojo/gelo_5.png"],
     
-    [   elem =  :GELO, 
-        power =6, 
+    [   elem = :GELO, 
+        power = 6, 
         img="../../../assets/imgs/dojo/gelo_6.png"]
 ]
 
@@ -74,6 +70,7 @@ task Dojo(){
     set moedas = moedas + ifs {
         player_wins > enemy_wins =>  100
         player_wins == enemy_wins =>  50
+        else => 0
     }
 }
 
@@ -118,21 +115,24 @@ func comparaCartas(p, e) {
         if p.pub.power > e.pub.power { 
             set resul = 1
         }
-        if p.pub.power < e.pub.power { 
-           set resul = -1
-        }
         else {
-            set resul = 0
+            if p.pub.power < e.pub.power { 
+                set resul = -1
+            } 
+            else {
+                set resul = 0
+            }
         }
-    }
-    
-    if ((p.pub.elem == "GELO") && (e.pub.elem == "AGUA")) ||
-       ((p.pub.elem == "AGUA") && (e.pub.elem == "FOGO")) ||
-       ((p.pub.elem == "FOGO") && (e.pub.elem == "GELO")) {
-        set resul = 1
     }
     else {
-        set resul = 1
+        if ((p.pub.elem == "GELO") && (e.pub.elem == "AGUA")) ||
+        ((p.pub.elem == "AGUA") && (e.pub.elem == "FOGO")) ||
+        ((p.pub.elem == "FOGO") && (e.pub.elem == "GELO")) {
+            set resul = 1
+        }
+        else {
+            set resul = -1
+        }
     }
     return(resul)
 }
