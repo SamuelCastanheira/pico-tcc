@@ -26,22 +26,6 @@ task BeanCounters() {
 
     pin cargas = tasks()
     
-    spawn {
-        await 0.5s
-        loop{
-            watching :pinguim.atordoado {
-                loop {
-                    val t_espera = 0.2 + (math.random() * 0.8)  ;; entre 0.2s e 2.5s
-                    pin timer = spawn Timer(task,t_espera*1000000)
-                    emit @(timer) :timer_start
-                    spawn @(cargas) Carga()
-                    await :timer_end
-                }
-            }
-            await 2s
-        }
-    }
-
     val ts = [cargas,plataforma]
     
     pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
@@ -61,6 +45,21 @@ task BeanCounters() {
     }
 
     spawn {
+        await 0.5s
+        loop {
+            watching :pinguim.atordoado {
+                loop {
+                    spawn @cargas Carga()
+                    await (t * 1s) where {
+                        t = 0.2 + (math.random() * 0.8)  ;; entre 0.2s e 1s
+                    }
+                }
+            }
+            await 2s
+        }
+    }
+
+    spawn {
         loop on :draw {
             val score = string.format("%s: %d", "Score", score)
             val life = string.format("%s: %d", "Vidas", pinguim.pub.vidas)
@@ -71,13 +70,12 @@ task BeanCounters() {
 
     par :any {
         await until (pinguim.pub.vidas == 0)
-        await 0.5s
     } with {
         await :plataforma.cheia
-        await 0.5s
     }
+    await 0.5s
 
-    set moedas = moedas + score
+    score
 }
 
 BeanCounters
