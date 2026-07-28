@@ -67,7 +67,7 @@ task Dojo(){
         await 2s 
     }
     
-    set moedas = moedas + ifs {
+    ifs {
         player_wins > enemy_wins =>  100
         player_wins == enemy_wins =>  50
         else => 0

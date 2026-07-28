@@ -16,7 +16,7 @@ task Centro(){
 
     pin predios = tasks(3)
 
-    spawn @predios Predio(:BEAN_COUNTERS,
+    spawn @predios Predio(:BEAN,
         ['%', x=0.20, y=0.4, w=0.4, h=0.4],
         ['%', x=0.20, y=0.4, w=0.21, h=0.21],
         "../../../assets/imgs/coffe.png",
@@ -28,7 +28,7 @@ task Centro(){
         "../../../assets/imgs/dojo/dojo.png",
         "../../../assets/imgs/dojo/dojo_hover.png")
 
-    spawn @predios Predio(:PEGA_PUFLES,
+    spawn @predios Predio(:PUFF,
         ['%', x=0.5, y=0.4, w=0.35, h=0.35],
         ['%', x=0.5, y=0.4, w=0.21, h=0.21],
         "../../../assets/imgs/pet_shop.png",
@@ -41,10 +41,10 @@ task Centro(){
                 ['%', x=0.5, y=0.7, w=0.08, h=0.1],
                 "amarelo",
                 predios)
-            match v {
-                :BEAN_COUNTERS => await BeanCounters()
+            set moedas = moedas + match v {
+                :BEAN => await BeanCounters()
                 :DOJO => await Dojo()
-                :PEGA_PUFLES => await PegaPuffles()
+                :PUFF => await PegaPuffles()
             }
         }
     }

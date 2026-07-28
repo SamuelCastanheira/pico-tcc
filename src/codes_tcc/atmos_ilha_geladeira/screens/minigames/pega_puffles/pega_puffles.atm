@@ -103,7 +103,7 @@ task PegaPuffles () {
         await until (num_fugiram == #path_puffles)
     }
     
-    set moedas = moedas + (num_capturados*10)
+    num_capturados * 10
 }
 
 PegaPuffles
