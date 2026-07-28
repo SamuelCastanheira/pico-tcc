@@ -67,13 +67,8 @@ task BeanCounters() {
         }
     }
 
-    par :any {
-        await until (pinguim.pub.vidas == 0)
-    } with {
-        await :plataforma.cheia
-    }
+    await <:plataforma.cheia || until (pinguim.pub.vidas == 0)>
     await 0.5s
-
     score
 }
 

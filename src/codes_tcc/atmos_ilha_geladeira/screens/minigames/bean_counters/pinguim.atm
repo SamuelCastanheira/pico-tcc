@@ -28,7 +28,7 @@ task Pinguim(id, rect, hitbox, ts) {
                 pin spawn_plataforma = spawn {
                     loop
                     {
-                        val plat = await <:collided until (it.id==:Plataforma)>
+                        val plat = await :collided until (it.id==:Plataforma)
                         if carga > 0 { 
                             emit @(2) :pinguim.entrega
                             set carga = carga -1
@@ -41,7 +41,7 @@ task Pinguim(id, rect, hitbox, ts) {
 
                 spawn {
                     loop {
-                        await <:collided until (it.id==:Coffe_bag)>
+                        await :collided until (it.id==:Coffe_bag)
                         toggle spawn_plataforma(false)
                         await 250ms
                         toggle spawn_plataforma(true)
@@ -50,7 +50,7 @@ task Pinguim(id, rect, hitbox, ts) {
 
                 loop {
                     until (carga >= carga_maxima)
-                    val c = await <:collided until (it.id==:Coffe_bag)>
+                    val c = await :collided until (it.id==:Coffe_bag)
                     emit @(2) :pinguim.coleta
                     emit @(c.me) :pinguim.colidiu
                     set carga = carga + 1
@@ -59,19 +59,19 @@ task Pinguim(id, rect, hitbox, ts) {
 
             } with {
 
-                val c = await <:collided until (it.id==:Flower_pot)> 
+                val c = await :collided until (it.id==:Flower_pot)
                 emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
 
             } with {
 
-                val c = await <:collided until (it.id==:Fish_bean_counters)> 
+                val c = await :collided until (it.id==:Fish_bean_counters)
                 emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
 
             }with {
 
-                val c = await <:collided until (it.id==:Anvil)> 
+                val c = await :collided until (it.id==:Anvil)
                 emit @(c.me) :pinguim.colidiu
                 set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
             }
