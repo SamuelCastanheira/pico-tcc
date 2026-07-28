@@ -5,20 +5,17 @@ val Plataforma = require "screens/minigames/bean_counters/plataforma"
 val Timer = require "util/components/timer"
 
 task BeanCounters() {
-    spawn Image(:NIL, r, img) where
-    {
+    spawn Image(:NIL, r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../../assets/imgs/bean_counters/background.png"
     }
 
-    spawn Image(:NIL, r, img) where
-    {
+    spawn Image(:NIL, r, img) where {
         r = ['%', x=1, y=1, w=0.20, h=0.85, anchor='SE']
         img = "../../../assets/imgs/bean_counters/trucker.png"
     }
 
-    spawn Image(:NIL, r, img) where
-    {
+    spawn Image(:NIL, r, img) where {
         r = ['%', x=0.5, y=1, w=1, h=0.4, anchor='S']
         img = "../../../assets/imgs/bean_counters/neve.png"
     }
