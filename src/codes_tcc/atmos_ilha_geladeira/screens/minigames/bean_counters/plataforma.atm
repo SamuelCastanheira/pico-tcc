@@ -13,15 +13,14 @@ task Plataforma(rect, img) {
     pin pilha2 = spawn Pilha(0.15, 0.85, 10)
 
     watching :pilha.cheia {
-        loop {
-            await :pinguim.colid_plataforma
+        loop on :pinguim.entrega {
             emit @(pilha1) :plataforma.entrega
+            await 250ms
         }
     }
 
     watching :pilha.cheia {
-        loop {
-            await :pinguim.colid_plataforma
+        loop on :pinguim.entrega {
             emit @(pilha2) :plataforma.entrega
         }
     }

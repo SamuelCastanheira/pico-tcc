@@ -1,89 +1,83 @@
 val Image = require "util/components/image"
 val XCollidable = require "util/components/xcollidable"
 
-task Pinguim(id, rect, hitbox, ts) {
+task Pinguim(id, rect, hitbox, cargas, plataforma) {
     set pub = [
         rect = rect,
         hitbox = hitbox,
         vidas = 3
     ]
 
-    val cargas = ts@1
-    val plataforma = ts@2
-
-    var vel = 0 
-    var img 
-    val carga_maxima = 6
+    var vel = 0
     var carga = 0
+    val carga_maxima = 5 
+    var img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+    
+    pin cargas = spawn XCollidable(0, task, cargas)
+    pin plataforma = spawn XCollidable(0, task, plataforma)
 
-    spawn XCollidable(0, task, ts@1)
-    spawn XCollidable(0, task, ts@2)
-
+    ;;lógica das entregas de carga
     spawn {
-        loop{
-            set carga = 0
-            set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
-            par :any {
-
-                pin spawn_plataforma = spawn {
-                    loop
-                    {
-                        val plat = await :collided until (it.id==:Plataforma)
-                        if carga > 0 { 
-                            emit @(2) :pinguim.entrega
-                            set carga = carga -1
-                            set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
-                            emit @(plat.me) :pinguim.colid_plataforma
-                            await 250ms
-                        }
-                    }
-                }
-
-                spawn {
-                    loop {
-                        await :collided until (it.id==:Coffe_bag)
-                        toggle spawn_plataforma(false)
-                        await 250ms
-                        toggle spawn_plataforma(true)
-                    }
-                }
-
-                loop {
-                    until (carga >= carga_maxima)
-                    val c = await :collided until (it.id==:Coffe_bag)
-                    emit @(2) :pinguim.coleta
-                    emit @(c.me) :pinguim.colidiu
-                    set carga = carga + 1
+        pin spawn_plataforma = spawn {
+            loop plataforma on :collided until (it.oth.pub.id==:Plataforma) {
+                if carga > 0 { 
+                    emit @(2) :pinguim.entrega
+                    set carga = carga -1
                     set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
                 }
-
-            } with {
-
-                val c = await :collided until (it.id==:Flower_pot)
-                emit @(c.me) :pinguim.colidiu
-                set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
-
-            } with {
-
-                val c = await :collided until (it.id==:Fish_bean_counters)
-                emit @(c.me) :pinguim.colidiu
-                set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
-
-            }with {
-
-                val c = await :collided until (it.id==:Anvil)
-                emit @(c.me) :pinguim.colidiu
-                set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
             }
-
-            set pub.vidas = pub.vidas - 1
-            set pub.rect.h = 0.15
-            emit @(2) :pinguim.atordoado
-            emit :pinguim.atordoado
-            await 2s
-            set pub.rect.h = 0.25
+        }
+        
+        loop {
+            await < :pinguim.coleta || :pinguim.entrega >
+            toggle spawn_plataforma(false)
+            await 250ms
+            toggle spawn_plataforma(true)
         }
     }
+
+    ;;lógica de colisao com  cargas
+    spawn {
+        loop ret on :collided until (it.oth.pub.id != :Plataforma ) {
+            if (ret.oth.pub.id == :Coffe_bag) && (carga <=carga_maxima) {
+                until (carga >= carga_maxima)
+                emit @(2) :pinguim.coleta
+                set carga = carga + 1
+                set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                abort(ret.oth)
+            }
+            else 
+            {
+                match (ret.oth.pub.id){
+                    :Coffe_bag => {
+                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima+1)
+                    }
+                    :Flower_pot => {
+                        set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+                    }
+
+                    :Anvil => {
+                        set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
+                    }
+
+                    :Fish_bean_counters => {
+                        set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
+                    }
+                }
+                abort(ret.oth)
+                set carga = 0 
+                set pub.vidas = pub.vidas - 1
+                set pub.rect.h = 0.15
+
+                emit @(1) :pinguim.atordoado
+                await 2s
+
+                set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                set pub.rect.h = 0.25
+            }
+        }     
+    }
+
 
     ;;atualiza movimento
     spawn {
@@ -92,21 +86,16 @@ task Pinguim(id, rect, hitbox, ts) {
                 loop {
                     par :any {
                         await :key.dn until (it.key == :Right)
-                        set vel = 10 * ((carga_maxima - carga)/carga_maxima)
+                        set vel = 10 * (((carga_maxima + 1) - carga)/(carga_maxima+1))
                     } with {
                         await :key.dn until (it.key == :Left)
-                        set vel = -10 * ((carga_maxima - carga)/carga_maxima)
+                        set vel = -10 * (((carga_maxima + 1) - carga)/(carga_maxima+ 1))
                     }
     
                     var new_x = pub.rect.x + (vel* (1/60))
-                    if new_x < 0.25 {  
-                        set new_x = 0.25
-                    }
-                    else {
-                        if new_x > 0.8 {
-                            set new_x = 0.8
-                        }
-                    }
+                    set new_x = math.max (new_x, 0.25)
+                    set new_x = math.min (new_x, 0.8)
+                    
                     set pub.rect.x = new_x
                     set pub.hitbox.x = new_x
                 }
@@ -116,9 +105,13 @@ task Pinguim(id, rect, hitbox, ts) {
     }
     
     ;;redesenho
-    loop on :draw {
-        pico.output.draw.image(img, pub.rect)
+    spawn {
+        loop on :draw {
+            pico.output.draw.image(img, pub.rect)
+        }
     }
+
+    await(false)
 }
 
 Pinguim

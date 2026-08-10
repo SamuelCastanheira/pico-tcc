@@ -1,11 +1,11 @@
 task XCollidable (tgt, me, others) {
     loop on :clock {
-        loop _,e in others {
-            if (me != e)
+        loop _,oth in others {
+            if (me != oth)
             {
-                val col = pico.vs.rect.rect(me.pub.hitbox, e.pub.hitbox)
+                val col = pico.vs.rect.rect(me.pub.hitbox, oth.pub.hitbox)
                 if col {
-                    emit @(tgt+1) :collided [me=e, id=e.pub.id]
+                    emit @(tgt+1) :collided [me=me, oth=oth]
                 }
             }
         }

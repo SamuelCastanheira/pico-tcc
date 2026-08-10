@@ -28,12 +28,12 @@ task Pinguim (rect, hitbox, cor, predios) {
     spawn XCollidable(0, task, predios)
 
     spawn {
-        loop d on :clicked {
-            set pub.dest = d.id 
+        loop c on :clicked {
+            set pub.dest = c.me.pub.id 
         }
     }
 
-    watching :collided until (it.id==pub.dest) {
+    watching :collided until (it.oth.pub.id==pub.dest) {
         par {
             await :mouse.button.dn
             loop {

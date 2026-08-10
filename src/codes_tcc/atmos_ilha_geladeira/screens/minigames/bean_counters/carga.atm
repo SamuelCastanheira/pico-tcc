@@ -84,12 +84,7 @@ task Carga() {
         }
     }
 
-    ;;condições de parada
-    par :any {  
-        await :pinguim.colidiu
-    } with {
-        await until (pub.rect.y > 0.9)
-    }
+    await until (pub.rect.y > 0.9)
 }
 
 Carga

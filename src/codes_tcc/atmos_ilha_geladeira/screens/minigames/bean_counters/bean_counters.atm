@@ -25,10 +25,8 @@ task BeanCounters() {
 
     pin cargas = tasks()
     
-    val ts = [cargas,plataforma]
-    
     pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
-                        ['%', x=0.3, y=0.80, w=0.12, h=0.25], ts)
+                        ['%', x=0.3, y=0.80, w=0.12, h=0.25],cargas, plataforma)
 
     var score = 0
     spawn {
@@ -62,8 +60,8 @@ task BeanCounters() {
         loop on :draw {
             val score = string.format("%s: %d", "Score", score)
             val life = string.format("%s: %d", "Vidas", pinguim.pub.vidas)
-            pico.output.draw.text.fix(score,['%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'])
-            pico.output.draw.text.fix(life, ['%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'])
+            pico.output.draw.text.dyn(:score, score,['%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'])
+            pico.output.draw.text.dyn(:life, life, ['%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'])
         }
     }
 
