@@ -35,35 +35,33 @@ task Pinguim(id, rect, hitbox, cargas, plataformas) {
     ;;lógica de colisao com  cargas
     spawn {
         loop ret on :collided until (it.oth.pub.id ?? :Carga ) {
-            if (ret.oth.pub.id == :Carga.Coffe) && (carga <=carga_maxima) {
-                until (carga >= carga_maxima)
-                emit @2 :pinguim.coleta
+            abort(ret.oth)
+            if (ret.oth.pub.id == :Carga.Coffe) && (carga <= carga_maxima) {
+                emit @:parent :pinguim.coleta
                 set carga = carga + 1
                 set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
-                abort(ret.oth)
             }
             else 
             {
-                match (ret.oth.pub.id){
+                set img = match (ret.oth.pub.id) {
                     :Carga.Coffe => {
-                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima+1)
+                        string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima+1)
                     }
                     :Carga.Flower => {
-                        set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
+                        "../../../assets/imgs/bean_counters/penguin_pot.webp"
                     }
                     :Carga.Anvil => {
-                        set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
+                        "../../../assets/imgs/bean_counters/penguin_anvil.webp"
                     }
                     :Carga.Fish => {
-                        set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
+                        "../../../assets/imgs/bean_counters/penguin_fish.webp"
                     }
                 }
-                abort(ret.oth)
                 set carga = 0 
                 set pub.vidas = pub.vidas - 1
                 set pub.rect.h = 0.15
 
-                emit @1 :pinguim.atordoado
+                emit @:parent :pinguim.atordoado
                 await 2s
 
                 set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
@@ -71,7 +69,6 @@ task Pinguim(id, rect, hitbox, cargas, plataformas) {
             }
         }     
     }
-
 
     ;;atualiza movimento
     spawn {
