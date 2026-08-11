@@ -68,7 +68,7 @@ task Carga() {
     ;;redesenho
     spawn {
         loop on :draw {
-            if pub.tipo == :Coffe_bag {
+            if pub.tipo == :Carga.Coffe {
                 val delta = (pub.rect.x - p_lancamento.x)/(p_destino.x - p_lancamento.x)
                 ifs{
                     delta < 0.25 => set angle = 0
