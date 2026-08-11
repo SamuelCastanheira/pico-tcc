@@ -19,14 +19,14 @@ task BeanCounters() {
         img = "../../../assets/imgs/bean_counters/neve.png"
     }
 
-    pin plataforma = tasks()
-    spawn @(plataforma) Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
+    pin plataformas = tasks()
+    spawn @plataformas Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
     "../../../assets/imgs/bean_counters/plataforma.png")
 
     pin cargas = tasks()
     
     pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
-                        ['%', x=0.3, y=0.80, w=0.12, h=0.25],cargas, plataforma)
+                        ['%', x=0.3, y=0.80, w=0.12, h=0.25], cargas, plataformas)
 
     var score = 0
     spawn {

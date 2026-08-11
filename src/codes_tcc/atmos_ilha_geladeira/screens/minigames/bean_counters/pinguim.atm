@@ -1,7 +1,7 @@
 val Image = require "util/components/image"
 val XCollidable = require "util/components/xcollidable"
 
-task Pinguim(id, rect, hitbox, cargas, plataforma) {
+task Pinguim(id, rect, hitbox, cargas, plataformas) {
     set pub = [
         rect = rect,
         hitbox = hitbox,
@@ -13,13 +13,13 @@ task Pinguim(id, rect, hitbox, cargas, plataforma) {
     val carga_maxima = 5 
     var img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
     
-    pin cargas = spawn XCollidable(0, task, cargas)
-    pin plataforma = spawn XCollidable(0, task, plataforma)
+    spawn XCollidable(0, task, cargas)
+    spawn XCollidable(0, task, plataformas)
 
     ;;lógica das entregas de carga
     spawn {
         pin spawn_plataforma = spawn {
-            loop plataforma on :collided until (it.oth.pub.id==:Plataforma) {
+            loop on :collided until (it.oth.pub.id == :Plataforma) {
                 if carga > 0 { 
                     emit @(2) :pinguim.entrega
                     set carga = carga -1
@@ -38,10 +38,10 @@ task Pinguim(id, rect, hitbox, cargas, plataforma) {
 
     ;;lógica de colisao com  cargas
     spawn {
-        loop ret on :collided until (it.oth.pub.id != :Plataforma ) {
-            if (ret.oth.pub.id == :Coffe_bag) && (carga <=carga_maxima) {
+        loop ret on :collided until (it.oth.pub.id ?? :Carga ) {
+            if (ret.oth.pub.id == :Carga.Coffe) && (carga <=carga_maxima) {
                 until (carga >= carga_maxima)
-                emit @(2) :pinguim.coleta
+                emit @2 :pinguim.coleta
                 set carga = carga + 1
                 set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
                 abort(ret.oth)
@@ -49,18 +49,16 @@ task Pinguim(id, rect, hitbox, cargas, plataforma) {
             else 
             {
                 match (ret.oth.pub.id){
-                    :Coffe_bag => {
+                    :Carga.Coffe => {
                         set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima+1)
                     }
-                    :Flower_pot => {
+                    :Carga.Flower => {
                         set img = "../../../assets/imgs/bean_counters/penguin_pot.webp"
                     }
-
-                    :Anvil => {
+                    :Carga.Anvil => {
                         set img = "../../../assets/imgs/bean_counters/penguin_anvil.webp"
                     }
-
-                    :Fish_bean_counters => {
+                    :Carga.Fish => {
                         set img = "../../../assets/imgs/bean_counters/penguin_fish.webp"
                     }
                 }
@@ -69,7 +67,7 @@ task Pinguim(id, rect, hitbox, cargas, plataforma) {
                 set pub.vidas = pub.vidas - 1
                 set pub.rect.h = 0.15
 
-                emit @(1) :pinguim.atordoado
+                emit @1 :pinguim.atordoado
                 await 2s
 
                 set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)

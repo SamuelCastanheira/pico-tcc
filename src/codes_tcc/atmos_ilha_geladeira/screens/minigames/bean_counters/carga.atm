@@ -1,8 +1,8 @@
 val tipos = [
-    :Anvil,
-    :Flower_pot,
-    :Coffe_bag,
-    :Fish_bean_counters
+    :Carga.Anvil,
+    :Carga.Flower,
+    :Carga.Coffe,
+    :Carga.Fish,
 ]
 
 task Carga() {
