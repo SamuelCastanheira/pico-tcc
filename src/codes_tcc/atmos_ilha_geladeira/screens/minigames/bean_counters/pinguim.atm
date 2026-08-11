@@ -18,21 +18,17 @@ task Pinguim(id, rect, hitbox, cargas, plataformas) {
 
     ;;lógica das entregas de carga
     spawn {
-        pin spawn_plataforma = spawn {
-            loop on :collided until (it.oth.pub.id == :Plataforma) {
-                if carga > 0 { 
-                    emit @(2) :pinguim.entrega
-                    set carga = carga -1
-                    set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+        loop {
+            watching < :pinguim.coleta || :pinguim.entrega > {
+                loop on :collided until (it.oth.pub.id == :Plataforma) {
+                    if carga > 0 { 
+                        set carga = carga -1
+                        set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                        emit @2 :pinguim.entrega
+                    }
                 }
             }
-        }
-        
-        loop {
-            await < :pinguim.coleta || :pinguim.entrega >
-            toggle spawn_plataforma(false)
             await 250ms
-            toggle spawn_plataforma(true)
         }
     }
 
