@@ -54,21 +54,23 @@ task Carga() {
     }
     
     ;;atualiza posição
+    ;; posição exata do lançamento oblíquo no instante t (como no Lua):
+    ;; p = p0 + v0*t + g*t²/2, com t acumulado a meia velocidade
     spawn {
+        var t = 0
         loop us on :clock {
-            val dt = (us*0.5)/1s
-            set vel  = [x = vel.x, y = vel.y + (g*dt)]
-            set pub.rect.x = pub.rect.x + (vel.x * dt)
+            set t = t + ((us*0.5)/1s)
+            set pub.rect.x = p_lancamento.x + (vel.x * t)
             set pub.hitbox.x = pub.rect.x
-            set pub.rect.y = pub.rect.y + (vel.y * dt) + ((g*math.pow(dt,2))/2)
+            set pub.rect.y = (p_lancamento.y + (vel.y * t)) + ((g*math.pow(t,2))/2)
             set pub.hitbox.y = pub.rect.y
         }
-    } 
+    }
 
     ;;redesenho
     spawn {
         loop on :draw {
-            if pub.tipo == :Coffe_bag {
+            if pub.id == :Coffe_bag {
                 val delta = (pub.rect.x - p_lancamento.x)/(p_destino.x - p_lancamento.x)
                 ifs{
                     delta < 0.25 => set angle = 0
