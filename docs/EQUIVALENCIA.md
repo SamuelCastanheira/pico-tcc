@@ -1,295 +1,217 @@
 # Equivalência entre as versões Lua e Atmos
 
 Parte 4 do apoio ao TCC: um método reproduzível para verificar se a versão
-Atmos (`src/codes_tcc/atmos_ilha_geladeira`) faz o mesmo que a versão Lua
-(`src/codes_tcc/pico_ilha_geladeira`), inspirado no replay determinístico do
-`lua_doom`. Aqui estão o método, os roteiros, os resultados, as divergências
-com a causa de cada uma, as correções já feitas e as decisões pendentes.
+Atmos (`src/codes_tcc/atmos_ilha_geladeira`) e a versão Lua
+(`src/codes_tcc/pico_ilha_geladeira`) fazem a mesma coisa, inspirado no
+replay determinístico do `lua_doom`.
 
-**Situação em 23/11/2026:** o teste roda as duas versões inteiras sob o mesmo
-roteiro e compara o que cada uma desenha, quadro a quadro. **A referência é a
-versão Lua, em tudo** (decisão do usuário, D1). O **Pega Puffles** e a
-**personalização** já são equivalentes: todos os quadros batem, menos o último
-quadro da tela, que é a defasagem de transição F3 (decisão D3 pendente). O
-menu bate até a transição. Centro, Dojo e Bean Counters ainda seguem regras
-próprias (seção 4.2); as correções estão na seção 5.
+**Situação em 23/11/2026: as duas versões são equivalentes.** Em todos os
+roteiros (seção 3), com as sementes 1, 2, 3 e 7, **todos os quadros são
+iguais**, inclusive a ordem de desenho. Isso vale para cada tela isolada e
+para o jogo inteiro pelos `main.lua` e `main.atm` (menu, personalização,
+centro, os três minigames, Escape de dentro de um minigame e "Sair").
 
 ---
 
-## 1. Método
+## 1. Decisões do usuário (23/11/2026)
+
+| Id | Questão | Decisão |
+|---|---|---|
+| D1 | Qual versão vale quando as duas têm a mesma regra de jeitos diferentes? | **A do Atmos**, a última feita e aprimorada. O que só o Lua tinha entra no Atmos. A versão Lua passa a ser mais orientada a objetos e encapsulada |
+| D1a | Personalização e Pega Puffles, alinhados ao Lua na rodada anterior | **Pega Puffles com as regras do Lua**; **personalização com a escolha por clique do Atmos** |
+| D2 | `carga_maxima` no Bean Counters: o 2 da cópia de trabalho ou 5 | **5** (o 2 era teste local) |
+| D3 | A defasagem de um quadro nas transições | **Aceitar ±1 quadro** como critério. Com o novo laço do Lua (seção 2), a defasagem sumiu e a comparação estrita passou |
+| D4 | A personalização em Lua, que não rodava | **Consertar o Lua** |
+
+A primeira rodada, com o Lua como referência para tudo, está nos commits
+`b9bbef0` a `2a5f89d`.
+
+## 2. Método
 
 **Ideia.** As mesmas entradas, numa sequência roteirizada e com o tempo
 controlado, devem produzir a mesma saída nas duas versões, quadro a quadro.
 
-**O que se compara.** As duas versões não têm estruturas de dados em comum
-(tabelas e campos no Lua; tasks e `pub` no Atmos). A única interface comum é o
-que cada uma *desenha* com o pico-sdl. O traço de um quadro é, então, o
-conjunto dos desenhos daquele quadro: cada imagem com o retângulo efetivo
-(arredondado em 4 casas) e a rotação, e cada texto com o seu retângulo. Os
-números do jogo (moedas, placar, vidas, tempo) entram no traço porque são
-desenhados. É uma comparação de caixa-preta e não exige mudar o código dos
-jogos.
+**O que se compara.** As versões não têm estruturas de dados em comum
+(objetos Lua × tasks e `pub` no Atmos). A interface comum é o que cada uma
+*desenha* com o pico-sdl. O traço de um quadro é o conjunto dos desenhos
+daquele quadro: cada imagem com o retângulo efetivo (arredondado em 4 casas)
+e a rotação, e cada texto com o seu retângulo. Os números do jogo (moedas,
+placar, vidas, tempo) entram no traço porque são desenhados. A comparação é
+de caixa-preta: não exige mudar o código dos jogos.
 
-**Critério.** Dois quadros são iguais se os conjuntos de desenhos são iguais.
-A comparação ignora a ordem e as repetições: desenhar o mesmo fundo duas vezes
-não muda a tela. Diferenças só de ordem (sobreposição) são contadas à parte,
-como aviso. O resultado também mostra, só como informação, uma "janela de ±1
-quadro" (o quadro *q* do Lua bate com algum dos quadros *q*−1, *q* ou *q*+1 do
-Atmos), que isola as defasagens da seção 4.3.
+**Critério.** Dois quadros são iguais se os conjuntos de desenhos são iguais;
+a ordem (sobreposição) é conferida à parte e também bate. O comparador mostra
+ainda a "janela de ±1 quadro" aceita em D3, que hoje não é necessária.
+
+**O mesmo laço nas duas versões.** O ambiente `atmos.env.pico` faz, a cada
+quadro: emite o tempo decorrido, emite o evento de entrada (se houver) e
+emite `:draw`. O `main.lua` agora faz o mesmo: `jogo:tempo(dt)`, depois
+`jogo:evento(e)`, depois `jogo:desenha()`, com as trocas de tela imediatas.
+Por isso não há mais defasagem de um quadro nas transições.
+
+**O tempo do Atmos, reproduzido no Lua.** No runtime do Atmos, um `await` de
+tempo começa do zero (não herda o excedente do anterior), soma os `:clock`
+*seguintes* ao da sua criação e acorda quando a soma alcança o prazo. O
+`Temporizador` do Lua conta do mesmo jeito, em microssegundos, e as classes
+só avançam um prazo a partir do passo seguinte ao da criação. A ordem dos
+passos dentro do quadro segue a ordem em que o Atmos percorre a árvore de
+tasks (filhos antes do pai, na ordem do código).
 
 **Fontes de não determinismo e como foram eliminadas** (instrumentação só de
 teste, em `tests/equiv/harness.lua`):
 
-| Fonte | Onde aparece | No teste |
-|---|---|---|
-| relógio real (`pico.get.now`) | Lua: `dt` do centro e das cargas, `Timer` (plataforma, 100 s dos puffles), 1,5 s do Dojo; Atmos: o ambiente `atmos.env.pico` emite o tempo decorrido a cada passo | relógio virtual: o quadro *q* acontece em `floor(q·1000/60)` ms; o `pico.input.event` devolve a diferença (16 ou 17 ms) |
-| espera do modo *expert* (60 quadros/s no Lua, 30 no `atmos.env.pico`) | `pico.set.expert` | desligada; as duas versões andam no mesmo relógio virtual de 60 quadros/s, a taxa para a qual a lógica Lua foi escrita (`state.frames = 60`) |
-| `math.random` sem semente | Atmos: `math.randomseed()` no `main.atm`; Lua: `math.randomseed(pico.get.now())` no Dojo e no Pega Puffles | `math.randomseed` passa a semear sempre com `EQ_SEED` (padrão 1) |
-| entrada do usuário | teclado e mouse | vem do roteiro: um evento por quadro, no máximo (como o `pico.input.event` real); o mouse é posicionado com o `pico.set.mouse` real |
-| ordem de `pairs` | Lua: desenho das cargas (`pairs(data.cargas)`, tabela-sequência) e das paredes do cercado (chaves fixas `esquerda`, `direita`, `baixo`); Atmos: percursos de pools e tabelas (`loop _, x in t`) | não afeta o traço: as tabelas percorridas são sequências ou têm chaves de string fixas, e a comparação é de conjunto. Não há chaves-objeto em código que mude o estado |
-| janela e GPU | — | o pico-sdl real roda no driver `offscreen` do SDL (sem janela); `pico.get.mouse`, `pico.vs.*` e os desenhos continuam sendo os do pico-sdl |
+| Fonte | No teste |
+|---|---|
+| relógio real e espera do modo *expert* | relógio virtual: o quadro *q* acontece em `floor(q·1000/60)` ms; o `pico.input.event` devolve a diferença (16 ou 17 ms). As duas versões rodam a 60 quadros/s também no jogo real |
+| `math.random` | `math.randomseed` semeia sempre com `EQ_SEED`. As duas versões semeiam uma vez, no início |
+| entrada do usuário | vem do roteiro: um evento por quadro, no máximo; o mouse é posicionado com o `pico.set.mouse` real |
+| ordem de `pairs` | o Lua 5.4 sorteia a semente do hash de strings, e a ordem de `pairs` em chaves string pode mudar entre execuções. As paredes do cercado viraram uma lista de ordem fixa nas duas versões (U8); não restou `pairs` sobre estado |
+| janela e GPU | o pico-sdl real roda no driver `offscreen` do SDL (sem janela) |
 
-**Isolamento.** O minigame em que o jogo entra depende de onde o pinguim
-chega; uma diferença no centro desalinharia tudo o que vem depois. Por isso há
-pontos de entrada de teste que começam direto numa tela e terminam quando ela
-termina (`tests/equiv/entrada.lua` e `entrada.atm`, escolhidos pela linha
-`# tela: <nome>` do roteiro). Eles repetem o início do `main.lua` e do
-`main.atm`. Com a semente fixa, cada minigame começa com o mesmo estado do
-gerador nas duas versões: nenhuma das telas anteriores sorteia números.
+**Isolamento.** `tests/equiv/entrada.lua` e `entrada.atm` começam direto numa
+tela (`# tela: <nome>` no roteiro) e terminam quando ela termina.
 
-## 2. Arquivos e como reproduzir
+## 3. Arquivos e como reproduzir
 
 | Arquivo | Papel |
 |---|---|
-| `tests/equiv/harness.lua` | instrumentação: relógio, entrada, semente, registro do traço |
-| `tests/equiv/run_lua.lua`, `run_atm.lua` | rodam cada versão sob a instrumentação (o segundo faz o mesmo que `atmos main.atm`) |
-| `tests/equiv/entrada.lua`, `entrada.atm` | entradas de teste que começam numa tela (`EQ_TELA`) |
+| `tests/equiv/harness.lua` | instrumentação: relógio, entrada, semente, registro do traço e modo controlador |
+| `tests/equiv/run_lua.lua`, `run_atm.lua` | rodam cada versão sob a instrumentação |
+| `tests/equiv/entrada.lua`, `entrada.atm` | entradas de teste que começam numa tela |
 | `tests/equiv/compare.lua` | compara dois traços |
 | `tests/equiv/run.sh` | roda um roteiro nas duas versões e compara |
 | `tests/equiv/roteiros/*.txt` | roteiros |
+| `tests/equiv/gen_cercar.py`, `controles/bean.lua` | geradores de roteiros (pastoreio dos puffles; jogador do Bean Counters) |
 | `tests/equiv/out/` | traços gerados (fora do git) |
 
-Requisitos: `lua5.4`, o binding Lua do pico-sdl instalado (`require "pico"`)
-e o Atmos (`atmos-lang`, runtime `atmos`) instalados pelo luarocks.
-
 ```bash
-sh tests/equiv/run.sh tests/equiv/roteiros/dojo.txt
+sh tests/equiv/run.sh tests/equiv/roteiros/fluxo.txt
 ```
 
 ```bash
-for r in tests/equiv/roteiros/*.txt; do sh tests/equiv/run.sh "$r" 1 0 | grep -E '^(==|RESUMO|JANELA)'; done
+for r in tests/equiv/roteiros/*.txt; do sh tests/equiv/run.sh "$r" "" 0 | grep -E '^(==|RESUMO)'; done
 ```
 
-Argumentos de `run.sh`: roteiro, semente (padrão 1) e quantos quadros
-divergentes mostrar (padrão 5). O código de saída é 0 quando todos os quadros
-batem. Para ver a diferença de um quadro, por exemplo o 40:
-
-```bash
-awk -F'\t' '$1==40' tests/equiv/out/dojo.lua.trc tests/equiv/out/dojo.atm.trc | tr '|' '\n'
-```
+Argumentos de `run.sh`: roteiro, semente (vazio: a do roteiro, `# semente: N`,
+ou 1) e quantos quadros divergentes mostrar. O código de saída é 0 quando
+todos os quadros batem.
 
 Formato do roteiro (o quadro é o número da chamada a `pico.input.event`, a
-partir de 1; o roteiro acabou, o teste manda `quit`):
+partir de 1):
 
 ```
 # tela: dojo          (opcional: começa direto nesta tela)
+# semente: 41         (opcional)
 1 mouse 0.5 0.5       posiciona o mouse (fração da janela)
 10 click 0.9 0.88     clique (mouse.button.dn), posicionando antes
 30 key Right          tecla (key.dn)
 650 quit              encerra
 ```
 
-## 3. Roteiros
+**Modo controlador.** Para gerar roteiros que joguem de verdade:
+`EQ_CONTROLE=<script.lua>` faz o harness chamar, a cada quadro, uma função
+que recebe os desenhos do quadro anterior e devolve o comando do quadro;
+`EQ_GRAVA=<arquivo>` guarda o roteiro gerado. O roteiro sai fixo e é rodado
+nas duas versões como qualquer outro. Exemplo, da pasta da versão Lua:
 
-| Roteiro | Tela | O que exercita |
-|---|---|---|
-| `smoke.txt` | fluxo completo | *hover* no menu, clique em "Jogar", entrada no centro |
-| `centro.txt` | centro | caminhada até um ponto, mudança de destino, caminhada até o Dojo e entrada |
-| `person.txt` | personalização | o mouse passa por duas cores do quadro (o Lua escolhe pelo *hover*), clica numa terceira e volta por "Voltar" |
-| `dojo.txt` | Dojo | três rodadas, sempre a carta mais à direita, até o fim e a recompensa |
-| `bean_counters.txt` | Bean Counters | seis idas e vindas (passos por `key.dn`, como a repetição de tecla), coletas, quedas e entregas, até o fim |
-| `pega_puffle.txt` | Pega Puffles | o mouse passeia numa curva de Lissajous por 15 s: empurra os puffles (80 quadros com vizinhos a menos de 0,05) e faz 3 fugirem |
-| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio em malha fechada: a cada 40 quadros, o mouse vai para trás do puffle livre mais próximo do cercado. Toca as paredes, captura 8, deixa 2 fugirem e termina com vitória (80 moedas). Gerado por `tests/equiv/gen_cercar.py`, que simula com a versão Lua; o roteiro sai fixo e é o mesmo nas duas versões |
+```bash
+SDL_VIDEODRIVER=offscreen EQ_TELA=bean_counters EQ_SEED=41 EQ_ROTEIRO=roteiro_vazio.txt EQ_TRACO=/tmp/t.trc EQ_CONTROLE=../../../tests/equiv/controles/bean.lua EQ_GRAVA=/tmp/gerado.txt lua5.4 ../../../tests/equiv/run_lua.lua
+```
 
-## 4. Resultados
+## 4. Roteiros e resultados
 
-### 4.1 Situação atual (semente 1, depois das correções da seção 5)
+| Roteiro | Tela | O que exercita | Quadros iguais |
+|---|---|---|---|
+| `smoke.txt` | jogo inteiro | *hover* no menu, "Jogar", entrada no centro | 40/40 |
+| `person.txt` | personalização | *hover* sobre cores (sem efeito), clique numa cor, outra cor, "Voltar" | 80/80 |
+| `centro.txt` | centro | caminhada, troca de destino, chegada ao Dojo pela hitbox e o Dojo aninhado | 600/600 |
+| `dojo.txt` | Dojo | três rodadas até o prêmio (100 moedas) | 520/520 |
+| `bean_counters.txt` | Bean Counters | idas e vindas, coletas, entregas, os três acertos até o fim | 854/854 |
+| `bean_counters_jogo.txt` (semente 41) | Bean Counters | jogador gerado: enche a primeira pilha e põe 7 cafés na segunda | 3044/3044 |
+| `bean_counters_sobrecarga.txt` (semente 24) | Bean Counters | jogador gerado: pega o 6º café e é derrubado | 2002/2002 |
+| `pega_puffle.txt` | Pega Puffles | o mouse numa curva: empurrões entre puffles e 3 fugas | 901/901 |
+| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio: paredes, 8 capturas, 2 fugas e vitória (80 moedas) | 1816/1816 |
+| `fluxo.txt` | jogo inteiro | personaliza a cor, ganha o Dojo, volta ao centro, sai do Pega Puffles e do Bean Counters com Escape, "Sair" | 1550/1550 |
 
-| Roteiro | Quadros | Iguais | Diferentes (1º) | Janela ±1 | Fim no Lua | Fim no Atmos |
-|---|---:|---:|---|---:|---|---|
-| smoke | 40 | 10 | 30 (10) | 29 | quit | quit |
-| centro | 600 | 1 | 599 (1) | 598 | entra no Dojo no quadro 200 | entra no Dojo no quadro 215 |
-| person | 80 | **79** | 1 (80) | **0** | volta ao menu | volta ao menu |
-| dojo | 520 | 1 | 519 (1) | 518 | 100 moedas (quadro 492) | 100 moedas (quadro 520) |
-| bean_counters | 854 | 109 | 745 (1) | 743 | 5 moedas | 10 moedas |
-| pega_puffle | 901 | **901** | 0 | **0** | quit (jogo não terminou) | quit (jogo não terminou) |
-| pega_puffle_cercar | 1816 | **1815** | 1 (1816) | 1 | vitória, 80 moedas | vitória, 80 moedas |
+Com as sementes 2, 3 e 7, `centro`, `dojo`, `bean_counters`, `pega_puffle` e
+`fluxo` também dão todos os quadros iguais.
 
-O `pega_puffle` também dá 901/901 com as sementes 2, 3 e 7, e o
-`pega_puffle_cercar`, 1901/1901 (com outra semente, o pastoreio não termina o
-jogo). Nos três roteiros com um quadro diferente, esse é o último quadro da
-tela: o Lua ainda desenha a tela no quadro em que ela termina, e o Atmos não
-(F3). A "janela ±1" não absorve o último quadro do `pega_puffle_cercar`
-porque o Atmos não tem quadro seguinte. Os outros roteiros divergem desde o
-primeiro quadro por regras e constantes ainda não alinhadas (seção 4.2).
+**Vitória no Bean Counters.** Nenhum roteiro enche as duas pilhas de 10
+(o controlador perde as vidas antes). O fim por pilhas cheias foi conferido
+em cópias das duas versões com pilhas de 2, no roteiro `bean_counters_jogo`:
+1224/1224 quadros iguais, depois de corrigir no Lua a plataforma que ainda
+recebia cafés com as duas pilhas cheias.
 
-### 4.1.1 Sensibilidade do teste (Pega Puffles)
+### 4.1 Sensibilidade (mutações)
 
-Sete mutações das regras de colisão no `puffle.atm`, cada uma rodada contra o
-`pega_puffle_cercar.txt` (o arquivo foi restaurado depois de cada uma):
+Cada mutação foi aplicada a uma cópia e comparada com a outra versão sem
+mudança.
+
+**Pega Puffles** (no `puffle.atm`, roteiro `pega_puffle_cercar`): detectadas
+a cerca somando em vez de substituir (quadro 551), o empurrão com sinal
+trocado (1), o raio 0,06 (4), a fuga depois de andar (797) e o passo 1% maior
+(1). Equivalente: o fator 0,2 da cerca (a direção é normalizada antes de
+andar). Não coberta: empurrar puffles que já fugiram.
+
+**Bean Counters** (no Lua, roteiro `bean_counters_jogo`):
 
 | Mutação | Resultado |
 |---|---|
-| cerca: somar a direção deslizada em vez de substituir (o erro antigo) | detectada no quadro 551 |
-| empurrão com o sinal trocado | detectada no quadro 1 |
-| raio do empurrão 0,06 em vez de 0,05 | detectada no quadro 4 |
-| testar a fuga depois de andar, em vez de antes | detectada no quadro 797 |
-| passo 1% maior (como se o tempo real entrasse) | detectada no quadro 1 |
-| cerca: fator 0,2 em vez de 0,1 | **equivalente**: a direção é normalizada antes de andar, e a escala não muda nada (no Lua também) |
-| empurrar também os puffles que já fugiram | não detectada: os dois que fogem ficam longe dos outros. Situação não coberta pelos roteiros |
+| o bloqueio da plataforma conta já no quadro em que nasce | detectada (quadro 933) |
+| o bloqueio avança antes da entrega, no mesmo quadro | detectada (972) |
+| a troca do prazo de lançamento no quadro do acerto é ignorada | detectada (698) |
+| o prazo do fim conta no quadro em que nasce | detectada (3044) |
+| as cargas andam depois do pinguim | detectada (368) |
+| passo sem o "+1" na carga máxima | detectada (369) |
+| a plataforma sem a espera de 250 ms | **equivalente**: o bloqueio do pinguim já espaça as entregas em mais de 250 ms, então essa espera da versão Atmos nunca decide nada |
+| o atordoamento acaba antes das colisões do mesmo quadro | não detectada em nenhum dos roteiros do Bean Counters: um acerto bem no quadro em que o atordoamento acaba é raro. Situação não coberta |
 
-### 4.2 Catálogo das divergências
+## 5. Divergências encontradas e como foram resolvidas
 
-Categorias:
+### 5.1 Erros que o teste encontrou
 
-- **E**: erro numa das versões (a intenção do código é clara);
-- **R**: regra, constante ou tempo diferente (escolha de projeto: decidir);
-- **O**: ordem dentro do quadro, efeito da estrutura do laço ou do ambiente
-  (decidir o critério);
-- **Q**: quebra que impede a comparação.
-
-Situação: **corrigido** (commit), **pendente** (esperando decisão).
-
-#### Fluxo, menu e centro
-
-| Id | Diferença | Causa | Cat. | Situação |
-|---|---|---|---|---|
-| F1 | Fundo do menu no tamanho natural da imagem no Atmos (1,0625 × 1,0667 da janela) | `menu.atm`: retângulo sem `w` e `h` | E | **corrigido** (`7b0b8f2`) |
-| F2 | Pinguim do centro começa virado para leste no Atmos (`090`), para o sul no Lua (`000`) | `centro/pinguim.atm`: velocidade zero caía no setor 0 | E | **corrigido** (`3b24142`) |
-| F3 | Na transição de tela, o Lua ainda desenha a tela antiga no quadro do clique; o Atmos já desenha a nova | `main.lua` faz `update` → `draw` → troca de tela; no Atmos a tela termina dentro do `emit` do clique e a seguinte começa no mesmo passo | O | pendente (D3) |
-| F4 | O movimento do pinguim começa um quadro depois no Atmos e fica um quadro atrás até chegar | o `atmos.env.pico` emite o relógio *antes* do evento de entrada; o Lua trata evento e tempo no mesmo `update` | O | pendente (D3) |
-| F5 | Cafeteria em x = 0,25 no Lua e 0,20 no Atmos | constante | R | pendente |
-| F6 | Chegada ao prédio: no Lua, a posição do pinguim dentro do retângulo inteiro do prédio (0,35–0,40 de largura); no Atmos, colisão da *hitbox* do pinguim (0,08 × 0,10) com a do prédio (0,21 × 0,21). Entra no Dojo no quadro 200 (Lua) e 215 (Atmos) | regra | R | pendente |
-| F7 | Altura do pinguim do centro: automática no Lua (proporção da imagem, 0,2276), fixa em 0,2 no Atmos | constante | R | pendente |
-| F8 | Escape no centro volta ao menu (só no Atmos); no Lua não há como sair do centro | `watching :key.dn until (it.key == :Escape)` | R | pendente |
-| F9 | Durante o minigame, o Atmos ainda desenha o centro por baixo, e Escape aborta o minigame | os minigames são aguardados dentro da task `Centro` (hierarquia de vida); no Lua as telas são planas | R | pendente |
-| F10 | A cor escolhida na personalização vale no centro do Atmos (`cor_pinguim`, gravada ao sair da tela); o Lua usa sempre "amarelo" | o Lua não guarda a cor | R | pendente |
-| F11 | Título da janela por tela no Lua; fixo no Atmos | cosmético (não entra no traço) | R | registrado |
-
-#### Personalização
-
-| Id | Diferença | Causa | Cat. | Situação |
-|---|---|---|---|---|
-| P1 | A tela Lua não rodava: erro em `pico.layer.empty` na inicialização | `personalizacao.lua` usava a assinatura antiga (`pico.layer.empty('=', nil, nil, ...)`) e o mouse no formato antigo, e o desenho lia `cor_select.text.fixo`, campo que não existe (o campo é `texto`) | Q | **corrigido no Lua** (`b9bbef0`) |
-| P2 | O Lua escolhe a cor sob o mouse a cada quadro (*hover*); o Atmos só no clique, e começava na última cor escolhida | regra | R | **corrigido** (`f643bdc`): o Atmos segue o Lua |
-| P3 | O quadro de cores: no Lua, um layer de 600 × 400 com grade de 7 × 5 células, desenhado a cada quadro; no Atmos, sub-layers presos ao `world`, com as cores em posições um pouco diferentes | forma de construir o quadro | R | **corrigido** (`f643bdc`) |
-| P4 | Recriar o layer do quadro com a mesma chave aborta o pico | o Lua criava o quadro a cada entrada na tela | E (Lua) | **corrigido no Lua** (`b9bbef0`: cria uma vez). No Atmos, o `main.atm` cerca cada tela com `pico.push()`/`pico.pop()`, e a reentrada funciona |
-
-#### Dojo
-
-| Id | Diferença | Causa | Cat. | Situação |
-|---|---|---|---|---|
-| D1 | Baralho: 5 cartas no Lua (com `agua_3`), 4 no Atmos (sem cartas de água). Com a mesma semente, as mãos sorteadas já diferem | constante (`cartas` em `dojo.atm`) | R | pendente |
-| D2 | Resultado da rodada na tela por 1,5 s (Lua) ou 2 s (Atmos) | constante | R | pendente |
-| D3 | O Lua reordena as mãos só depois do resultado; o Atmos, logo na escolha | regra (posição das cartas restantes durante o resultado) | R | pendente |
-| D4 | Placar: o Lua soma 3 por vitória e 1 por empate; o Atmos conta vitórias | forma diferente, mesmo resultado (3V+E > 3D+E se e só se V > D); a recompensa (100/50/0) é igual | — | equivalente |
-
-#### Bean Counters
-
-| Id | Diferença | Causa | Cat. | Situação |
-|---|---|---|---|---|
-| B1 | Trajetória das cargas: o Atmos integrava passo a passo e contava a gravidade duas vezes; a carga não caía no destino calculado | `carga.atm` | E | **corrigido** (`b013989`): com a mesma semente, a primeira carga tem a mesma trajetória nas duas versões |
-| B2 | O saco de café nunca girava no Atmos | `carga.atm` testava `pub.tipo`, campo inexistente | E | **corrigido** (`b013989`) |
-| B3 | Pinguim cheio + mais um café: no Atmos, o `until (carga >= carga_maxima)` dentro do laço de colisões **encerra o laço**, e o pinguim fica imune a tudo (cafés e objetos) até o fim do jogo. Comprovado num teste isolado da construção `until` | `bean_counters/pinguim.atm` | E | pendente: o arquivo tem uma mudança do usuário não commitada (D2) |
-| B4 | `carga_maxima`: 5 no Lua e no último commit do Atmos; **2** na cópia de trabalho do Atmos (não commitada) | mudança local do usuário | R | pendente (D2) |
-| B5 | Sobrecarga: no Lua, o 6º café ainda soma 2 pontos e derruba o pinguim por 2 s, **sem perder vida**; no Atmos (intenção do código), o café além do máximo conta como acerto: perde vida | regra | R | pendente |
-| B6 | Velocidade: `10·(cm − cargas)/cm` no Lua (parado com 5 cargas); `10·((cm+1) − carga)/(cm+1)` no Atmos | fórmula | R | pendente |
-| B7 | Primeira carga: lançada na inicialização no Lua; depois de 0,5 s no Atmos | tempo | R | pendente |
-| B8 | Depois de derrubado: o Lua retoma o intervalo de lançamento de onde parou; o Atmos reinicia o laço e lança uma carga na hora | regra | R | pendente |
-| B9 | Fim do jogo: imediato no Lua; 0,5 s depois no Atmos | tempo | R | pendente |
-| B10 | A carga some no quadro em que passa de y = 0,9 no Atmos e no seguinte no Lua (o Lua testa antes de mover) | ordem dentro do quadro | O | pendente (D3) |
-| B11 | A neve é desenhada de novo depois das cargas no Lua (as cargas passam por trás da neve); no Atmos as cargas ficam por cima | ordem de desenho | O | registrado (a comparação é de conjunto) |
-| B12 | Plataforma: além do intervalo de 250 ms do pinguim, o Atmos espera mais 250 ms dentro da `Plataforma` a cada entrega na primeira pilha; uma entrega que chegue nesse intervalo soma pontos mas não entra na pilha | regra | R | pendente |
-
-#### Pega Puffles
-
-| Id | Diferença | Causa | Cat. | Situação |
-|---|---|---|---|---|
-| U0 | **Fases do quadro (a causa principal das colisões diferentes):** o Lua calcula a direção de *todos* os puffles com as posições paradas e só depois move todos; no Atmos cada puffle calculava e andava sozinho no seu `:clock`, e os seguintes já viam os anteriores na posição nova | estrutura | R | **corrigido** (`bc84248`): a tela emite `:puffle.direcao` e `:puffle.anda` a cada `:clock` |
-| U1 | Velocidade de fuga: 0,04 × `dt` fixo de 0,05 por quadro no Lua (0,12/s a 60 quadros/s); 0,4 × tempo real no Atmos (0,4/s, cerca de 3,3 vezes mais rápido) | constante e unidade de tempo | R | **corrigido** (`bc84248`) |
-| U2 | Empurrão entre puffles: o Lua soma 0,5·(outro − ele) à direção do *outro*; o Atmos subtrai 0,5·(vizinho − ele) da *própria* direção | forma diferente, mesma soma: na mesma ordem de vizinhos, as duas contas dão o mesmo número em ponto flutuante (a − b = −(b − a) exatamente) | — | equivalente, depois de U0 |
-| U3 | Cerca: o Lua *substitui* a direção pelo deslizamento × 0,1; o Atmos *somava* o deslizamento × 0,1 | regra | R | **corrigido** (`bc84248`) |
-| U4 | Captura: o Lua conta os puffles cujo centro está dentro do cercado, a cada quadro; o Atmos contava entradas e saídas por sobreposição de retângulos | regra | R | **corrigido** (`bc84248`) |
-| U5 | Cronômetro: o Lua mostra 99 no início (`floor(restante/1000)`); o Atmos, 100 | arredondamento | R | **corrigido** (`bc84248`) |
-| U6 | As árvores cobrem os puffles no Lua; no Atmos, os puffles ficavam por cima | ordem de desenho | O | **corrigido** (`bc84248`) |
-| U7 | O Lua removia o puffle que fugiu dentro do `ipairs` e pulava o puffle seguinte naquele quadro | erro no Lua | E (Lua) | **corrigido no Lua** (`3909138`: laço de trás para a frente) |
-| U8 | As paredes do cercado eram percorridas com `pairs` (chaves string) nas duas versões; no Lua 5.4 essa ordem pode mudar entre execuções, e importa quando o puffle toca duas paredes | não determinismo | E | **corrigido** nas duas (`3909138`, `bc84248`): lista fixa esquerda, direita, baixo |
-| U9 | O puffle fora do mapa: o Lua testa antes de andar e o remove no quadro seguinte; o Atmos testava depois de andar | ordem | R | **corrigido** (`bc84248`) |
-
-### 4.3 Sobre as defasagens de um quadro (categoria O)
-
-São efeitos da forma do laço, não das regras:
-
-- **transição de tela (F3):** o Lua desenha a tela antiga no quadro em que a
-  troca é pedida e só troca no fim do quadro; no Atmos, a tela termina dentro
-  do `emit` do clique e a seguinte já desenha no mesmo quadro;
-- **relógio antes do evento (F4, B10):** a cada passo, o `atmos.env.pico`
-  emite primeiro o tempo decorrido e depois o evento de entrada. Uma reação
-  que depende do tempo começa no passo seguinte ao do evento; no Lua, o mesmo
-  `update` vê o evento e o tempo.
-
-Fazer o Atmos imitar essas defasagens exigiria código artificial (desenhar
-mais um quadro da tela que já terminou; aplicar à mão o `dt` do quadro do
-clique) ou um ambiente próprio do projeto que emitisse a entrada antes do
-relógio. Daí a decisão D3.
-
-## 5. Correções feitas
-
-### 5.1 Na versão Lua (a referência)
-
-Só erros que impediam a tela de rodar ou que tornavam a referência não
-determinística ou incoerente; nenhuma regra do jogo mudou.
-
-| Commit | Arquivo | Correção |
+| Versão | Erro | Commit |
 |---|---|---|
-| `b9bbef0` | `screens/telas_menu/personalizacao.lua` | API atual do pico (`pico.layer.empty{...}`, mouse em células do layer), campo `texto`, layer criado uma vez só (P1, P4) |
-| `3909138` | `screens/minigames/pega_puffles/pega_puffles.lua` | paredes em lista de ordem fixa (U8); laço de movimento de trás para a frente, para a remoção não pular o puffle seguinte (U7) |
+| Atmos | Bean Counters: com o pinguim cheio, um `until` dentro do laço de colisões encerrava o laço, e o pinguim ficava imune até o fim | `e2964a8` |
+| Atmos | Bean Counters: a integração passo a passo da carga contava a gravidade duas vezes; o café nunca girava (`pub.tipo`) | `b013989` |
+| Atmos | Dojo: um prédio clicado no centro, vivo por baixo do minigame, emitia `:clicked`, e o Dojo o tomava por uma carta | `1a3b6f1` |
+| Atmos | menu: fundo no tamanho natural da imagem; centro: pinguim parado virado para leste | `7b0b8f2`, `3b24142` |
+| as duas | centro: escolher avermelhado, ciano ou vermelho derrubava o jogo (faltam os sprites); `azul_fraco/090.png` estava salvo como `3.png` | `2d7c1df` |
+| as duas | Pega Puffles: paredes percorridas com `pairs` (ordem variável) | `3909138`, `bc84248` |
+| Lua | personalização não rodava (API antiga do pico, campo `text.fixo`) | `b9bbef0` |
+| Lua | Pega Puffles: remover o puffle que fugiu dentro do `ipairs` pulava o seguinte | `3909138` |
+| Lua novo | Bean Counters: a plataforma recebia cafés com as duas pilhas cheias | `cdcf1b4` |
 
-### 5.2 Na versão Atmos
+### 5.2 Regras que eram diferentes
 
-| Commit | Arquivo | Correção | Como o teste mostra |
-|---|---|---|---|
-| `f643bdc` | `screens/telas_menu/personalizar.atm` | o quadro, a escolha por *hover* e a cor inicial do Lua (P2, P3) | `person.txt`: 79 de 80 quadros iguais (o último é F3) |
-| `bc84248` | `screens/minigames/pega_puffles/pega_puffles.atm`, `puffle.atm` | fases do quadro, cerca, velocidade, fuga, captura, cronômetro e ordem de desenho do Lua (U0 a U9) | `pega_puffle.txt` 901/901; `pega_puffle_cercar.txt` 1815/1816 (o último é F3); mutações na seção 4.1.1 |
-| `b013989` | `screens/minigames/bean_counters/carga.atm` | posição exata do lançamento (p₀ + v₀t + gt²/2), como no Lua; rotação do café (`pub.id` em vez de `pub.tipo`) | a primeira carga (mesmo sorteio nas duas versões) tem as mesmas posições quadro a quadro, deslocadas pelos 30 quadros de B7; os desenhos com rotação passam de 0 a 161 no roteiro |
-| `3b24142` | `screens/centro/pinguim.atm` | parado, o pinguim fica virado para o sul | o sprite inicial passa de `090` para `000`, como no Lua |
-| `7b0b8f2` | `screens/telas_menu/menu.atm` | fundo com `w=1, h=1` | os quadros 1 a 9 do `smoke` passam a ser iguais |
+Com D1, as regras do Atmos passaram para o Lua, e o que só o Lua tinha passou
+para o Atmos:
 
-## 6. Decisões
+| Tela | Do Atmos para o Lua | Do Lua para o Atmos |
+|---|---|---|
+| fluxo | minigames dentro do centro; Escape no centro (e num minigame) volta ao menu; a cor escolhida vale no centro | títulos de janela por tela; `grid=false`; 60 quadros/s |
+| personalização | escolha da cor por clique | o quadro em grade 7 × 5 (rodada anterior) |
+| centro | cafeteria em x = 0,20; chegada pela hitbox (0,08 × 0,10 contra 0,21 × 0,21); pinguim com altura 0,2 | — |
+| Dojo | 4 cartas, sem água; 2 s de resultado; mãos rearrumadas na hora da jogada; vitórias por rodada | — |
+| Bean Counters | café com o pinguim cheio derruba e tira vida; passo `10·(6 − carga)/6`; primeira carga após 0,5 s; o caminhão para 2 s e volta lançando; fim 0,5 s depois; espera de 250 ms na plataforma; neve atrás das cargas | — |
+| Pega Puffles | — | as regras do Lua, em duas fases por quadro (rodada anterior, `bc84248`) |
 
-- **D1. Referência e alcance: decidido em 23/11/2026.** A versão Lua é a
-  referência para tudo: o Atmos passa a seguir as regras e constantes do Lua.
-  Feito para o Pega Puffles e a personalização. Faltam o centro (F5 a F10), o
-  Dojo (D1 a D3 da tabela) e o Bean Counters (B3 a B12).
-- **D4. Personalização em Lua: decidido em 23/11/2026.** Consertar o Lua
-  (feito em `b9bbef0`).
+### 5.3 Organização do Lua (pedido de mais orientação a objetos)
 
-Pendentes:
+A versão Lua foi reescrita em classes (`dfa8702`, `cdcf1b4`, `a2d041e`):
+`Objeto` é a classe base (herança por metatabelas, `extend`/`new`/`init`) com
+os ganchos `tempo`, `evento` e `desenha`; `Jogo` guarda o estado entre telas e
+as transições; cada tela e cada entidade guarda o próprio estado e só expõe
+métodos (antes, os dados de cada tela ficavam em `gameState`, e as telas
+mexiam diretamente nos campos das entidades). O pinguim do Bean Counters
+avisa o minigame por métodos de um observador (`ao_coletar`, `ao_entregar`,
+`ao_ser_atingido`). `timer.lua` (relógio real) e `vetor.lua` saíram.
 
-- **D2. `bean_counters/pinguim.atm`.** O `carga_maxima = 2` da cópia de
-  trabalho é um teste local (a referência fica em 5, como no Lua e no último
-  commit) ou o novo valor do jogo (e então o Lua também deveria mudar)? A
-  correção do erro B3 está no mesmo arquivo e espera essa resposta, para não
-  misturar a mudança do usuário com a correção.
-- **D3. Defasagens de um quadro (F3, F4, B10).** Aceitar como diferença do
-  ambiente (o critério passa a ser a janela de ±1 quadro, já medida pelo
-  comparador) ou criar no projeto Atmos um ambiente que entregue a entrada
-  antes do relógio?
-  Com a decisão D3 tomada, o Pega Puffles e a personalização passam a ser
-  equivalentes sem ressalva (se a janela for aceita) ou depois do ambiente
-  novo.
+## 6. Limitações
 
-Próximos passos: alinhar ao Lua o centro, o Dojo e o Bean Counters, uma
-mudança por commit (o Bean Counters depois de D2), e acrescentar aos roteiros
-as situações que faltam (sobrecarga no Bean Counters, empate no Dojo, um
-puffle que foge perto de outro).
+- A vitória do Bean Counters com pilhas de 10 não está em nenhum roteiro (foi
+  conferida com pilhas de 2, em cópias).
+- Duas mutações não são detectadas pelos roteiros atuais (seção 4.1).
+- A comparação vê o que é desenhado. Estado que não aparece na tela só é
+  conferido pelos efeitos que tem depois (por exemplo, o placar só aparece
+  como texto).

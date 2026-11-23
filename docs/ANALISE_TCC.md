@@ -234,8 +234,8 @@ versão Lua é imperativa, com objetos sobre metatabelas e um laço
    - integração com Lua.
 4. **Metodologia e implementações**
    - 4.1 O jogo Ilha Geladeira e o pico-sdl;
-   - 4.2 A versão Lua (telas com `init`/`update`/`draw`/`finish`, estado em
-     tabelas);
+   - 4.2 A versão Lua (classes com `tempo`/`evento`/`desenha`, estado
+     encapsulado em cada objeto, transições pelo `Jogo`);
    - 4.3 A versão Atmos (uma task por entidade; componentes `Image`, `Botao`,
      `XClickable`, `XCollidable`);
    - 4.4 Equivalência por replay (`EQUIVALENCIA.md`);
@@ -287,22 +287,28 @@ Dois cuidados:
 
 ## 3. O repositório como base da comparação
 
+Situação em 23/11/2026, depois da rodada em que as novidades do Atmos foram
+para o Lua, o que faltava no Atmos foi acrescentado e o Lua foi reescrito em
+classes. As duas versões são equivalentes quadro a quadro
+([`EQUIVALENCIA.md`](EQUIVALENCIA.md)), então as métricas abaixo comparam
+programas que fazem exatamente a mesma coisa.
+
 ### 3.1 Inventário
 
-O repositório tem uma versão do jogo em cada abordagem, com as mesmas telas e
-os mesmos recursos (`assets/`). Desenho, colisão e entrada vêm do pico-sdl
-(submódulo `src/pico-sdl`; o binding Lua instalado é a v0.7).
+As duas versões usam as mesmas telas e os mesmos recursos (`assets/`).
+Desenho, colisão e entrada vêm do pico-sdl (submódulo `src/pico-sdl`; o
+binding Lua instalado é a v0.7).
 
 | Programa | Versão Lua (`src/codes_tcc/pico_ilha_geladeira`) | Versão Atmos (`src/codes_tcc/atmos_ilha_geladeira`) |
 |---|---|---|
-| fluxo de telas | `main.lua`: laço `while`, tabela `screens`, `gameState.nextScreen` | `main.atm`: `loop { await Menu() ... }`; os minigames são aguardados dentro do `Centro` |
-| menu | `screens/telas_menu/menu.lua` | `screens/telas_menu/menu.atm` + `util/components/botao.atm`, `image_hover.atm`, `xclickable.atm` |
-| personalização | `screens/telas_menu/personalizacao.lua` (não rodava até `b9bbef0`: API antiga de `pico.layer.empty` e campo `cor_select.text.fixo` inexistente) | `screens/telas_menu/personalizar.atm` (`cor.atm` existe e não é usado) |
-| centro | `screens/centro/centro.lua`, `pinguim.lua` | `screens/centro/centro.atm`, `pinguim.atm`, `predio.atm` |
+| fluxo de telas | `main.lua` (laço: `tempo`, `evento`, `desenha`) e `jogo.lua` (classe `Jogo`: moedas, cor do pinguim, troca de telas) | `main.atm`: `loop { await Menu() ... }` |
+| menu | `screens/telas_menu/menu.lua` + `util/botao.lua` | `screens/telas_menu/menu.atm` + `util/components/botao.atm`, `image_hover.atm`, `xclickable.atm` |
+| personalização | `screens/telas_menu/personalizacao.lua` | `screens/telas_menu/personalizar.atm` (`cor.atm` existe e não é usado) |
+| centro (com os minigames dentro) | `screens/centro/centro.lua`, `pinguim.lua`, `predio.lua` | `screens/centro/centro.atm`, `pinguim.atm`, `predio.atm` |
 | Dojo | `screens/minigames/dojo/dojo.lua`, `carta.lua` | `screens/minigames/dojo/dojo.atm`, `carta.atm` |
-| Bean Counters | `screens/minigames/bean_counters/bean_counters.lua`, `pinguim.lua`, `carga.lua`, `pilha.lua` | `.../bean_counters.atm`, `pinguim.atm`, `carga.atm`, `pilha.atm`, `plataforma.atm` |
+| Bean Counters | `screens/minigames/bean_counters/bean_counters.lua`, `pinguim.lua`, `carga.lua`, `pilha.lua`, `plataforma.lua` | `.../bean_counters.atm`, `pinguim.atm`, `carga.atm`, `pilha.atm`, `plataforma.atm` |
 | Pega Puffles | `screens/minigames/pega_puffles/pega_puffles.lua`, `puffle.lua` | `.../pega_puffles.atm`, `puffle.atm` |
-| utilitários | `util/objeto.lua` (base com metatabela), `timer.lua` (relógio real), `vetor.lua` | `util/vetor.atm`, `util/components/image.atm`, `xcollidable.atm` |
+| base | `util/objeto.lua` (classe base), `util/temporizador.lua` (tempo do jogo) | `util/vetor.atm`, `util/components/image.atm`, `xcollidable.atm` |
 
 Como rodar cada uma:
 
@@ -314,55 +320,47 @@ cd src/codes_tcc/pico_ilha_geladeira && pico-lua main.lua
 cd src/codes_tcc/atmos_ilha_geladeira && atmos main.atm
 ```
 
-(`pico-lua` faz `cd` para a pasta do arquivo e roda `lua5.4 -lpico main.lua`.)
-
 Outras pastas, fora da comparação: `src/codes_eletiva` (versão anterior em C,
-da disciplina eletiva: menu, Dojo, Bean Counters, Pega Puffle);
-`src/codes_tcc/comparativos` (a mesma tela de personalização em Lua, em C com
-pico e em C com SDL puro); `src/codes_tcc/testes` (experimentos com layers e
-`pin`).
+da disciplina eletiva); `src/codes_tcc/comparativos` (a mesma tela de
+personalização em Lua, em C com pico e em C com SDL puro);
+`src/codes_tcc/testes` (experimentos com layers e `pin`).
 
-Diferenças de execução que afetam a comparação:
+O que mudou no Lua para ficar mais orientado a objetos: `Objeto` passou a ser
+uma classe base de verdade (herança por metatabelas: `extend`, `new`, `init`)
+com três ganchos (`tempo`, `evento`, `desenha`); o estado que antes ficava em
+`gameState` (`state.centroData`, `state.dojoData`...) passou para os objetos
+de cada tela; as telas não mexem mais nos campos das entidades, chamam
+métodos (`pinguim:escolhe_destino(id)`, `carta:joga(r)`, `plataforma:recebe()`);
+o pinguim do Bean Counters avisa o minigame como um observador
+(`ao_coletar`, `ao_entregar`, `ao_ser_atingido`); o relógio real deu lugar ao
+`Temporizador`, que conta o tempo do jogo.
 
-- o Lua liga o modo *expert* a 60 quadros/s; o ambiente `atmos.env.pico`, a
-  30. Parte da lógica Lua conta quadros (o movimento no Bean Counters, o
-  `dt = 0.05` fixo dos puffles), e por isso a velocidade do jogo Lua depende
-  da taxa de quadros. A lógica Atmos usa o tempo do relógio;
-- o Atmos chama `math.randomseed()` sem semente no início; o Lua semeia com o
-  relógio ao entrar no Dojo e no Pega Puffles;
-- no Atmos, os minigames rodam *dentro* da task `Centro`: o centro continua
-  vivo e é desenhado por baixo do minigame, e Escape aborta o minigame e
-  volta ao menu. No Lua as telas são planas, e não há como voltar do centro
-  ao menu.
+### 3.2 Métricas (`python3 tools/metricas.py`, em 23/11/2026)
 
-### 3.2 Métricas (medidas por `python3 tools/metricas.py`, em 23/11/2026, depois das correções da personalização e do Pega Puffles)
-
-Contagens léxicas, sem linhas em branco nem comentários. "Campos de estado"
-(Lua) são os alvos distintos de atribuição do tipo `obj.campo =`; no Atmos,
-contam-se as declarações `var` e os alvos distintos de `set`.
+Contagens léxicas, sem linhas em branco nem comentários.
 
 | Programa | LOC Lua | LOC Atmos | Atmos/Lua | funções Lua | tasks + funcs Atmos | if/elseif Lua | if/ifs Atmos |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| main (fluxo de telas) | 39 | 21 | 0,54 | 0 | 0+0 | 2 | 0 |
-| menu | 64 | 35 | 0,55 | 4 | 1+0 | 7 | 0 |
-| personalização | 89 | 82 | 0,92 | 6 | 1+2 | 4 | 1 |
-| centro | 153 | 132 | 0,86 | 10 | 4+2 | 13 | 1 |
-| Dojo | 249 | 145 | 0,58 | 13 | 2+3 | 29 | 16 |
-| Bean Counters | 401 | 279 | 0,70 | 30 | 5+0 | 39 | 5 |
-| Pega Puffles | 258 | 172 | 0,67 | 16 | 2+3 | 16 | 9 |
-| utilitários e componentes | 231 | 155 | 0,67 | 46 | 5+19 | 7 | 7 |
-| **total** | **1484** | **1021** | **0,69** | | | | |
+| main e jogo (fluxo de telas) | 58 | 23 | 0,40 | 8 | 0+0 | 5 | 0 |
+| menu | 39 | 36 | 0,92 | 4 | 1+0 | 1 | 0 |
+| personalização | 71 | 80 | 1,13 | 7 | 1+2 | 4 | 1 |
+| centro | 168 | 139 | 0,83 | 16 | 4+2 | 15 | 2 |
+| Dojo | 156 | 146 | 0,94 | 16 | 2+3 | 17 | 16 |
+| Bean Counters | 292 | 279 | 0,96 | 33 | 5+0 | 26 | 5 |
+| Pega Puffles | 147 | 172 | 1,17 | 12 | 2+3 | 11 | 9 |
+| base e componentes | 58 | 155 | 2,67 | 14 | 5+19 | 0 | 7 |
+| **total** | **989** | **1030** | **1,04** | | | | |
 
-| Programa | campos de estado Lua | enumerações de estado Lua | `var` Atmos | alvos de `set` Atmos |
-|---|---:|---|---:|---:|
-| main | 2 | — | 1 | 4 |
-| menu | 2 | — | 0 | 0 |
-| personalização | 2 | — | 1 | 2 |
-| centro | 10 | — | 11 | 10 |
-| Dojo | 13 | `DuelState`, `Elemento`, `ResultadoState` | 13 | 8 |
-| Bean Counters | 33 | — | 13 | 18 |
-| Pega Puffles | 11 | — | 6 | 11 |
-| utilitários e componentes | 11 | — | 13 | 5 |
+| Programa | campos de estado Lua (`self.x =`) | `var` Atmos | alvos de `set` Atmos |
+|---|---:|---:|---:|
+| main e jogo | 4 | 1 | 4 |
+| menu | 4 | 0 | 0 |
+| personalização | 4 | 0 | 1 |
+| centro | 15 | 11 | 10 |
+| Dojo | 15 | 13 | 8 |
+| Bean Counters | 31 | 13 | 18 |
+| Pega Puffles | 13 | 6 | 11 |
+| base e componentes | 7 | 13 | 5 |
 
 Construções de concorrência no Atmos:
 
@@ -375,45 +373,51 @@ Construções de concorrência no Atmos:
 | Dojo | 4 | 4 | 2 | 0 | 1 | 0 | 2 | 4 | 0 |
 | Bean Counters | 22 | 17 | 5 | 2 | 10 | 2 | 7 | 10 | 2 |
 | Pega Puffles | 7 | 0 | 0 | 0 | 6 | 0 | 3 | 2 | 0 |
-| utilitários e componentes | 2 | 3 | 2 | 1 | 4 | 0 | 3 | 0 | 0 |
+| base e componentes | 2 | 3 | 2 | 1 | 4 | 0 | 3 | 0 | 0 |
 
 Leitura inicial, com cautela:
 
-- o Atmos tem cerca de 31% menos linhas no total; a maior redução está nos
-  programas com mais controle (Dojo, menu, fluxo de telas) e a menor nos de
-  mais cálculo (personalização, centro);
-- as condicionais caem muito no Atmos (Bean Counters: 39 → 5; menu: 7 → 0),
-  porque o "em que fase estou?" vira posição no código (`await`, `watching`);
-- **só a personalização e o Pega Puffles já comparam a mesma coisa** (são
-  equivalentes ao Lua desde 23/11/2026); os outros programas ainda têm regras
-  diferentes (seção 3.4 e `EQUIVALENCIA.md`), e os números finais devem ser
-  medidos depois da equivalência. No Pega Puffles equivalente: 258 × 172
-  linhas, 11 campos de estado no Lua × 6 `var` no Atmos.
+- **o tamanho ficou quase igual** (989 × 1030 linhas). A diferença de 28% a
+  favor do Atmos, medida antes, vinha em boa parte de código morto e
+  repetido na versão Lua antiga, não do paradigma. Do lado Atmos, o
+  `vetor.atm` tem 82 linhas, das quais só seis funções são usadas; o Lua faz
+  as mesmas contas dentro das classes;
+- **as condicionais continuam caindo no Atmos** onde há fases: Bean Counters
+  26 × 5, centro 15 × 2, fluxo 5 × 0. No Dojo e no Pega Puffles empatam,
+  porque ali os `if` são regras do jogo (comparar cartas, testar colisão), não
+  controle de fase;
+- **o estado de controle de fase tem forma diferente**. No Lua ele aparece
+  como campos (Bean Counters: `tonto`, `bloqueio`, `lancamento`, `fim`,
+  `espera`, `viva`; Dojo: `espera`, `rodada`, `resultado`, `prazo`, `viva`;
+  centro: `ponto`, `destino`, `minigame`). No Atmos, os mesmos papéis são
+  pontos de suspensão (`await 2s`, `watching :pinguim.atordoado`,
+  `toggle ... await 250ms`). Os campos restantes nas duas contagens são
+  sobretudo dados (retângulos, imagens, placar);
+- **custo de correção**: reproduzir no Lua as regras do Atmos exigiu cuidar da
+  ordem dos passos dentro do quadro e da regra "um prazo criado num passo só
+  conta a partir do seguinte", que no Atmos vem de graça do escalonador. Seis
+  das oito mutações da seção 4.1 do `EQUIVALENCIA.md` são exatamente desses
+  detalhes de ordem;
+- **custo do Atmos**: dois erros de hierarquia e alcance de eventos apareceram
+  só no Atmos (o `until` que encerrava o laço do pinguim; o `:clicked` dos
+  prédios chegando ao Dojo). São dois bons exemplos para discutir no texto.
 
 ### 3.3 Forma das máquinas de estados (exemplos para o capítulo 5)
 
-| Comportamento | Lua: estado explícito | Atmos: estado na estrutura do código |
+| Comportamento | Lua (classes) | Atmos (tasks) |
 |---|---|---|
-| Dojo, rodada do duelo | `DuelState` com 4 estados (`SELECIONANDO`, `COMPARANDO`, `MOSTRANDO_RESULTADO`, `FINALIZADO`), `tempoResultado`, `cartaSelecionada`, `cartaNPCSelecionada`; o `update` despacha por `if jogo.estado == ...` | um `loop in num_cartas { await :clicked; ...; await 2s }`; a fase é o ponto de suspensão |
-| Bean Counters, pinguim derrubado | `derrubado`, `cooldown`, `duracao_colldown`; cada função testa `if data.pinguim.derrubado then return end` | `watching :pinguim.atordoado { ... }` seguido de `await 2s`, nos ramos de movimento e de lançamento |
-| Bean Counters, intervalo da plataforma | um `Timer` (`ativo`, `inicio`) atualizado a cada quadro | `toggle spawn_plataforma(false); await 250ms; toggle spawn_plataforma(true)` |
-| Centro, ir até um prédio | `destino`, `velocidade`, `chegou_destino()` e teste de chegada no `update` | `watching :collided until (...)` sobre o movimento; `watching :mouse.button.dn` recomeça a caminhada |
-| Menu, botão com *hover* | três `hover` zerados e recalculados a cada quadro | `Image_Hover`: `watching :on { await Image(off) }` e `watching :off { ... }` alternados |
-| Fim do minigame e volta ao centro | `state.nextScreen` + `finish()` + `init()` da próxima tela | `set moedas = moedas + await BeanCounters()`: a continuação é a linha seguinte |
+| Dojo, rodada | `Dojo:evento` só aceita clique quando `self.espera == nil`; `joga` cria `self.espera = Temporizador(2 s)`; `Dojo:tempo` avança cartas e espera e conta `rodada` até 3 | `loop in 3 { await <:clicked until ...>; ...; await 2s }`: a fase é o ponto do laço |
+| Bean Counters, pinguim atordoado | `self.tonto` (Temporizador) testado em `tempo` e em `evento`; o minigame troca `self.lancamento` por 2 s | `watching :pinguim.atordoado { ... }` seguido de `await 2s`, em três tasks (colisões, movimento, lançador) |
+| Bean Counters, intervalo da plataforma | `self.bloqueio` (Temporizador), criado na coleta ou entrega se não existir | `toggle spawn_plataforma(false); await 250ms; toggle spawn_plataforma(true)` |
+| Centro, ir até um prédio | `self.ponto` e `self.destino`; `tempo` testa a colisão e anda | `watching :collided until (...)` sobre o movimento; `watching :mouse.button.dn` recomeça a caminhada |
+| Botão com destaque | `Botao:tempo` recalcula `self.hover` | `Image_Hover`: `watching :on { await Image(off) }` e `watching :off { ... }` alternados |
+| Fim do minigame | `Centro:tempo` recebe as moedas de `minigame:tempo(dt)` e cria um novo pinguim | `set moedas = moedas + await BeanCounters()`: a continuação é a linha seguinte |
 
-Nos termos de Adya et al., o Lua faz *stack ripping*: o que seria uma variável
-local da sequência "esperar o clique, mostrar o resultado por 1,5 s, passar à
-próxima rodada" vira campo de tabela, e a sequência vira `if` por estado. Nos
-termos do estudo do Pingus, os exemplos acima cobrem os padrões de máquina de
-estados (Dojo, pinguim), passagem de continuação (fim do minigame), hierarquia
-de vida (cargas no pool, minigame dentro do centro) e sinalização
-(`:pinguim.coleta`, `:puffle.entrou`).
-
-### 3.4 Diferenças de regra encontradas
-
-As duas versões não são ports linha a linha: foram escritas em momentos
-diferentes (a Lua sobretudo entre março e maio de 2026, com os minigames
-completados em julho; a Atmos de junho em diante, com refatorações do
-orientador) e divergem em constantes, regras e tempos. O
-catálogo completo, com a causa de cada diferença e o que já foi corrigido,
-está em [`EQUIVALENCIA.md`](EQUIVALENCIA.md).
+Nos termos de Adya et al., o Lua continua fazendo *stack ripping*, agora
+organizado em objetos: o que seria uma variável local da sequência "esperar o
+clique, mostrar o resultado por 2 s, passar à próxima rodada" vira campo do
+objeto (`espera`, `rodada`). Nos termos do estudo do Pingus, os exemplos
+cobrem os padrões de máquina de estados (Dojo, pinguim), passagem de
+continuação (fim do minigame), hierarquia de vida (minigame dentro do centro,
+cargas e puffles em pools) e sinalização (`:pinguim.coleta`, `:puffle.fugiu`
+no Atmos; métodos de observador no Lua).
