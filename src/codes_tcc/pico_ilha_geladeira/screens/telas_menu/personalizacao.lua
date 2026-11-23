@@ -27,12 +27,20 @@ local voltar = {'%', x=0.3, y=0.8, w=0.3, h=0}
 local texto_escolha = {'%', x=0.78, y=0.25, w=0.38, h=0.1}
 local layer_place = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
 
+local quadro_criado = false   -- o pico não aceita recriar um layer com a mesma chave
+
 local function cria_layer_quadro()
+    if quadro_criado then return end
+    quadro_criado = true
     local dim = {w=600, h=400}
     local tile = {x=7, y=5}
-    pico.layer.empty('=', nil,nil, "quadro_gelo", false, {'!', w=dim.w, h=dim.h})
+    pico.layer.empty{
+        key    = "quadro_gelo",
+        dim    = {'!', w=dim.w, h=dim.h},
+        tile   = {'#', w=tile.x, h=tile.y},   -- grade de 7 x 5 células
+        target = layer_place,
+    }
     pico.set.layer("quadro_gelo")
-    pico.set.scene{tile={w=dim.w/tile.x, h=dim.h/tile.y}}
     local quadro_gelo = {'#', x=1, y=1, w=7, h=5, anchor='NW'}
     pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro_gelo)
 
@@ -44,12 +52,15 @@ local function cria_layer_quadro()
     pico.set.layer("world")
 end
 
+-- mouse e retângulos das cores em células ('#') do layer do quadro
 local function mouse_em_cor(state, mouse)
+    pico.set.layer("quadro_gelo")
     for _, cor in ipairs(cores) do
         if pico.vs.pos.rect(mouse, cor.rect) then
             state.personData.cor_select = cor
         end 
     end
+    pico.set.layer("world")
 end
 
 function Personalizacao.init(state)
@@ -67,7 +78,7 @@ function Personalizacao.update(state, event)
             state.nextScreen = "menu"
         end
     end
-    mouse = pico.get.mouse('!', layer_place)
+    mouse = pico.get.mouse("quadro_gelo", '#')
     mouse_em_cor(state, mouse)
 end
 
@@ -79,7 +90,7 @@ function Personalizacao.draw(state)
 
     pico.output.clear()
     pico.output.draw.image("../../../assets/imgs/background_personalizar.png", background)
-    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.text.fixo), pinguim)
+    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.texto), pinguim)
     pico.output.draw.image(img_voltar, voltar)
     pico.output.draw.text.fix("Escolha sua cor", texto_escolha)
     pico.output.draw.layer("quadro_gelo", layer_place)
