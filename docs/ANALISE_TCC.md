@@ -46,7 +46,7 @@ existe e, quando não existe, só os metadados (Crossref) e o resumo.
 | Tardieu & Edwards, *Instantaneous Transitions in Esterel* | texto integral (SLA++P'07) |
 | Céu: TECS 2017, LCTES 2018, SenSys 2013, relatório técnico 2012 | texto integral (versões dos autores) |
 | Sant'Anna, *Structured (Synchronous) Concurrency* (`fsantanna.github.io/sc.html`) | texto integral |
-| Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018) | texto integral (PDF em `docs/` do repositório) |
+| Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018) | texto integral (`fsantanna.github.io/pingus`) |
 | Manual e guia do Atmos; manual do Céu v0.30 | texto integral (repositórios) |
 | Ierusalimschy, de Figueiredo & Celes, *The evolution of Lua, continued* (2025) | texto integral (`lua.org/doc/cola.pdf`) |
 | Nystrom, *Game Programming Patterns*; notas CS442 de Waterloo | páginas citadas (texto integral) |
@@ -139,7 +139,7 @@ aquele título ou autoria). **Adequação** ao TCC: alta, média ou baixa.
 |---|---|---|---|---|
 | 47 | *Streams* funcionais com `map`, `filter` e `reduce`; no Atmos, sobre eventos ao longo do tempo | guia, seção 7.1 | correta, com exemplo inválido | O código de exemplo (`numbers:map(...)`) não funciona em Lua puro, porque tabelas não têm métodos `map`. No Atmos, as *streams* vêm da biblioteca f-streams ("à la ReactiveX"), puxadas pelo consumidor. O `pico-tcc` não as usa: deixe-as fora do TCC ou como trabalho futuro. |
 | 48 | Fluxo de estudos em 6 etapas e 8 semanas (escopo e *binding* → modelos → concorrência estruturada → Esterel/Céu → Atmos → síntese) | — | imprecisa (desalinhada) | Organizado, mas voltado a um estudo de semântica comparada de cinco linguagens, não à comparação Lua × Atmos em jogos. Sobram Tanter, Allais, Milano, Tardieu, CRP e os artigos da JVM. **Faltam** as leituras mais próximas do TCC: o caso Pingus de Sant'Anna (C++ → Céu), Adya et al. e Nystrom. Ver a parte 2. |
-| 49 | O `pico-tcc` é "uma aplicação desenvolvida com Atmos" | repositório | imprecisa | Tem as **duas** versões do mesmo jogo, `src/codes_tcc/pico_ilha_geladeira` (Lua) e `src/codes_tcc/atmos_ilha_geladeira` (Atmos), além de uma versão anterior em C (`src/codes_eletiva`). Ver a parte 3. |
+| 49 | O `pico-tcc` é "uma aplicação desenvolvida com Atmos" | repositório | imprecisa | Tem as **duas** versões do mesmo jogo, hoje em `src/lua` e `src/atmos` (havia também uma versão anterior em C, retirada do repositório). Ver a parte 3. |
 | 50 | Resumo do PDF (título; Lua como OO; Atmos como concorrência estruturada) | artigo do TCC | correta | — |
 
 ### 1.2 Conversa 2: continuação
@@ -180,7 +180,7 @@ aquele título ou autoria). **Adequação** ao TCC: alta, média ou baixa.
 | Ordem | Leitura | O que tirar | Onde entra |
 |---|---|---|---|
 | 1 | Manual e guia do Atmos (manual: *DESIGN*, *Tasks*, *Task Operations*; guia: seções 1 a 6) | Modelo de execução (ambiente, `emit`/`await`, escalonamento determinístico e cooperativo, ordem léxica), hierarquia, `pin`/`tasks`, `par`/`watching`/`toggle`, `pub`, `defer`/`abort` | Cap. 3 |
-| 2 | Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018; PDF em `docs/`) | Os cinco padrões de controle em jogos (máquinas de estados, passagem de continuação, hierarquias de despacho, hierarquias de vida, sinalização); variáveis de estado como sintoma; LOC "densas" | Cap. 4 (critérios) e Cap. 6 |
+| 2 | Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018; `fsantanna.github.io/pingus`) | Os cinco padrões de controle em jogos (máquinas de estados, passagem de continuação, hierarquias de despacho, hierarquias de vida, sinalização); variáveis de estado como sintoma; LOC "densas" | Cap. 4 (critérios) e Cap. 6 |
 | 3 | Nystrom, *Game Programming Patterns* (*Game Loop*, *Update Method*, *State*, *Observer*) | O modelo da versão Lua: laço, `update`/`draw`, estado explícito, observadores | Cap. 2.1 e Cap. 4.2 |
 | 4 | Adya et al. (2002) | Gerenciamento de tarefas × gerenciamento de pilha; *stack ripping* | Cap. 2.3 (a moldura da comparação) |
 | 5 | Smith (2018) e Chen & You (2022) | Definição de concorrência estruturada, *nurseries*, histórico, papel das corrotinas | Cap. 2.5 |
@@ -296,10 +296,10 @@ programas que fazem exatamente a mesma coisa.
 ### 3.1 Inventário
 
 As duas versões usam as mesmas telas e os mesmos recursos (`assets/`).
-Desenho, colisão e entrada vêm do pico-sdl (submódulo `src/pico-sdl`; o
-binding Lua instalado é a v0.7).
+Desenho, colisão e entrada vêm do pico-sdl, instalado no sistema (o binding
+Lua usado é a v0.7; o repositório não traz mais o submódulo).
 
-| Programa | Versão Lua (`src/codes_tcc/pico_ilha_geladeira`) | Versão Atmos (`src/codes_tcc/atmos_ilha_geladeira`) |
+| Programa | Versão Lua (`src/lua`) | Versão Atmos (`src/atmos`) |
 |---|---|---|
 | fluxo de telas | `main.lua` (laço: `tempo`, `evento`, `desenha`) e `jogo.lua` (classe `Jogo`: moedas, cor do pinguim, troca de telas) | `main.atm`: `loop { await Menu() ... }` |
 | menu | `screens/telas_menu/menu.lua` + `util/botao.lua` | `screens/telas_menu/menu.atm` + `util/components/botao.atm`, `image_hover.atm`, `xclickable.atm` |
@@ -313,17 +313,18 @@ binding Lua instalado é a v0.7).
 Como rodar cada uma:
 
 ```bash
-cd src/codes_tcc/pico_ilha_geladeira && pico-lua main.lua
+cd src/lua && pico-lua main.lua
 ```
 
 ```bash
-cd src/codes_tcc/atmos_ilha_geladeira && atmos main.atm
+cd src/atmos && atmos main.atm
 ```
 
-Outras pastas, fora da comparação: `src/codes_eletiva` (versão anterior em C,
-da disciplina eletiva); `src/codes_tcc/comparativos` (a mesma tela de
-personalização em Lua, em C com pico e em C com SDL puro);
-`src/codes_tcc/testes` (experimentos com layers e `pin`).
+O repositório guarda só o jogo: as duas versões (`src/lua`, `src/atmos`), os
+recursos (`assets/`), o teste de equivalência (`tests/equiv`) e as métricas
+(`tools/metricas.py`). A versão anterior em C (da disciplina eletiva), as
+comparações de pico × SDL e os experimentos com layers saíram do repositório
+e continuam no histórico do git.
 
 O que mudou no Lua para ficar mais orientado a objetos: `Objeto` passou a ser
 uma classe base de verdade (herança por metatabelas: `extend`, `new`, `init`)

@@ -1,8 +1,8 @@
 # Equivalência entre as versões Lua e Atmos
 
 Parte 4 do apoio ao TCC: um método reproduzível para verificar se a versão
-Atmos (`src/codes_tcc/atmos_ilha_geladeira`) e a versão Lua
-(`src/codes_tcc/pico_ilha_geladeira`) fazem a mesma coisa, inspirado no
+Atmos (`src/atmos`) e a versão Lua
+(`src/lua`) fazem a mesma coisa, inspirado no
 replay determinístico do `lua_doom`.
 
 **Situação em 23/11/2026: as duas versões são equivalentes.** Em todos os
@@ -75,7 +75,7 @@ tela (`# tela: <nome>` no roteiro) e terminam quando ela termina.
 
 | Arquivo | Papel |
 |---|---|
-| `tests/equiv/harness.lua` | instrumentação: relógio, entrada, semente, registro do traço e modo controlador |
+| `tests/equiv/harness.lua` | instrumentação: relógio, entrada, semente, registro do traço, modo controlador e capturas de tela (`EQ_FOTOS`, usadas no README) |
 | `tests/equiv/run_lua.lua`, `run_atm.lua` | rodam cada versão sob a instrumentação |
 | `tests/equiv/entrada.lua`, `entrada.atm` | entradas de teste que começam numa tela |
 | `tests/equiv/compare.lua` | compara dois traços |
@@ -115,7 +115,7 @@ que recebe os desenhos do quadro anterior e devolve o comando do quadro;
 nas duas versões como qualquer outro. Exemplo, da pasta da versão Lua:
 
 ```bash
-SDL_VIDEODRIVER=offscreen EQ_TELA=bean_counters EQ_SEED=41 EQ_ROTEIRO=roteiro_vazio.txt EQ_TRACO=/tmp/t.trc EQ_CONTROLE=../../../tests/equiv/controles/bean.lua EQ_GRAVA=/tmp/gerado.txt lua5.4 ../../../tests/equiv/run_lua.lua
+SDL_VIDEODRIVER=offscreen EQ_TELA=bean_counters EQ_SEED=41 EQ_ROTEIRO=roteiro_vazio.txt EQ_TRACO=/tmp/t.trc EQ_CONTROLE=../../tests/equiv/controles/bean.lua EQ_GRAVA=/tmp/gerado.txt lua5.4 ../../tests/equiv/run_lua.lua
 ```
 
 ## 4. Roteiros e resultados
