@@ -76,7 +76,8 @@ local function fmt_rect (r)
 end
 
 local function curto (path)
-    return (tostring(path):gsub("^.*/assets/imgs/", ""))
+    -- "a//b" e "a/b" abrem o mesmo arquivo: normaliza antes de comparar
+    return (tostring(path):gsub("/+", "/"):gsub("^.*/assets/imgs/", ""))
 end
 
 function M.instalar (pico)

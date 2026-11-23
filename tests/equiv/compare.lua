@@ -56,4 +56,24 @@ end
 
 print(string.format("RESUMO: %d quadros, %d iguais, %d diferentes%s; %d iguais com ordem de desenho diferente",
     n, iguais, difs, primeira and (" (primeiro: " .. primeira .. ")") or "", ordem))
+
+-- Janela de 1 quadro (só informativa): o quadro q do Lua bate com algum dos
+-- quadros q-1, q, q+1 do Atmos? Mede as defasagens de ordem dentro do quadro
+-- (o Lua desenha a tela antiga no quadro da transição; o atmos.env.pico emite
+-- o relógio antes do evento de entrada).
+local function igual (a, b)
+    if #a.lista ~= #b.lista then return false end
+    for i = 1, #a.lista do if a.lista[i] ~= b.lista[i] then return false end end
+    return true
+end
+local jdif, jprim = 0, nil
+for q = 1, n do
+    local a = A[q] or vazio
+    local ok = false
+    for d = -1, 1 do
+        if B[q + d] and igual(a, B[q + d]) then ok = true break end
+    end
+    if not ok then jdif = jdif + 1; jprim = jprim or q end
+end
+print(string.format("JANELA ±1: %d diferentes%s", jdif, jprim and (" (primeiro: " .. jprim .. ")") or ""))
 os.exit(difs == 0 and 0 or 1)
