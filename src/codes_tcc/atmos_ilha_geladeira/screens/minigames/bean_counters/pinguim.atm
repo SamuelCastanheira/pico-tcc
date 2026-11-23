@@ -39,8 +39,8 @@ task Pinguim(id, rect, hitbox, cargas, plataforma) {
     ;;lógica de colisao com  cargas
     spawn {
         loop ret on :collided until (it.oth.pub.id != :Plataforma ) {
-            if (ret.oth.pub.id == :Coffe_bag) && (carga <=carga_maxima) {
-                until (carga >= carga_maxima)
+            ;; café com espaço: coleta; café com o pinguim cheio, ou objeto: acerto
+            if (ret.oth.pub.id == :Coffe_bag) && (carga < carga_maxima) {
                 emit @(2) :pinguim.coleta
                 set carga = carga + 1
                 set img = string.format("../../../assets/imgs/bean_counters/penguin%d.webp",carga)
