@@ -10,14 +10,22 @@ val cores = [
     "azul_fraco",
     "laranja",
     "marrom",
-    "preto", 
+    "preto",
     "rosa_medio",
-    "roxo",     
+    "roxo",
     "verde_forte",
     "verde_medio",
     "verde_vomito",
     "vermelho"
 ]
+
+;; quadro de gelo: layer de 600 x 400 com uma grade de 7 x 5 células, como no
+;; Lua; as cores ocupam as colunas 2 a 6 e as linhas 2 a 4
+val quadro = ['%', x=0.78, y=0.5, w=0.4, h=0.5]
+
+func cor_rect (i) {
+    ['#', x = 2 + ((i-1) % 5), y = 2 + math.floor((i-1) / 5), w=1, h=1]
+}
 
 task Personalizar () {
     cria_layer_quadro()
@@ -27,68 +35,66 @@ task Personalizar () {
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
-    var text = "Escolha sua cor"
+    ;; como no Lua, a tela começa no amarelo e escolhe a cor que está sob o
+    ;; mouse, a cada quadro (sem clique)
+    var cor = "amarelo"
+    spawn {
+        loop on :clock {
+            val m = pico.get.mouse(:quadro_gelo, '#')
+            pico.set.layer(:quadro_gelo)
+            loop i, c in cores {
+                if pico.vs.pos.rect(m, cor_rect(i)) {
+                    set cor = c
+                }
+            }
+            pico.set.layer(:world)
+        }
+    }
+
+    val r_pinguim = ['%', x=0.3, y=0.35, w=0.3, h=0]
     spawn {
         loop on :draw {
-            pico.set.pencil [color = 'white']
-            pico.output.draw.text.fix(text,
-            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+            val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
+            pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor), r_pinguim)
         }
     }
 
     spawn {
-        loop {
-            spawn Image(:NIL,r, img) where {
-                r = ['%', x=0.3, y=0.35, w=0.3, h=0]
-                base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-                img = string.format("%s_%s.png", base_pinguins, cor_pinguim)
-            }
-            await :mouse.button.dn
-            var m = pico.get.mouse('%')
-            loop i, cor in cores {
-                val lay = string.format("../../../assets/imgs/personalizar/%d.png", i-1)
-                if pico.vs.pos.rect(m, lay) {
-                    set cor_pinguim = cor
-                    break()
-                } 
-            }
+        loop on :draw {
+            pico.set.pencil [color = 'white']
+            pico.output.draw.text.fix("Escolha sua cor",
+            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+            pico.output.draw.layer(:quadro_gelo, quadro)
         }
     }
-    
+
     await Botao(
-        :PERSON, 
+        :PERSON,
         ['%', x=0.3, y=0.8, w=0.3, h=0],
-        "../../../assets/imgs/botoes/b_voltar.png", 
-        "../../../assets/imgs/botoes/b_voltar_clicado.png", 
+        "../../../assets/imgs/botoes/b_voltar.png",
+        "../../../assets/imgs/botoes/b_voltar_clicado.png",
     )
+
+    ;; diferente do Lua (F10 em docs/EQUIVALENCIA.md): a cor vale no centro
+    set cor_pinguim = cor
 }
 
 func cria_layer_quadro(){
     pico.layer.empty [
-        up     = :world,
-        key    = :quadro,
-        target = [ '%', x=0.78, y=0.5, w=0.4, h=0.5 ],
+        key    = :quadro_gelo,
+        dim    = ['!', w=600, h=400],
+        tile   = ['#', w=7, h=5],
+        target = quadro,
     ]
 
-    pico.layer.image [
-        up     = :quadro,
-        path   = "../../../assets/imgs/personalizar/quadro.png",
-        target = [ '%', x=0.5, y=0.5, w=1, h=1 ],
-    ]
-    
-    loop i,cor in cores {
-        set i = i - 1
-        val cor = string.format("../../../assets/imgs/personalizar/%d.png", i) 
-        pico.layer.image [
-            up    = :quadro,
-            path  = cor,
-            target = ['%',
-                x = 0.2 + ((i%5)*0.15),
-                y = 0.3 + (math.floor(i/5)*0.2),
-                h = 0.2,
-            ]
-        ]
+    pico.set.layer(:quadro_gelo)
+    pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png",
+        ['#', x=1, y=1, w=7, h=5, anchor='NW'])
+    loop i, _ in cores {
+        val path = string.format("../../../assets/imgs/personalizar/%d.png", i-1)
+        pico.output.draw.image(path, cor_rect(i))
     }
+    pico.set.layer(:world)
 }
 
 Personalizar
