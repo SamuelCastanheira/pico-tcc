@@ -1,3 +1,0 @@
-[submodule "src/pico-sdl"]
-	path = src/pico-sdl
-	url = git@github.com:fsantanna/pico-sdl.git

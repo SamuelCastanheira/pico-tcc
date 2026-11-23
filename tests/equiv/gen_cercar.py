@@ -4,7 +4,7 @@ O roteiro sai fixo e é o mesmo para as duas versões; só a geração usa o Lua
 import math, os, re, subprocess, sys
 saida, total, passo = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(saida), "..", "..", ".."))
-LUA = os.path.join(RAIZ, "src/codes_tcc/pico_ilha_geladeira")
+LUA = os.path.join(RAIZ, "src/lua")
 trc = os.path.join(RAIZ, "tests/equiv/out/gen_cercar.trc")
 CERC = (0.425, 0.575, 0.525, 0.775)
 def dentro(x, y): return CERC[0] < x < CERC[1] and CERC[2] < y < CERC[3]
@@ -21,7 +21,7 @@ def roda(fim):
     escreve(fim)
     env = dict(os.environ, SDL_VIDEODRIVER="offscreen", EQ_TELA="pega_puffle",
                EQ_ROTEIRO=os.path.abspath(saida), EQ_TRACO=trc)
-    subprocess.run(["lua5.4", "../../../tests/equiv/run_lua.lua"], cwd=LUA, env=env,
+    subprocess.run(["lua5.4", "../../tests/equiv/run_lua.lua"], cwd=LUA, env=env,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
     last = None
     for l in open(trc):

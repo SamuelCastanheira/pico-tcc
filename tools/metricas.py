@@ -18,8 +18,8 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-LUA = RAIZ / "src/codes_tcc/pico_ilha_geladeira"
-ATM = RAIZ / "src/codes_tcc/atmos_ilha_geladeira"
+LUA = RAIZ / "src/lua"
+ATM = RAIZ / "src/atmos"
 
 PROGRAMAS = [
     ("main e jogo (fluxo de telas)", ["main.lua", "jogo.lua"], ["main.atm"]),

@@ -1,0 +1,40 @@
+val Image = require "util/components/image"
+val Botao = require "util/components/botao"
+
+task Menu () {
+    pico.set.window [ title="Menu" ]
+    spawn Image(:NIL,r, img) where {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
+        img = "../../assets/imgs/background_menu.png"
+    }
+
+    spawn Image(:NIL, r, img) where {
+        r = [ '%', x=0.5, y=0.225, w=0.45, h=0.45 ]
+        img = "../../assets/imgs/logo.png"
+    }
+
+    par:any {
+        await Botao(
+            :CENTRO, 
+            [ '%', x=0.5, y=0.5, w=0.55, h=0.15 ],
+            "../../assets/imgs/botoes/b_jogar.png",
+            "../../assets/imgs/botoes/b_jogar_clicado.png", 
+        )
+     } with {
+        await Botao(
+            :PERSON, 
+            [ '%', x=0.5, y=0.7, w=0.55, h=0.15 ], 
+            "../../assets/imgs/botoes/b_personalizar.png", 
+            "../../assets/imgs/botoes/b_personalizar_clicado.png", 
+        )
+    } with {
+        await Botao(
+            :SAIR, 
+            [ '%', x=0.5, y=0.9, w=0.55, h=0.15 ],
+            "../../assets/imgs/botoes/b_sair.png", 
+            "../../assets/imgs/botoes/b_sair_clicado.png", 
+        )
+    }
+}
+
+Menu

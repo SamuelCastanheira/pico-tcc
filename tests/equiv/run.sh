@@ -19,10 +19,10 @@ export EQ_ROTEIRO="$ROT" EQ_SEED="${SEMENTE:-1}"
 TELA=$(sed -n "s/^# tela: *//p" "$ROT")
 if [ -n "$TELA" ]; then export EQ_TELA="$TELA"; else unset EQ_TELA; fi
 
-( cd "$RAIZ/src/codes_tcc/pico_ilha_geladeira" &&
+( cd "$RAIZ/src/lua" &&
   EQ_TRACO="$OUT/$NOME.lua.trc" timeout 120 lua5.4 "$AQUI/run_lua.lua" \
       >"$OUT/$NOME.lua.out" 2>"$OUT/$NOME.lua.err" )
-( cd "$RAIZ/src/codes_tcc/atmos_ilha_geladeira" &&
+( cd "$RAIZ/src/atmos" &&
   EQ_TRACO="$OUT/$NOME.atm.trc" timeout 120 lua5.4 "$AQUI/run_atm.lua" \
       >"$OUT/$NOME.atm.out" 2>"$OUT/$NOME.atm.err" )
 

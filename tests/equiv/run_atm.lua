@@ -1,6 +1,6 @@
--- Roda a versão Atmos (src/codes_tcc/atmos_ilha_geladeira) sob a instrumentação.
--- Uso (de dentro de src/codes_tcc/atmos_ilha_geladeira):
---   EQ_ROTEIRO=... EQ_TRACO=... lua5.4 ../../../tests/equiv/run_atm.lua
+-- Roda a versão Atmos (src/atmos) sob a instrumentação.
+-- Uso (de dentro de src/atmos):
+--   EQ_ROTEIRO=... EQ_TRACO=... lua5.4 ../../tests/equiv/run_atm.lua
 -- Faz o mesmo que o executável "atmos main.atm", com o pico instrumentado
 -- antes de o ambiente atmos.env.pico carregá-lo.
 local dir = arg[0]:match("^(.*)/[^/]*$") or "."

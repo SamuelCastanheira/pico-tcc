@@ -1,0 +1,117 @@
+val Image = require "util/components/image"
+val XCollidable = require "util/components/xcollidable"
+
+task Pinguim(id, rect, hitbox, cargas, plataforma) {
+    set pub = [
+        rect = rect,
+        hitbox = hitbox,
+        vidas = 3
+    ]
+
+    var vel = 0
+    var carga = 0
+    val carga_maxima = 5 
+    var img = string.format("../../assets/imgs/bean_counters/penguin%d.webp",carga)
+    
+    pin cargas = spawn XCollidable(0, task, cargas)
+    pin plataforma = spawn XCollidable(0, task, plataforma)
+
+    ;;lógica das entregas de carga
+    spawn {
+        pin spawn_plataforma = spawn {
+            loop plataforma on :collided until (it.oth.pub.id==:Plataforma) {
+                if carga > 0 { 
+                    emit @(2) :pinguim.entrega
+                    set carga = carga -1
+                    set img = string.format("../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                }
+            }
+        }
+        
+        loop {
+            await < :pinguim.coleta || :pinguim.entrega >
+            toggle spawn_plataforma(false)
+            await 250ms
+            toggle spawn_plataforma(true)
+        }
+    }
+
+    ;;lógica de colisao com  cargas
+    spawn {
+        loop ret on :collided until (it.oth.pub.id != :Plataforma ) {
+            ;; café com espaço: coleta; café com o pinguim cheio, ou objeto: acerto
+            if (ret.oth.pub.id == :Coffe_bag) && (carga < carga_maxima) {
+                emit @(2) :pinguim.coleta
+                set carga = carga + 1
+                set img = string.format("../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                abort(ret.oth)
+            }
+            else 
+            {
+                match (ret.oth.pub.id){
+                    :Coffe_bag => {
+                        set img = string.format("../../assets/imgs/bean_counters/penguin%d.webp",carga_maxima+1)
+                    }
+                    :Flower_pot => {
+                        set img = "../../assets/imgs/bean_counters/penguin_pot.webp"
+                    }
+
+                    :Anvil => {
+                        set img = "../../assets/imgs/bean_counters/penguin_anvil.webp"
+                    }
+
+                    :Fish_bean_counters => {
+                        set img = "../../assets/imgs/bean_counters/penguin_fish.webp"
+                    }
+                }
+                abort(ret.oth)
+                set carga = 0 
+                set pub.vidas = pub.vidas - 1
+                set pub.rect.h = 0.15
+
+                emit @(1) :pinguim.atordoado
+                await 2s
+
+                set img = string.format("../../assets/imgs/bean_counters/penguin%d.webp",carga)
+                set pub.rect.h = 0.25
+            }
+        }     
+    }
+
+
+    ;;atualiza movimento
+    spawn {
+        loop{
+            watching :pinguim.atordoado {
+                loop {
+                    par :any {
+                        await :key.dn until (it.key == :Right)
+                        set vel = 10 * (((carga_maxima + 1) - carga)/(carga_maxima+1))
+                    } with {
+                        await :key.dn until (it.key == :Left)
+                        set vel = -10 * (((carga_maxima + 1) - carga)/(carga_maxima+ 1))
+                    }
+    
+                    var new_x = pub.rect.x + (vel* (1/60))
+                    set new_x = math.max (new_x, 0.25)
+                    set new_x = math.min (new_x, 0.8)
+                    
+                    set pub.rect.x = new_x
+                    set pub.hitbox.x = new_x
+                }
+            }
+            await 2s
+        }
+    }
+    
+    ;;redesenho
+    spawn {
+        loop on :draw {
+            pico.output.draw.image(img, pub.rect)
+        }
+    }
+
+    await(false)
+}
+
+Pinguim

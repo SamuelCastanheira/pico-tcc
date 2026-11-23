@@ -1,0 +1,96 @@
+val Image = require "util/components/image"
+val Botao = require "util/components/botao"
+
+val cores = [
+    "amarelo",
+    "avermelhado",
+    "azul_forte",
+    "ciano",
+    "cinza",
+    "azul_fraco",
+    "laranja",
+    "marrom",
+    "preto",
+    "rosa_medio",
+    "roxo",
+    "verde_forte",
+    "verde_medio",
+    "verde_vomito",
+    "vermelho"
+]
+
+;; quadro de gelo: layer de 600 x 400 com uma grade de 7 x 5 células, como no
+;; Lua; as cores ocupam as colunas 2 a 6 e as linhas 2 a 4
+val quadro = ['%', x=0.78, y=0.5, w=0.4, h=0.5]
+
+func cor_rect (i) {
+    ['#', x = 2 + ((i-1) % 5), y = 2 + math.floor((i-1) / 5), w=1, h=1]
+}
+
+task Personalizar () {
+    cria_layer_quadro()
+
+    spawn Image (:NIL,r, img) where {
+        r = ['%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../assets/imgs/background_personalizar.png"
+    }
+
+    ;; a cor clicada no quadro passa a ser a do pinguim (vale também no centro)
+    spawn {
+        loop on :mouse.button.dn {
+            val m = pico.get.mouse(:quadro_gelo, '#')
+            pico.set.layer(:quadro_gelo)
+            loop i, c in cores {
+                if pico.vs.pos.rect(m, cor_rect(i)) {
+                    set cor_pinguim = c
+                }
+            }
+            pico.set.layer(:world)
+        }
+    }
+
+    val r_pinguim = ['%', x=0.3, y=0.35, w=0.3, h=0]
+    spawn {
+        loop on :draw {
+            val base_pinguins = "../../assets/imgs/personalizar/pinguim"
+            pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_pinguim), r_pinguim)
+        }
+    }
+
+    spawn {
+        loop on :draw {
+            pico.set.pencil [color = 'white']
+            pico.output.draw.text.fix("Escolha sua cor",
+            ['%', x=0.78, y=0.25, w=0.38, h=0.1])
+            pico.output.draw.layer(:quadro_gelo, quadro)
+        }
+    }
+
+    await Botao(
+        :PERSON,
+        ['%', x=0.3, y=0.8, w=0.3, h=0],
+        "../../assets/imgs/botoes/b_voltar.png",
+        "../../assets/imgs/botoes/b_voltar_clicado.png",
+    )
+
+}
+
+func cria_layer_quadro(){
+    pico.layer.empty [
+        key    = :quadro_gelo,
+        dim    = ['!', w=600, h=400],
+        tile   = ['#', w=7, h=5],
+        target = quadro,
+    ]
+
+    pico.set.layer(:quadro_gelo)
+    pico.output.draw.image("../../assets/imgs/personalizar/quadro.png",
+        ['#', x=1, y=1, w=7, h=5, anchor='NW'])
+    loop i, _ in cores {
+        val path = string.format("../../assets/imgs/personalizar/%d.png", i-1)
+        pico.output.draw.image(path, cor_rect(i))
+    }
+    pico.set.layer(:world)
+}
+
+Personalizar

@@ -1,0 +1,74 @@
+val Image = require "util/components/image"
+val Pinguim = require "screens/minigames/bean_counters/pinguim"
+val Carga = require "screens/minigames/bean_counters/carga"
+val Plataforma = require "screens/minigames/bean_counters/plataforma"
+
+task BeanCounters() {
+    pico.set.window [ title="Bean Counters" ]
+    spawn Image(:NIL, r, img) where {
+        r = [ '%', x=0.5, y=0.5, w=1, h=1]
+        img = "../../assets/imgs/bean_counters/background.png"
+    }
+
+    spawn Image(:NIL, r, img) where {
+        r = ['%', x=1, y=1, w=0.20, h=0.85, anchor='SE']
+        img = "../../assets/imgs/bean_counters/trucker.png"
+    }
+
+    spawn Image(:NIL, r, img) where {
+        r = ['%', x=0.5, y=1, w=1, h=0.4, anchor='S']
+        img = "../../assets/imgs/bean_counters/neve.png"
+    }
+
+    pin plataforma = tasks()
+    spawn @(plataforma) Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
+    "../../assets/imgs/bean_counters/plataforma.png")
+
+    pin cargas = tasks()
+    
+    pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
+                        ['%', x=0.3, y=0.80, w=0.12, h=0.25],cargas, plataforma)
+
+    var score = 0
+    spawn {
+        loop {
+            par :any {
+                await :pinguim.coleta
+                set score = score + 2
+            } with {
+                await :pinguim.entrega
+                set score = score + 3
+            }
+        }
+    }
+
+    spawn {
+        await 0.5s
+        loop {
+            watching :pinguim.atordoado {
+                loop {
+                    spawn @cargas Carga()
+                    await (t * 1s) where {
+                        t = 0.2 + (math.random() * 0.8)  ;; entre 0.2s e 1s
+                    }
+                }
+            }
+            await 2s
+        }
+    }
+
+    spawn {
+        loop on :draw {
+            val score = string.format("%s: %d", "Score", score)
+            val life = string.format("%s: %d", "Vidas", pinguim.pub.vidas)
+            pico.output.draw.text.dyn(:score, score,['%', x=0.02, y=0.02, w=0.008*#score, h=0.05, anchor='NW'])
+            pico.output.draw.text.dyn(:life, life, ['%', x=0.02, y=0.06, w=0.008*#life, h=0.05, anchor='NW'])
+        }
+    }
+
+    await <:plataforma.cheia || until (pinguim.pub.vidas == 0)>
+    await 0.5s
+    score
+}
+
+BeanCounters

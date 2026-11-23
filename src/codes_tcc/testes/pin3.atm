@@ -1,8 +1,0 @@
-func T(x)
-{
-    await(:X)
-    print(x)
-}
-pin a = spawn T(x) where {x="oi"}
-
-emit :X

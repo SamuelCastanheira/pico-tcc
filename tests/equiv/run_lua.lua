@@ -1,6 +1,6 @@
--- Roda a versão Lua (src/codes_tcc/pico_ilha_geladeira) sob a instrumentação.
--- Uso (de dentro de src/codes_tcc/pico_ilha_geladeira):
---   EQ_ROTEIRO=... EQ_TRACO=... lua5.4 ../../../tests/equiv/run_lua.lua
+-- Roda a versão Lua (src/lua) sob a instrumentação.
+-- Uso (de dentro de src/lua):
+--   EQ_ROTEIRO=... EQ_TRACO=... lua5.4 ../../tests/equiv/run_lua.lua
 local dir = arg[0]:match("^(.*)/[^/]*$") or "."
 package.path = dir .. "/?.lua;" .. package.path
 
