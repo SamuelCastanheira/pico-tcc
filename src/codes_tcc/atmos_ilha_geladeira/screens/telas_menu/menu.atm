@@ -2,6 +2,7 @@ val Image = require "util/components/image"
 val Botao = require "util/components/botao"
 
 task Menu () {
+    pico.set.window [ title="Menu" ]
     spawn Image(:NIL,r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1 ]
         img = "../../../assets/imgs/background_menu.png"

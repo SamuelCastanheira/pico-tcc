@@ -35,16 +35,14 @@ task Personalizar () {
         img = "../../../assets/imgs/background_personalizar.png"
     }
 
-    ;; como no Lua, a tela começa no amarelo e escolhe a cor que está sob o
-    ;; mouse, a cada quadro (sem clique)
-    var cor = "amarelo"
+    ;; a cor clicada no quadro passa a ser a do pinguim (vale também no centro)
     spawn {
-        loop on :clock {
+        loop on :mouse.button.dn {
             val m = pico.get.mouse(:quadro_gelo, '#')
             pico.set.layer(:quadro_gelo)
             loop i, c in cores {
                 if pico.vs.pos.rect(m, cor_rect(i)) {
-                    set cor = c
+                    set cor_pinguim = c
                 }
             }
             pico.set.layer(:world)
@@ -55,7 +53,7 @@ task Personalizar () {
     spawn {
         loop on :draw {
             val base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-            pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor), r_pinguim)
+            pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_pinguim), r_pinguim)
         }
     }
 
@@ -75,8 +73,6 @@ task Personalizar () {
         "../../../assets/imgs/botoes/b_voltar_clicado.png",
     )
 
-    ;; diferente do Lua (F10 em docs/EQUIVALENCIA.md): a cor vale no centro
-    set cor_pinguim = cor
 }
 
 func cria_layer_quadro(){

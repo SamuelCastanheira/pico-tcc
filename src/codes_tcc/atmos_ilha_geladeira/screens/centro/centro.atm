@@ -36,6 +36,7 @@ task Centro(){
 
     watching :key.dn until (it.key == :Escape) {
         loop {
+            pico.set.window [ title="Centro" ]
             val v = await Pinguim(
                 ['%', x=0.5, y=0.7, w=0.08, h=0.2],
                 ['%', x=0.5, y=0.7, w=0.08, h=0.1],
