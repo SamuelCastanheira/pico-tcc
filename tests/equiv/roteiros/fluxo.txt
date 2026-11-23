@@ -1,0 +1,26 @@
+# Jogo inteiro pelos main.lua e main.atm: personaliza a cor, joga o Dojo,
+# volta ao centro, entra no Pega Puffles e sai com Escape (volta ao menu),
+# entra no Bean Counters, sai com Escape e termina com "Sair".
+1 mouse 0.5 0.5
+10 click 0.5 0.7
+30 click 0.7229 0.40
+50 click 0.30 0.80
+70 click 0.5 0.5
+80 click 0.72 0.39
+260 click 0.9 0.88
+420 click 0.9 0.88
+580 click 0.9 0.88
+760 click 0.5 0.4
+850 mouse 0.45 0.3
+900 mouse 0.6 0.35
+950 mouse 0.3 0.4
+1000 mouse 0.5 0.2
+1150 key Escape
+1200 click 0.5 0.5
+1220 click 0.20 0.4
+1350 key Left
+1355 key Left
+1400 key Right
+1500 key Escape
+1550 click 0.5 0.9
+1600 quit
