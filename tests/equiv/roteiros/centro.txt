@@ -1,0 +1,6 @@
+# tela: centro
+# Clica no chão (anda), depois no dojo: o pinguim anda até o prédio e a tela termina.
+1 mouse 0.5 0.5
+10 click 0.3 0.8
+100 click 0.72 0.39
+600 quit

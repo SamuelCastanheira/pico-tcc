@@ -1,0 +1,6 @@
+# tela: person
+# Escolhe a cor e volta.
+1 mouse 0.5 0.5
+20 click 0.78 0.5
+60 click 0.3 0.8
+100 quit
