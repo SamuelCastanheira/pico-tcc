@@ -5,6 +5,13 @@ local Objeto = require("util.objeto")
 local VELOCIDADE = 0.2      -- fração da tela por segundo
 local CHEGOU = 0.01         -- distância em que o pinguim para no ponto
 
+-- cores que têm sprites do centro (assets/imgs/pinguim); as outras usam o amarelo
+local COM_SPRITE = {
+    amarelo=true, azul_forte=true, azul_fraco=true, cinza=true, laranja=true,
+    marrom=true, preto=true, rosa_medio=true, roxo=true, verde_forte=true,
+    verde_medio=true, verde_vomito=true,
+}
+
 local Pinguim = Objeto:extend()
 
 function Pinguim:init (jogo, predios)
@@ -75,8 +82,8 @@ function Pinguim:direcao ()
 end
 
 function Pinguim:desenha ()
-    local img = string.format("../../../assets/imgs/pinguim/%s/%03d.png",
-                              self.jogo.cor_pinguim, self:direcao())
+    local cor = COM_SPRITE[self.jogo.cor_pinguim] and self.jogo.cor_pinguim or "amarelo"
+    local img = string.format("../../../assets/imgs/pinguim/%s/%03d.png", cor, self:direcao())
     pico.output.draw.image(img, self.rect)
 end
 

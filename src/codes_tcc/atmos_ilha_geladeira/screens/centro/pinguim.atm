@@ -11,10 +11,18 @@ func get_direcao (vel) {
     (90 - (setor*45)) % 360
 }
 
+;; cores que têm sprites do centro (assets/imgs/pinguim); as outras usam o amarelo
+val COM_SPRITE = [
+    amarelo=true, azul_forte=true, azul_fraco=true, cinza=true, laranja=true,
+    marrom=true, preto=true, rosa_medio=true, roxo=true, verde_forte=true,
+    verde_medio=true, verde_vomito=true,
+]
+
 func get_img (cor, vel) {
     var base = "../../../assets/imgs/pinguim"
     var direcao = get_direcao(vel)
-    string.format("%s/%s/%03d.png", base, cor_pinguim, direcao) 
+    val c = if COM_SPRITE@(cor_pinguim) => cor_pinguim => "amarelo"
+    string.format("%s/%s/%03d.png", base, c, direcao) 
 }
 
 task Pinguim (rect, hitbox, cor, predios) {
