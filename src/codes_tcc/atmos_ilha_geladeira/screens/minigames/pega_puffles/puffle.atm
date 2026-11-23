@@ -1,97 +1,46 @@
-val XCollidable = require "util/components/xcollidable"
-val Image = require "util/components/image"
 val Vetor = require "util/vetor"
 
-task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
-    set pub = [
-        id = cor,
-        rect = rect,
-        hitbox = hitbox
-    ]
+;; como no Lua: velocidade escalar e passo fixo por quadro
+val VEL_ESC = 0.04
+val DT = 0.05
 
-    var vel_esc = 0.4
-    var vel_vet = [x = 0 ,y = 0]
+;; Um puffle reage a duas fases de cada quadro, emitidas pela tela
+;; (PegaPuffles), na mesma ordem do update do Lua:
+;;   :puffle.direcao  calcula a direção com as posições de todos ainda paradas
+;;   :puffle.anda     anda (ou foge, se já está fora do mapa)
+task Puffle (rect, paredes, img, dist_max, puffles) {
+    set pub = [
+        rect = rect,
+        fugiu = false,
+    ]
 
     var direcao = [x = 0, y = 0]
 
-    ;; entrada e saida da cerca
+    ;; fase 1: fuga do mouse, empurrão dos vizinhos, deslizamento na cerca
     spawn {
-        loop {
-            loop on :clock {
-                until (pico.vs.rect.rect(pub.rect, cerca))
+        loop on :puffle.direcao {
+            set direcao = fuga_mouse(pub.rect, dist_max)
+
+            ;; no Lua, cada puffle soma 0,5*(outro - ele) à direção do outro;
+            ;; aqui cada puffle soma a si mesmo as contribuições dos vizinhos,
+            ;; na mesma ordem: 0,5*(ele - vizinho)
+            loop _, outro in puffles {
+                if (outro != task) && (!outro.pub.fugiu) {
+                    val delta = [x = outro.pub.rect.x - pub.rect.x, y = outro.pub.rect.y - pub.rect.y]
+                    val dist = Vetor.magnitude(delta)
+                    if (dist < 0.05) && (dist > 0) {
+                        set direcao = Vetor.subtract(direcao, Vetor.multiply(delta, 0.5))
+                    }
+                }
             }
-            emit @2 :puffle.entrou
-            loop on :clock {
-                until (!pico.vs.rect.rect(pub.rect, cerca))
+
+            loop _, parede in paredes {
+                if pico.vs.rect.rect(pub.rect, parede) {
+                    set direcao = slide_cerca(pub.rect, parede, direcao)
+                }
             }
-            emit @2 :puffle.saiu
         }
     }
-
-    ;; movimento dos puffles
-    spawn {
-        par :all {
-            loop p on :puffle.empurrado {
-                set direcao = Vetor.add(direcao, p.dir_empurrao)
-            }            
-        } with {
-            loop us on :clock {
-                do {
-                    var mouse = pico.get.mouse('%')
-                    var delta = [x= mouse.x - pub.rect.x , y=mouse.y - pub.rect.y]
-                    var dist = Vetor.magnitude(delta)
-
-                    if ((dist > 0.001) && (dist <= dist_max)) {
-                        val destino = [
-                            x = mouse.x - (2 * delta.x),
-                            y = mouse.y - (2 * delta.y)
-                        ]
-                        
-                        set direcao = [
-                            x = (destino.x - pub.rect.x),
-                            y = (destino.y - pub.rect.y)
-                        ]
-                    } 
-                }
-                do {
-                    val influencia = 0.5
-                    loop _, outro in puffles {
-                        if outro != task {
-                            val delta = [x = outro.pub.rect.x - pub.rect.x, y = outro.pub.rect.y - pub.rect.y]
-
-                            if (Vetor.magnitude(delta) < 0.05) && (Vetor.magnitude(delta) > 0) {
-                                set direcao = Vetor.subtract(direcao, Vetor.multiply(delta,influencia))
-                            }
-                        }
-                    }
-                }
-                do {
-                    loop _,parede in paredes {
-                        val col = pico.vs.rect.rect(pub.rect, parede)
-                        if col {
-                            val slide = slide_cerca(pub.rect, parede, direcao)
-                            set direcao = Vetor.add(direcao, slide)
-                        }
-                    }
-                }
-
-                do {
-                    set vel_vet= Vetor.multiply(
-                        Vetor.normalize(direcao, vel_esc), 
-                        vel_esc)
-                    
-                    val dt = us/1s
-                    set pub.rect.x = pub.rect.x + (vel_vet.x * dt)
-                    set pub.rect.y = pub.rect.y + (vel_vet.y * dt)
-                    set pub.hitbox.x = pub.rect.x
-                    set pub.hitbox.y = pub.rect.y
-
-                    set direcao = [x = 0, y = 0]
-                    set vel_vet = [x = 0, y = 0]
-                }
-            }
-        }   
-    } 
 
     ;; redesenho
     spawn {
@@ -100,9 +49,32 @@ task Puffle (rect, hitbox, cerca, paredes, img, dist_max, puffles) {
         }
     }
 
-    ;; condicao de termino
-    await until (fora_do_mapa(pub.rect))
+    ;; fase 2: o puffle que já está fora do mapa foge (como no Lua, o teste
+    ;; vem antes de andar); os outros andam um passo na direção do quadro
+    loop on :puffle.anda {
+        until (fora_do_mapa(pub.rect))
+        val vel = Vetor.multiply(Vetor.normalize(direcao), VEL_ESC)
+        set pub.rect.x = pub.rect.x + (vel.x * DT)
+        set pub.rect.y = pub.rect.y + (vel.y * DT)
+    }
+    set pub.fugiu = true
     emit @2 :puffle.fugiu
+}
+
+;; foge do mouse quando ele está a até dist_max: a direção é -(mouse - puffle)
+func fuga_mouse (rect, dist_max) {
+    val mouse = pico.get.mouse('%')
+    val delta = [x = mouse.x - rect.x, y = mouse.y - rect.y]
+    val dist = Vetor.magnitude(delta)
+    if (dist > 0.001) && (dist <= dist_max) {
+        val destino = [
+            x = mouse.x - (2 * delta.x),
+            y = mouse.y - (2 * delta.y)
+        ]
+        [x = destino.x - rect.x, y = destino.y - rect.y]
+    } else {
+        [x = 0, y = 0]
+    }
 }
 
 func fora_do_mapa(rect) {
@@ -118,9 +90,11 @@ func fora_do_mapa(rect) {
         ((dx * dx) / (rx * rx)) +
         ((dy * dy) / (ry * ry))
 
-    !((valor <= 1) && (rect.x < 1) && (rect.x > 0)) 
+    !((valor <= 1) && (rect.x < 1) && (rect.x > 0))
 }
 
+;; como o aplicar_slide do Lua: tira a componente que entra na parede e
+;; reduz a direção a 10%
 func slide_cerca(rect, parede, direcao) {
     var normal = [x=0, y=0]
 
@@ -146,14 +120,14 @@ func slide_cerca(rect, parede, direcao) {
         }
     }
 
-    val dot = Vetor.dot(direcao,normal)
-
+    var d = [x = direcao.x, y = direcao.y]
+    val dot = Vetor.dot(d, normal)
     if dot < 0 {
-        set direcao.x = direcao.x - (dot * normal.x)
-        set direcao.y = direcao.y - (dot * normal.y)
+        set d.x = d.x - (dot * normal.x)
+        set d.y = d.y - (dot * normal.y)
     }
 
-    Vetor.multiply(direcao, 0.1)
+    Vetor.multiply(d, 0.1)
 }
 
 Puffle
