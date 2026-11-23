@@ -297,7 +297,7 @@ os mesmos recursos (`assets/`). Desenho, colisão e entrada vêm do pico-sdl
 |---|---|---|
 | fluxo de telas | `main.lua`: laço `while`, tabela `screens`, `gameState.nextScreen` | `main.atm`: `loop { await Menu() ... }`; os minigames são aguardados dentro do `Centro` |
 | menu | `screens/telas_menu/menu.lua` | `screens/telas_menu/menu.atm` + `util/components/botao.atm`, `image_hover.atm`, `xclickable.atm` |
-| personalização | `screens/telas_menu/personalizacao.lua` (**não roda**: API antiga de `pico.layer.empty` e campo `cor_select.text.fixo` inexistente) | `screens/telas_menu/personalizar.atm` (`cor.atm` existe e não é usado) |
+| personalização | `screens/telas_menu/personalizacao.lua` (não rodava até `b9bbef0`: API antiga de `pico.layer.empty` e campo `cor_select.text.fixo` inexistente) | `screens/telas_menu/personalizar.atm` (`cor.atm` existe e não é usado) |
 | centro | `screens/centro/centro.lua`, `pinguim.lua` | `screens/centro/centro.atm`, `pinguim.atm`, `predio.atm` |
 | Dojo | `screens/minigames/dojo/dojo.lua`, `carta.lua` | `screens/minigames/dojo/dojo.atm`, `carta.atm` |
 | Bean Counters | `screens/minigames/bean_counters/bean_counters.lua`, `pinguim.lua`, `carga.lua`, `pilha.lua` | `.../bean_counters.atm`, `pinguim.atm`, `carga.atm`, `pilha.atm`, `plataforma.atm` |
@@ -335,7 +335,7 @@ Diferenças de execução que afetam a comparação:
   volta ao menu. No Lua as telas são planas, e não há como voltar do centro
   ao menu.
 
-### 3.2 Métricas (medidas por `python3 tools/metricas.py`)
+### 3.2 Métricas (medidas por `python3 tools/metricas.py`, em 23/11/2026, depois das correções da personalização e do Pega Puffles)
 
 Contagens léxicas, sem linhas em branco nem comentários. "Campos de estado"
 (Lua) são os alvos distintos de atribuição do tipo `obj.campo =`; no Atmos,
@@ -345,23 +345,23 @@ contam-se as declarações `var` e os alvos distintos de `set`.
 |---|---:|---:|---:|---:|---:|---:|---:|
 | main (fluxo de telas) | 39 | 21 | 0,54 | 0 | 0+0 | 2 | 0 |
 | menu | 64 | 35 | 0,55 | 4 | 1+0 | 7 | 0 |
-| personalização | 80 | 84 | 1,05 | 6 | 1+1 | 3 | 1 |
+| personalização | 89 | 82 | 0,92 | 6 | 1+2 | 4 | 1 |
 | centro | 153 | 132 | 0,86 | 10 | 4+2 | 13 | 1 |
 | Dojo | 249 | 145 | 0,58 | 13 | 2+3 | 29 | 16 |
 | Bean Counters | 401 | 279 | 0,70 | 30 | 5+0 | 39 | 5 |
-| Pega Puffles | 257 | 217 | 0,84 | 16 | 2+2 | 16 | 8 |
+| Pega Puffles | 258 | 172 | 0,67 | 16 | 2+3 | 16 | 9 |
 | utilitários e componentes | 231 | 155 | 0,67 | 46 | 5+19 | 7 | 7 |
-| **total** | **1474** | **1068** | **0,72** | | | | |
+| **total** | **1484** | **1021** | **0,69** | | | | |
 
 | Programa | campos de estado Lua | enumerações de estado Lua | `var` Atmos | alvos de `set` Atmos |
 |---|---:|---|---:|---:|
 | main | 2 | — | 1 | 4 |
 | menu | 2 | — | 0 | 0 |
-| personalização | 2 | — | 2 | 2 |
+| personalização | 2 | — | 1 | 2 |
 | centro | 10 | — | 11 | 10 |
 | Dojo | 13 | `DuelState`, `Elemento`, `ResultadoState` | 13 | 8 |
-| Bean Counters | 33 | — | 12 | 17 |
-| Pega Puffles | 11 | — | 10 | 13 |
+| Bean Counters | 33 | — | 13 | 18 |
+| Pega Puffles | 11 | — | 6 | 11 |
 | utilitários e componentes | 11 | — | 13 | 5 |
 
 Construções de concorrência no Atmos:
@@ -370,23 +370,25 @@ Construções de concorrência no Atmos:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | main | 0 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | menu | 2 | 3 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
-| personalização | 4 | 2 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| personalização | 4 | 1 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
 | centro | 10 | 7 | 4 | 1 | 4 | 0 | 0 | 2 | 0 |
 | Dojo | 4 | 4 | 2 | 0 | 1 | 0 | 2 | 4 | 0 |
 | Bean Counters | 22 | 17 | 5 | 2 | 10 | 2 | 7 | 10 | 2 |
-| Pega Puffles | 11 | 4 | 0 | 2 | 10 | 0 | 3 | 2 | 0 |
+| Pega Puffles | 7 | 0 | 0 | 0 | 6 | 0 | 3 | 2 | 0 |
 | utilitários e componentes | 2 | 3 | 2 | 1 | 4 | 0 | 3 | 0 | 0 |
 
 Leitura inicial, com cautela:
 
-- o Atmos tem cerca de 28% menos linhas no total; a maior redução está nos
+- o Atmos tem cerca de 31% menos linhas no total; a maior redução está nos
   programas com mais controle (Dojo, menu, fluxo de telas) e a menor nos de
-  mais cálculo (puffles, personalização);
+  mais cálculo (personalização, centro);
 - as condicionais caem muito no Atmos (Bean Counters: 39 → 5; menu: 7 → 0),
   porque o "em que fase estou?" vira posição no código (`await`, `watching`);
-- **essas métricas ainda não comparam a mesma coisa**: as versões têm regras
-  diferentes (seção 3.4 e `EQUIVALENCIA.md`). Os números finais devem ser
-  medidos depois da equivalência.
+- **só a personalização e o Pega Puffles já comparam a mesma coisa** (são
+  equivalentes ao Lua desde 23/11/2026); os outros programas ainda têm regras
+  diferentes (seção 3.4 e `EQUIVALENCIA.md`), e os números finais devem ser
+  medidos depois da equivalência. No Pega Puffles equivalente: 258 × 172
+  linhas, 11 campos de estado no Lua × 6 `var` no Atmos.
 
 ### 3.3 Forma das máquinas de estados (exemplos para o capítulo 5)
 
