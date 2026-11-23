@@ -88,6 +88,18 @@ function M.instalar (pico)
     local mouse, evento, ultimo = ler_roteiro(roteiro)
     local out = assert(io.open(saida, "w"))
 
+    -- Modo controlador (só para gerar roteiros): EQ_CONTROLE é um arquivo
+    -- Lua que devolve function(quadro, desenhos_do_quadro_anterior) -> linha
+    -- de roteiro sem o número ("key Right", "mouse 0.5 0.5", "quit") ou nil.
+    -- As linhas geradas são acrescentadas ao roteiro EQ_GRAVA.
+    local controle, grava = nil, nil
+    if os.getenv("EQ_CONTROLE") then
+        controle = dofile(os.getenv("EQ_CONTROLE"))
+        grava = assert(io.open(assert(os.getenv("EQ_GRAVA"), "defina EQ_GRAVA"), "w"))
+        ultimo = math.huge
+    end
+    local anteriores = {}
+
     local quadro = 0
     local desenhos = {}
     local angulo = {}       -- rotação corrente por layer (set.effect)
@@ -97,6 +109,7 @@ function M.instalar (pico)
         if quadro > 0 then
             out:write(quadro, "\t", table.concat(desenhos, " | "), "\n")
         end
+        anteriores = desenhos
         desenhos = {}
     end
 
@@ -111,6 +124,18 @@ function M.instalar (pico)
     pico.input.event = function (...)
         fecha_quadro()
         quadro = quadro + 1
+        if controle then
+            local cmd = controle(quadro, anteriores)
+            if cmd then
+                grava:write(quadro, " ", cmd, "\n")
+                grava:flush()
+                local c, a, b = cmd:match("^(%S+)%s*(%S*)%s*(%S*)")
+                if c == "mouse" then mouse[quadro] = { tonumber(a), tonumber(b) }
+                elseif c == "key" then evento[quadro] = { tag = "key.dn", key = a }
+                elseif c == "click" then evento[quadro] = { tag = "mouse.button.dn", but = "left" }
+                elseif c == "quit" then evento[quadro] = { tag = "quit" } end
+            end
+        end
         local m = mouse[quadro]
         if m then
             pico.set.mouse { '!', x = math.floor(m[1] * W + 0.5),

@@ -12,7 +12,9 @@ OUT=$AQUI/out
 mkdir -p "$OUT"
 
 export SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy
-export EQ_ROTEIRO="$ROT" EQ_SEED="${2:-1}"
+# semente: argumento, ou "# semente: N" no roteiro, ou 1
+SEMENTE=${2:-$(sed -n "s/^# semente: *//p" "$ROT")}
+export EQ_ROTEIRO="$ROT" EQ_SEED="${SEMENTE:-1}"
 # "# tela: <nome>" no roteiro começa direto nessa tela (entrada.lua/.atm)
 TELA=$(sed -n "s/^# tela: *//p" "$ROT")
 if [ -n "$TELA" ]; then export EQ_TELA="$TELA"; else unset EQ_TELA; fi
