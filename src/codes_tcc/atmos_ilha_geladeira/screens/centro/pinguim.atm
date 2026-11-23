@@ -3,7 +3,7 @@ val XCollidable = require "util/components/xcollidable"
 val Vetor = require "util/vetor"
 
 func get_direcao (vel) {
-    var setor = 0
+    var setor = 2       ;; parado: virado para o sul ("000"), como no Lua
     if Vetor.magnitude(vel) != 0{
         var ang = Vetor.angle(vel)
         set setor = math.floor((ang + (math.pi/8)) / (math.pi/4)) % 8
