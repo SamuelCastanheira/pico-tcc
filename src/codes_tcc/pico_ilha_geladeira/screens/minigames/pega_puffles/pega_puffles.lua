@@ -83,7 +83,7 @@ local function direcao_fuga_parede(puffle, data)
     local direcao = Vetor.new({x=0, y=0})
     local normais = {}
 
-    for _, parede in pairs(data.hitboxes) do
+    for _, parede in ipairs(data.hitboxes) do   -- ordem fixa (pairs variava entre execuções)
         if pico.vs.rect.rect(puffle.rect, parede) then
             
             local dx = puffle.rect.x - parede.x
@@ -132,10 +132,10 @@ function PegaPuffle.init(state)
 
     state.pegaPuffleData = {
         puffles = Puffle.lista(),
-        hitboxes = {
-            esquerda = {'%', x=0.43, y=0.65, w=0.02, h=0.3, anchor='C'},
-            direita =  {'%', x=0.58, y=0.65, w=0.02, h=0.3, anchor='C'},
-            baixo =    {'%', x=0.5, y=0.8, w=0.15, h=0.02, anchor='C'}
+        hitboxes = {    -- paredes do cercado: esquerda, direita, baixo
+            {'%', x=0.43, y=0.65, w=0.02, h=0.3, anchor='C'},
+            {'%', x=0.58, y=0.65, w=0.02, h=0.3, anchor='C'},
+            {'%', x=0.5, y=0.8, w=0.15, h=0.02, anchor='C'}
         },
         distancia_max = 0.2,
         velocidade_esc = 0.04,
@@ -180,7 +180,9 @@ function PegaPuffle.update(state, event)
     end
 
     --mudança da posição 
-     for _, puffle in ipairs(data.puffles) do
+    -- de trás para a frente: remover durante um ipairs pulava o puffle seguinte
+    for i = #data.puffles, 1, -1 do
+        local puffle = data.puffles[i]
         if dentro_do_mapa(puffle, data) then
             if ( puffle.direcao:isZero()) then
                 puffle:parar()
