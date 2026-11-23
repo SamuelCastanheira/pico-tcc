@@ -1,108 +1,112 @@
-local Vetor = require("util.vetor")
+-- Pinguim do Bean Counters: anda com as setas, pega sacos de café (até 5) e
+-- os entrega na plataforma. Um objeto, ou um café com o pinguim cheio, o
+-- derruba: perde uma vida e fica 2 s atordoado (sem andar nem pegar nada).
+-- Depois de pegar ou entregar, a plataforma fica bloqueada por 250 ms.
+--
+-- O pinguim avisa o minigame (observador) do que acontece:
+-- ao_coletar(), ao_entregar(), ao_ser_atingido().
 local Objeto = require("util.objeto")
+local Temporizador = require("util.temporizador")
 
-local Pinguim = {}
-Pinguim.__index = Pinguim
-
--- Herança: Movable herda de Objeto
-setmetatable(Pinguim, {__index = Objeto})
-
-local imgs = 
-{
-    {key = "bigorna", path = "_anvil"},
-    {key = "flores", path = "_pot"},
-    {key = "peixe", path = "_fish"},
-    {key = "cafe0", path = "0"},
-    {key = "cafe1", path = "1"},
-    {key = "cafe2", path = "2"},
-    {key = "cafe3", path = "3"},
-    {key = "cafe4", path = "4"},
-    {key = "cafe5", path = "5"},
-    {key = "cafe6", path = "6"},
+local BASE = "../../../assets/imgs/bean_counters/"
+local CARGA_MAXIMA = 5
+local IMG_ATINGIDO = {
+    Flower_pot         = BASE.."penguin_pot.webp",
+    Anvil              = BASE.."penguin_anvil.webp",
+    Fish_bean_counters = BASE.."penguin_fish.webp",
+    Coffe_bag          = string.format(BASE.."penguin%d.webp", CARGA_MAXIMA + 1),
 }
 
-function Pinguim.new(opts)
-    opts = opts or {}
-    local self = Objeto.create(opts) 
+local Pinguim = Objeto:extend()
 
-    self.velocidade = 0.05
-    self.destino = {x=opts.rect.x, y=opts.rect.y}
+function Pinguim:init (observador)
+    self.observador = observador
+    self.rect = {'%', x=0.3, y=0.80, w=0.12, h=0.25}
+    self.hitbox = {'%', x=0.3, y=0.80, w=0.12, h=0.25}
     self.vidas = 3
-    self.cargas = 0
-    self.carga_maxima = 5
-    self.score = 0
-    self.derrubado = false
-    self.cooldown = 0
-    self.duracao_colldown = 2000
-    self.img = imgs[4].path
-    
-    setmetatable(self, Pinguim)
-    return self
+    self.carga = 0
+    self.bloqueio = nil     -- plataforma bloqueada (250 ms)
+    self.tonto = nil        -- atordoado (2 s)
+    self:atualiza_img()
 end
 
-function Pinguim:get_img()
-    local base = "../../../assets/imgs/bean_counters/"
-    return string.format("%s/penguin%s.webp", base, self.img)
-    
+function Pinguim:atualiza_img ()
+    self.img = string.format(BASE.."penguin%d.webp", self.carga)
 end
 
-function Pinguim:calcula_posicao(dt)
-    return  self.rect.x + self.velocidade*(self.carga_maxima - self.cargas)/self.carga_maxima * dt
+function Pinguim:colide (outro)
+    return pico.vs.rect.rect(self.hitbox, outro.hitbox)
 end
 
-
-function Pinguim:valida_posicao(x)
-    self.rect.x = x
-end
-
-
-function Pinguim:chegou_destino()
-   
-end
-
-function Pinguim:colidou_carga(carga)
-    if pico.vs.rect.rect(self.rect, carga.rect) then
-        return true
+function Pinguim:bloqueia_plataforma ()
+    if not self.bloqueio then
+        self.bloqueio = Temporizador:new(250 * Temporizador.MS)
     end
-    return false
 end
 
-function Pinguim:troca_img(carga)
-    if not carga then self.img = imgs[4 + self.cargas].path return end
-    if carga.tipo.key == "cafe" then
-        self.img = imgs[4 + self.cargas].path
-    else 
-        if carga.tipo.key == "bigorna" then
-            self.img = imgs[1].path
-        elseif carga.tipo.key == "flores" then
-            self.img = imgs[2].path
-        elseif carga.tipo.key == "peixe" then
-            self.img = imgs[3].path
-        elseif carga.tipo.key == "cafe" then
-            self.img = imgs[4 + self.cargas].path
-     
+function Pinguim:pega (carga)
+    if carga:e_cafe() and self.carga < CARGA_MAXIMA then
+        self:bloqueia_plataforma()
+        self.observador:ao_coletar()
+        self.carga = self.carga + 1
+        self:atualiza_img()
+        carga:some()
+    else
+        self.img = IMG_ATINGIDO[carga.tipo]
+        carga:some()
+        self.carga = 0
+        self.vidas = self.vidas - 1
+        self.rect.h = 0.15
+        self.tonto = Temporizador:new(2 * Temporizador.S)
+        self.observador:ao_ser_atingido()
+    end
+end
+
+function Pinguim:entrega ()
+    self:bloqueia_plataforma()
+    self.observador:ao_entregar()
+    self.carga = self.carga - 1
+    self:atualiza_img()
+end
+
+-- a cada passo: colisões com as cargas, entrega na plataforma e prazos.
+-- Prazos criados neste passo só começam a contar no próximo.
+function Pinguim:tempo (dt, cargas, plataforma)
+    local bloqueio, tonto = self.bloqueio, self.tonto
+    for _, c in ipairs(cargas) do
+        if c.viva and not self.tonto and self:colide(c) then
+            self:pega(c)
         end
     end
-    if self.cargas >= 6 or carga.tipo.key ~= "cafe" then
-        self.rect.w = 0.12
-        self.rect.h = 0.15
-        self.derrubado = true
+    if self:colide(plataforma) and not self.bloqueio and self.carga > 0 then
+        self:entrega()
+    end
+    if bloqueio and bloqueio:tempo(dt) then
+        self.bloqueio = nil
+    end
+    if tonto and tonto:tempo(dt) then
+        self.tonto = nil
+        self:atualiza_img()
+        self.rect.h = 0.25
     end
 end
 
-function Pinguim:atualiza_cooldown(dt)
-    if not self.derrubado then return true end
-    self.cooldown = self.cooldown + dt*1000
-    if self.cooldown >= self.duracao_colldown then
-        self.derrubado = false
-        self.cargas = 0
-        self.img = imgs[4].path
-        self.cooldown = 0
-        self.rect.w = 0.12
-        self.rect.h = 0.25
-        return true
-    end
-    return false
+-- cada key.dn de seta é um passo; mais carga, passo menor
+function Pinguim:evento (e)
+    if self.tonto or e.tag ~= 'key.dn' then return end
+    local fator = ((CARGA_MAXIMA + 1) - self.carga) / (CARGA_MAXIMA + 1)
+    local vel
+    if e.key == 'Right' then vel = 10 * fator
+    elseif e.key == 'Left' then vel = -10 * fator
+    else return end
+    local x = self.rect.x + (vel * (1/60))
+    x = math.min(math.max(x, 0.25), 0.8)
+    self.rect.x = x
+    self.hitbox.x = x
+end
+
+function Pinguim:desenha ()
+    pico.output.draw.image(self.img, self.rect)
 end
 
 return Pinguim

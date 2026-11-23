@@ -1,151 +1,77 @@
-local Vetor = require("util.vetor")
+-- Carga lançada do caminhão: sai de (0,85; 0,5) num lançamento oblíquo que
+-- cai num ponto sorteado da neve. Pode ser saco de café ou objeto.
 local Objeto = require("util.objeto")
 
-local tipos = 
-{
-    {key = "bigorna", path = "Anvil"},
-    {key = "flores", path = "Flower_pot"},
-    {key = "cafe",  path = "Coffe_bag"},
-    {key = "peixe", path = "Fish_bean_counters"}
-}
+local BASE = "../../../assets/imgs/bean_counters"
+local TIPOS = { "Anvil", "Flower_pot", "Coffe_bag", "Fish_bean_counters" }
+local G = 9.8
+local CHAO = 0.9
 
-local Carga = {}
-Carga.__index = Carga
+local Carga = Objeto:extend()
 
-Carga.spawn_timer = 0 
-Carga.spawn_interval = 0.25
+function Carga:init ()
+    self.tipo = TIPOS[math.random(1, #TIPOS)]
+    self.img = string.format("%s/%s.webp", BASE, self.tipo)
+    pico.layer.image{path = self.img}
+    self.viva = true
+    self.t = 0
 
--- Herança: Movable herda de Objeto
-setmetatable(Carga, {__index = Objeto})
-
-function Carga.new(opts)
-    opts = opts or {}
-    local self = Objeto.create(opts) 
-
-    self.p_lancamento = nil
-    self.tempo = 0
-    self.velocidade_inicial = nil
-    self.destino  = nil
-    self.gravidadade = nil
-    self.tipo = tipos[math.random(1,4)]
-    self.rect = nil
-    self.angle = 0
-    
-    setmetatable(self, Carga)
-    return self
-end
-
-function Carga:get_img()
-    local base = "../../../assets/imgs/bean_counters"
-    self.img = string.format("%s/%s.webp", base, self.tipo.path)
-    return self.img
-end
-
-function Carga.lanca_carga(dt)
-    -- atualiza o tempo acumulado
-    Carga.spawn_timer = Carga.spawn_timer + dt
-    
-    -- verifica se pode spawnar
-    if Carga.spawn_timer >= Carga.spawn_interval then
-        Carga.spawn_timer = 0
-        Carga.spawn_interval = 0.2 + math.random() * 0.8  -- entre 0.2s e 2.5s
-        return Carga.new()
-    end
-
-    return nil
-end
-
-function Carga.table_add(tabela, carga)
-    if not tabela or not carga then return end
-    carga:inicializacao()
-    table.insert(tabela, carga)
-end
-
-function Carga.table_remove(tabela, carga)
-    if not tabela or not carga then return end
-
-    for i, v in ipairs(tabela) do
-        if v == carga then
-            table.remove(tabela, i)
-            return true
-        end
-    end
-
-    return false
-end
-
-function Carga:inicializacao()
-    local g = 9.8
-
-    local lim_e = 0.25
-    local lim_d = 0.75
-
-    local y0 = 0.5
-    local yf = 0.9
-    
-    local x0 = 0.85
-    local xf = math.random() * (lim_d - lim_e) + lim_e
-
-    local min = math.pi/4      -- 45°
-    local max = math.pi/3      -- 60°
-    local angle = math.pi - 0.2
-
-    local dx = xf - x0
-    local dy = -(yf - y0)
-
+    -- trajetória: velocidade inicial que leva do lançamento ao destino
+    self.lancamento = {x = 0.85, y = 0.5}
+    local lim_e, lim_d = 0.25, 0.75
+    self.destino = {x = (math.random() * (lim_d - lim_e)) + lim_e, y = CHAO}
+    local min, max = math.pi/4, math.pi/3
+    local dx = self.destino.x - self.lancamento.x
+    local dy = self.lancamento.y - self.destino.y
+    local angulo
     if dx >= 0 then
-        angle = math.random() * (max - min) + min
+        angulo = (math.random() * (max - min)) + min
     else
-        angle = math.random() * (math.pi - max - (math.pi - min)) + (math.pi - max)
+        angulo = (math.random() * (math.pi - max - (math.pi - min))) + (math.pi - max)
     end
+    local cos, tan = math.cos(angulo), math.tan(angulo)
+    local denom = 2 * (cos * cos) * ((dx * tan) - dy)
+    local v0 = math.sqrt((G * dx * dx) / denom)
+    self.vel = {x = v0 * cos, y = (-v0) * math.sin(angulo)}
 
-    local cos = math.cos(angle)
-    local tan = math.tan(angle)
-
-    local denom = 2 * (cos * cos) * (dx * tan - dy)
-
-    local v0 = math.sqrt((g * dx * dx) / denom)
-
-    -- componentes da velocidade
-    local vx = v0 * cos
-    local vy = -v0 * math.sin(angle)
-
-    local h_max = y0 + (vy * vy) / (2 * g)
-
-    self.p_lancamento = {x=x0, y=y0}
-    self.destino = {x=xf, y= yf}
-    self.velocidade_inicial = Vetor.new({x = vx, y = vy})
-    self.rect = {'%', x=x0 ,y=y0 ,w=0.08, h=0.08}
-    self.gravidade = g
+    self.rect = {'%', x = self.lancamento.x, y = self.lancamento.y, w = 0.08, h = 0.08}
+    self.hitbox = self.rect
 end
 
-function Carga:atualiza_posicao(dt)
-    -- atualiza velocidade (gravidade)
-    self.tempo = self.tempo + dt
+function Carga:e_cafe ()
+    return self.tipo == "Coffe_bag"
+end
 
-    -- atualiza posição
-    self.rect.x = self.p_lancamento.x + self.velocidade_inicial.x * self.tempo
-    self.rect.y = self.p_lancamento.y + self.velocidade_inicial.y * self.tempo + self.gravidade*math.pow(self.tempo,2)/2
+-- pega pelo pinguim (sai do jogo)
+function Carga:some ()
+    self.viva = false
+end
 
-    local p_dist = (self.rect.x - self.p_lancamento.x)/(self.destino.x - self.p_lancamento.x)
-
-    if p_dist < 0.25 then
-        self.angle = 0
-    elseif p_dist < 0.50 then
-        self.angle = 45
-    elseif p_dist < 0.75 then
-        self.angle = 135
-    else
-        self.angle = 180
+-- posição exata no instante t (o tempo corre a meia velocidade); some ao
+-- passar do chão
+function Carga:tempo (dt)
+    self.t = self.t + ((dt * 0.5) / 1000000)
+    self.rect.x = self.lancamento.x + (self.vel.x * self.t)
+    self.rect.y = (self.lancamento.y + (self.vel.y * self.t)) + ((G * math.pow(self.t, 2)) / 2)
+    if self.rect.y > CHAO then
+        self.viva = false
     end
 end
 
-function Carga:chegou_destino()
-    
-    if self.rect.y > self.destino.y then
-        return true
+function Carga:desenha ()
+    if self:e_cafe() then
+        -- o saco de café gira ao longo da trajetória
+        local p = (self.rect.x - self.lancamento.x) / (self.destino.x - self.lancamento.x)
+        local angulo
+        if p < 0.25 then angulo = 0
+        elseif p < 0.50 then angulo = 45
+        elseif p < 0.75 then angulo = 135
+        else angulo = 180 end
+        pico.set.layer(self.img)
+        pico.set.effect{rotate = {angle = angulo, anchor = 'C'}}
+        pico.set.layer("world")
     end
-    return false
+    pico.output.draw.layer(self.img, self.rect)
 end
 
 return Carga
