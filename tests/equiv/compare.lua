@@ -15,6 +15,8 @@ local function ler (path)
         q = tonumber(q)
         local lista, set, ord = {}, {}, {}
         for item in (resto .. " | "):gmatch("(.-) | ") do
+            -- "FIM <resultado>" e "QUIT" são marcas do teste, não desenhos
+            if item:match("^FIM ") or item == "QUIT" then item = "" end
             if item ~= "" and not set[item] then
                 set[item] = true
                 lista[#lista + 1] = item

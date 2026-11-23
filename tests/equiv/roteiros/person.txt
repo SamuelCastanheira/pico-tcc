@@ -1,6 +1,12 @@
 # tela: person
-# Escolhe a cor e volta.
+# Passa o mouse por cores do quadro (o Lua escolhe pelo hover), clica numa cor
+# e volta pelo botão "Voltar".
 1 mouse 0.5 0.5
-20 click 0.78 0.5
-60 click 0.3 0.8
+10 mouse 0.6657 0.40
+20 mouse 0.7229 0.40
+30 click 0.7229 0.40
+40 mouse 0.78 0.55
+50 click 0.78 0.55
+70 mouse 0.30 0.80
+80 click 0.30 0.80
 100 quit
