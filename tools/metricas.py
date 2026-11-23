@@ -6,9 +6,8 @@ Uso: python3 tools/metricas.py            (tabelas em Markdown na saída)
 
 Para cada programa (par de arquivos Lua x Atmos), mede:
 - linhas de código (sem linhas em branco e sem comentários);
-- Lua: funções, condicionais (if/elseif), campos de estado mutáveis
-  (alvos distintos de atribuição do tipo `obj.campo =`) e enumerações de
-  estado (tabelas de constantes em MAIÚSCULAS, como `DuelState`);
+- Lua: funções, condicionais (if/elseif) e campos de estado mutáveis
+  (alvos distintos de atribuição `self.campo =` ou `self.x.campo =`);
 - Atmos: tasks, variáveis mutáveis (`var`), alvos distintos de `set`, e as
   construções de concorrência (spawn, await, watching, par, loop on, toggle,
   emit, tasks/pin, every/defer, abort).
@@ -23,18 +22,19 @@ LUA = RAIZ / "src/codes_tcc/pico_ilha_geladeira"
 ATM = RAIZ / "src/codes_tcc/atmos_ilha_geladeira"
 
 PROGRAMAS = [
-    ("main (fluxo de telas)", ["main.lua"], ["main.atm"]),
+    ("main e jogo (fluxo de telas)", ["main.lua", "jogo.lua"], ["main.atm"]),
     ("menu", ["screens/telas_menu/menu.lua"], ["screens/telas_menu/menu.atm"]),
     ("personalização", ["screens/telas_menu/personalizacao.lua"],
      ["screens/telas_menu/personalizar.atm"]),
-    ("centro", ["screens/centro/centro.lua", "screens/centro/pinguim.lua"],
+    ("centro", ["screens/centro/centro.lua", "screens/centro/pinguim.lua",
+                "screens/centro/predio.lua"],
      ["screens/centro/centro.atm", "screens/centro/pinguim.atm",
       "screens/centro/predio.atm"]),
     ("dojo", ["screens/minigames/dojo/dojo.lua", "screens/minigames/dojo/carta.lua"],
      ["screens/minigames/dojo/dojo.atm", "screens/minigames/dojo/carta.atm"]),
     ("bean counters",
      ["screens/minigames/bean_counters/" + f for f in
-      ("bean_counters.lua", "pinguim.lua", "carga.lua", "pilha.lua")],
+      ("bean_counters.lua", "pinguim.lua", "carga.lua", "pilha.lua", "plataforma.lua")],
      ["screens/minigames/bean_counters/" + f for f in
       ("bean_counters.atm", "pinguim.atm", "carga.atm", "pilha.atm", "plataforma.atm")]),
     ("pega puffles",
@@ -43,7 +43,7 @@ PROGRAMAS = [
      ["screens/minigames/pega_puffles/pega_puffles.atm",
       "screens/minigames/pega_puffles/puffle.atm"]),
     ("utilitários e componentes",
-     ["util/objeto.lua", "util/timer.lua", "util/vetor.lua"],
+     ["util/objeto.lua", "util/temporizador.lua", "util/botao.lua"],
      ["util/vetor.atm"] + ["util/components/" + f for f in
       ("image.atm", "image_hover.atm", "botao.atm", "xclickable.atm", "xcollidable.atm")]),
 ]
@@ -73,7 +73,7 @@ def medir_lua(arqs):
         c = sem_strings_e_comentarios(t, "--")
         m["funcoes"] += len(re.findall(r"\bfunction\b", c))
         m["ifs"] += len(re.findall(r"\b(if|elseif)\b", c))
-        for obj, campo in re.findall(r"\b(self|data|jogo|state|gameState|puffle|outro|carga|Carga|[a-z_]+\.pinguim|data\.[a-z_]+)\.([A-Za-z_]\w*)\s*=(?!=)", c):
+        for obj, campo in re.findall(r"\b(self(?:\.[a-z_]+)?)\.([A-Za-z_]\w*)\s*=(?!=)", c):
             m["campos"].add(f"{obj}.{campo}")
         for nome in re.findall(r"\blocal\s+([A-Z]\w*)\s*=\s*\{\s*\n\s*[A-Z_]+\s*=", c):
             m["enums"].add(nome)
@@ -129,11 +129,10 @@ def main():
     print(f"| **total** | **{tot[0]}** | **{tot[1]}** | **{tot[1]/tot[0]:.2f}** | | | | |\n")
 
     print("## Estado mutável e controle de fase\n")
-    print("| Programa | campos de estado Lua | enums de estado Lua | `var` Atmos | alvos de `set` Atmos |")
-    print("|---|---:|---|---:|---:|")
+    print("| Programa | campos de estado Lua | `var` Atmos | alvos de `set` Atmos |")
+    print("|---|---:|---:|---:|")
     for nome, l, a in res:
-        print(f"| {nome} | {len(l['campos'])} | {', '.join(sorted(l['enums'])) or '-'} | "
-              f"{a['vars']} | {len(a['sets'])} |")
+        print(f"| {nome} | {len(l['campos'])} | {a['vars']} | {len(a['sets'])} |")
     print()
 
     print("## Construções de concorrência no Atmos\n")
