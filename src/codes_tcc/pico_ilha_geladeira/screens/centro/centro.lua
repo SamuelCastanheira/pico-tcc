@@ -1,99 +1,100 @@
-local Centro = {}
-local Objeto =  require("util.objeto")
-local Pinguim =  require("screens.centro.pinguim")
+-- Centro: o pinguim anda entre os prédios; ao entrar num prédio, o minigame
+-- correspondente roda dentro do centro e, ao terminar, as moedas ganhas vão
+-- para o jogo e um novo pinguim aparece na praça. Escape volta ao menu, de
+-- qualquer ponto (também durante um minigame).
+local Objeto = require("util.objeto")
+local Predio = require("screens.centro.predio")
+local Pinguim = require("screens.centro.pinguim")
 
-local background = Objeto.create({
-                        rect = {'%', x=0.5, y=0.5, w=1, h=1},
-                        img = "../../../assets/imgs/centro.png"})
+local IMGS = "../../../assets/imgs/"
 
-local cafeteria = Objeto.create({
-                        rect = {'%', x=0.25, y=0.4, w=0.4, h=0.4},
-                        img = "../../../assets/imgs/coffe.png",
-                        img_hover = "../../../assets/imgs/coffe_hover.png"})
+local MINIGAMES = {
+    BEAN = "screens.minigames.bean_counters.bean_counters",
+    DOJO = "screens.minigames.dojo.dojo",
+    PUFF = "screens.minigames.pega_puffles.pega_puffles",
+}
 
-local petshop = Objeto.create({
-                        rect = {'%', x=0.5, y=0.4, w=0.35, h=0.35},
-                        img = "../../../assets/imgs/pet_shop.png",
-                        img_hover = "../../../assets/imgs/pet_shop_hover.png"})
+local Centro = Objeto:extend()
 
-local dojo = Objeto.create({
-                        rect = {'%', x=0.72, y=0.39, w=0.35, h=0.35},
-                        img = "../../../assets/imgs/dojo/dojo.png",
-                        img_hover = "../../../assets/imgs/dojo/dojo_hover.png"})                    
-
-
-function Centro.init(state)
-    pico.set.window{title="Centro"}
-    state.centroData =
-    {
-       pinguim = Pinguim.new({rect={'%', x=0.5, y=0.7, w=0.08, h=0}}),
-       last = pico.get.now(),
-       destino = nil
+function Centro:init (jogo)
+    self.jogo = jogo
+    self.fundo = {'%', x=0.5, y=0.5, w=1, h=1}
+    self.moeda = {'%', x=0.05, y=0.05, w=0.05, h=0}
+    self.predios = {
+        Predio:new("BEAN", {'%', x=0.20, y=0.4, w=0.4, h=0.4},
+                   {'%', x=0.20, y=0.4, w=0.21, h=0.21},
+                   IMGS.."coffe.png", IMGS.."coffe_hover.png"),
+        Predio:new("DOJO", {'%', x=0.72, y=0.39, w=0.35, h=0.35},
+                   {'%', x=0.72, y=0.39, w=0.21, h=0.21},
+                   IMGS.."dojo/dojo.png", IMGS.."dojo/dojo_hover.png"),
+        Predio:new("PUFF", {'%', x=0.5, y=0.4, w=0.35, h=0.35},
+                   {'%', x=0.5, y=0.4, w=0.21, h=0.21},
+                   IMGS.."pet_shop.png", IMGS.."pet_shop_hover.png"),
     }
+    self:novo_pinguim()
 end
 
-function Centro.update(state, event)
-    local mouse = pico.get.mouse('%')
-    cafeteria.hover = false
-    dojo.hover = false
-    petshop.hover = false
-    local data = state.centroData
-    local agora = pico.get.now()
-    local dt =  (agora - data.last)/1000
-    data.last = agora
+function Centro:novo_pinguim ()
+    pico.set.window{title="Centro"}
+    self.minigame = nil
+    self.pinguim = Pinguim:new(self.jogo, self.predios)
+end
 
-    if pico.vs.pos.rect(mouse, petshop.rect) then
-        petshop.hover = true
-    elseif pico.vs.pos.rect(mouse, cafeteria.rect) then
-        cafeteria.hover = true
-    elseif pico.vs.pos.rect(mouse, dojo.rect) then
-        dojo.hover = true
+function Centro:inicia_minigame (id)
+    self.pinguim = nil
+    self.minigame = require(MINIGAMES[id]):new()
+end
+
+function Centro:termina_minigame (moedas)
+    self.jogo:ganha_moedas(moedas)
+    self:novo_pinguim()
+end
+
+function Centro:tempo (dt)
+    for _, p in ipairs(self.predios) do
+        p:tempo(dt)
     end
+    if self.minigame then
+        local moedas = self.minigame:tempo(dt)
+        if moedas then self:termina_minigame(moedas) end
+    else
+        local id = self.pinguim:tempo(dt)
+        if id then self:inicia_minigame(id) end
+    end
+end
 
-    if event and event.tag == 'mouse.button.dn' then
-        data.pinguim:calcula_movimento(mouse)
-
-        if pico.vs.pos.rect(mouse, petshop.rect) then
-            data.destino = "petshop"
-        elseif pico.vs.pos.rect(mouse, cafeteria.rect) then
-            data.destino = "cafeteria"
-        elseif pico.vs.pos.rect(mouse, dojo.rect) then
-            data.destino = "dojo"
+function Centro:evento (e)
+    for _, p in ipairs(self.predios) do
+        if p:clicado(e) and self.pinguim then
+            self.pinguim:escolhe_destino(p.id)
         end
     end
-
-    if not data.pinguim:chegou_destino() then
-        data.pinguim:atualiza_posicao(dt)
+    if e.tag == 'key.dn' and e.key == 'Escape' then
+        self.jogo:volta_menu()
+        return
     end
-
-    if data.destino and data.destino == "petshop" and pico.vs.pos.rect(data.pinguim.rect, petshop.rect) then
-        state.nextScreen = "pega_puffle"
-    elseif data.destino and data.destino == "cafeteria" and pico.vs.pos.rect(data.pinguim.rect, cafeteria.rect) then
-        state.nextScreen = "bean_counters"
-    elseif data.destino and data.destino == "dojo" and pico.vs.pos.rect(data.pinguim.rect, dojo.rect) then
-        state.nextScreen = "dojo"
+    if self.minigame then
+        local moedas = self.minigame:evento(e)
+        if moedas then self:termina_minigame(moedas) end
+    else
+        self.pinguim:evento(e)
     end
 end
 
-function Centro.draw(state)
-    data = state.centroData
-    pico.output.draw.image(background:get_img(), background.rect)
-    pico.output.draw.image(cafeteria:get_img(), cafeteria.rect)
-    pico.output.draw.image(dojo:get_img(), dojo.rect)
-    pico.output.draw.image(petshop:get_img(), petshop.rect)
-    pico.output.draw.image(data.pinguim:get_img(), data.pinguim.rect)
-
-
-    local moeda = {'%',x=0.05, y=0.05, w=0.05, h=0}
-    local moeda_num = {'%',x=0.08, y=0, w=.025*#tostring(state.money), h= 0.1, anchor='NW'}
-    pico.output.draw.image("../../../assets/imgs/moeda.png",moeda )
-    pico.set.pencil { color='yellow' }
-    pico.output.draw.text.fix(state.money, moeda_num)
-    pico.output.present()
-end
-
-function Centro.finish(state)
-    state.screen = nil
+function Centro:desenha ()
+    pico.output.draw.image(IMGS.."centro.png", self.fundo)
+    pico.output.draw.image(IMGS.."moeda.png", self.moeda)
+    pico.set.pencil{color='yellow'}
+    pico.output.draw.text.dyn("moedas", self.jogo.moedas,
+        {'%', x=0.08, y=0, w=0.025*#tostring(self.jogo.moedas), h=0.1, anchor='NW'})
+    for _, p in ipairs(self.predios) do
+        p:desenha()
+    end
+    if self.minigame then
+        self.minigame:desenha()
+    else
+        self.pinguim:desenha()
+    end
 end
 
 return Centro

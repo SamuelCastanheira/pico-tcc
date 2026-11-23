@@ -1,56 +1,30 @@
--- Importa módulos de tela (como no seu código, mas adicionando dojo)
-local screens = {
-    menu = require("screens.telas_menu.menu"),
-    person = require("screens.telas_menu.personalizacao"),
-    centro = require("screens.centro.centro"),
-    pega_puffle = require("screens.minigames.pega_puffles.pega_puffles"),
-    dojo = require("screens.minigames.dojo.dojo"),
-    bean_counters = require("screens.minigames.bean_counters.bean_counters")
-}
+-- Ilha Geladeira, versão Lua: laço de jogo com objetos.
+--
+-- A cada quadro: o relógio avança (tempo), depois chega o evento de entrada,
+-- se houver (evento), e então tudo é desenhado. É a mesma ordem do ambiente
+-- atmos.env.pico da versão Atmos.
+local Jogo = require("jogo")
 
--- Estado global compartilhado (novo, para evitar globais)
-local gameState = {
-    screen = "menu",  -- tela inicial
-    money = 0,      -- exemplo, baseado no seu dojo
-    nextScreen = nil, -- sinal para trocar tela
-    frames = 60
-}
-
--- Inicializações do seu código original
 pico.init(true)
-local phy = {'!', w=1280, h=720}
+pico.set.window{title="Ilha da Geladeira"}
 pico.set.effect{grid=false}
-pico.set.dim(phy)
-pico.set.expert(true, gameState.frames)
+pico.set.dim{'!', w=1280, h=720}
+pico.set.expert(true, 60)
+math.randomseed()
 
--- Inicializa a tela atual
-local current = screens[gameState.screen]
-current.init(gameState)
+local jogo = Jogo:new()
 
--- Loop principal (substitui o "Menu.renderizar()" que cria pilha)
-while true do
-    -- Polla eventos
-    local event =  pico.input.event()
-    if event and event.tag == 'quit' then
-         break 
+while not jogo.fim do
+    local e, ms = pico.input.event()
+    jogo:tempo(ms * 1000)                   -- microssegundos
+    if e then
+        if e.tag == 'quit' then break end
+        jogo:evento(e)
     end
-    -- Atualiza a tela atual
-    current.update(gameState, event)
-    
-    -- Limpa e desenha
+    if jogo.fim then break end
     pico.output.clear()
-    current.draw(gameState)
+    jogo:desenha()
     pico.output.present()
-    
-    -- Verifica transição de tela
-    if gameState.nextScreen then
-        current.finish(gameState)
-        gameState.screen = gameState.nextScreen
-        gameState.nextScreen = nil
-        current = screens[gameState.screen]
-        current.init(gameState)
-    end
 end
 
--- Finaliza (raramente alcançado)
 pico.init(false)

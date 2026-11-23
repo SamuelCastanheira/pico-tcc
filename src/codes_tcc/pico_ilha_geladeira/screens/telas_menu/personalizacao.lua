@@ -1,103 +1,88 @@
-require 'pico.check'
-local Personalizacao = {}
+local Objeto = require("util.objeto")
+local Botao = require("util.botao")
 
-local qnt_cores = 15
-local cores = 
-{
-    {index = 0,  texto="amarelo",     rect={'#', x=2 , y=2 , w=1 , h=1}},
-    {index = 1,  texto="avermelhado", rect={'#', x=3 , y=2 , w=1 , h=1}},
-    {index = 2,  texto="azul_forte",  rect={'#', x=4 , y=2 , w=1 , h=1}},
-    {index = 3,  texto="ciano",       rect={'#', x=5 , y=2 , w=1 , h=1}},
-    {index = 4,  texto="cinza",       rect={'#', x=6 , y=2 , w=1 , h=1}},
-    {index = 5,  texto="azul_fraco",  rect={'#', x=2 , y=3 , w=1 , h=1}},
-    {index = 6,  texto="laranja",     rect={'#', x=3 , y=3 , w=1 , h=1}},
-    {index = 7,  texto="marrom",      rect={'#', x=4 , y=3 , w=1 , h=1}},
-    {index = 8,  texto="preto",       rect={'#', x=5 , y=3 , w=1 , h=1}},
-    {index = 9,  texto="rosa_medio",  rect={'#', x=6 , y=3 , w=1 , h=1}},
-    {index = 10, texto="roxo",        rect={'#', x=2 , y=4 , w=1 , h=1}},
-    {index = 11, texto="verde_forte", rect={'#', x=3 , y=4 , w=1 , h=1}},
-    {index = 12, texto="verde_medio", rect={'#', x=4 , y=4 , w=1 , h=1}},
-    {index = 13, texto="verde_vomito",rect={'#', x=5 , y=4 , w=1 , h=1}},
-    {index = 14, texto="vermelho",    rect={'#', x=6 , y=4 , w=1 , h=1}},
+local IMGS = "../../../assets/imgs/"
+
+local cores = {
+    "amarelo", "avermelhado", "azul_forte", "ciano", "cinza",
+    "azul_fraco", "laranja", "marrom", "preto", "rosa_medio",
+    "roxo", "verde_forte", "verde_medio", "verde_vomito", "vermelho",
 }
 
-local background = {'%', x=0.5, y=0.5, w=1, h=1}
-local pinguim = {'%', x=0.3, y=0.35, w=0.3, h=0}
-local voltar = {'%', x=0.3, y=0.8, w=0.3, h=0}
-local texto_escolha = {'%', x=0.78, y=0.25, w=0.38, h=0.1}
-local layer_place = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
+-- quadro de gelo: layer de 600 x 400 com uma grade de 7 x 5 células; as
+-- cores ocupam as colunas 2 a 6 e as linhas 2 a 4
+local QUADRO = {'%', x=0.78, y=0.5, w=0.4, h=0.5}
 
-local quadro_criado = false   -- o pico não aceita recriar um layer com a mesma chave
+local function cor_rect (i)
+    return {'#', x = 2 + ((i-1) % 5), y = 2 + math.floor((i-1) / 5), w=1, h=1}
+end
 
-local function cria_layer_quadro()
-    if quadro_criado then return end
-    quadro_criado = true
-    local dim = {w=600, h=400}
-    local tile = {x=7, y=5}
+local Personalizacao = Objeto:extend()
+
+function Personalizacao:init (jogo)
+    self.jogo = jogo
+    self:cria_quadro()
+    self.fundo = {'%', x=0.5, y=0.5, w=1, h=1}
+    self.r_pinguim = {'%', x=0.3, y=0.35, w=0.3, h=0}
+    self.voltar = Botao:new("PERSON", {'%', x=0.3, y=0.8, w=0.3, h=0},
+                            IMGS.."botoes/b_voltar.png", IMGS.."botoes/b_voltar_clicado.png")
+end
+
+-- o layer é criado a cada entrada na tela: o Jogo abre a tela entre
+-- pico.push() e pico.pop()
+function Personalizacao:cria_quadro ()
     pico.layer.empty{
         key    = "quadro_gelo",
-        dim    = {'!', w=dim.w, h=dim.h},
-        tile   = {'#', w=tile.x, h=tile.y},   -- grade de 7 x 5 células
-        target = layer_place,
+        dim    = {'!', w=600, h=400},
+        tile   = {'#', w=7, h=5},
+        target = QUADRO,
     }
     pico.set.layer("quadro_gelo")
-    local quadro_gelo = {'#', x=1, y=1, w=7, h=5, anchor='NW'}
-    pico.output.draw.image("../../../assets/imgs/personalizar/quadro.png", quadro_gelo)
-
-    local base = "../../../assets/imgs/personalizar"
-    for _, cor in ipairs(cores) do
-        local path = string.format("%s/%d.png", base, cor.index)
-        pico.output.draw.image(path, cor.rect)
+    pico.output.draw.image(IMGS.."personalizar/quadro.png", {'#', x=1, y=1, w=7, h=5, anchor='NW'})
+    for i = 1, #cores do
+        pico.output.draw.image(string.format("%spersonalizar/%d.png", IMGS, i-1), cor_rect(i))
     end
     pico.set.layer("world")
 end
 
--- mouse e retângulos das cores em células ('#') do layer do quadro
-local function mouse_em_cor(state, mouse)
+-- a cor clicada no quadro (nil fora dele)
+function Personalizacao:cor_clicada ()
+    local m = pico.get.mouse("quadro_gelo", '#')
+    local escolhida = nil
     pico.set.layer("quadro_gelo")
-    for _, cor in ipairs(cores) do
-        if pico.vs.pos.rect(mouse, cor.rect) then
-            state.personData.cor_select = cor
-        end 
-    end
-    pico.set.layer("world")
-end
-
-function Personalizacao.init(state)
-    cria_layer_quadro()
-    state.personData = {
-        cor_select = cores[1]
-    }
-end
-
-function Personalizacao.update(state, event)
-    local mouse = pico.get.mouse('!')
-    
-    if event and event.tag == 'mouse.button.dn' then
-        if pico.vs.pos.rect(mouse, voltar) then
-            state.nextScreen = "menu"
+    for i, c in ipairs(cores) do
+        if pico.vs.pos.rect(m, cor_rect(i)) then
+            escolhida = c
         end
     end
-    mouse = pico.get.mouse("quadro_gelo", '#')
-    mouse_em_cor(state, mouse)
+    pico.set.layer("world")
+    return escolhida
 end
 
-function Personalizacao.draw(state)
-    local mouse = pico.get.mouse('!')
-    local img_voltar = pico.vs.pos.rect(mouse, voltar) and "../../../assets/imgs/botoes/b_voltar_clicado.png" or "../../../assets/imgs/botoes/b_voltar.png"
-    local base_pinguins = "../../../assets/imgs/personalizar/pinguim"
-    local cor_select = state.personData.cor_select
-
-    pico.output.clear()
-    pico.output.draw.image("../../../assets/imgs/background_personalizar.png", background)
-    pico.output.draw.image(string.format("%s_%s.png", base_pinguins, cor_select.texto), pinguim)
-    pico.output.draw.image(img_voltar, voltar)
-    pico.output.draw.text.fix("Escolha sua cor", texto_escolha)
-    pico.output.draw.layer("quadro_gelo", layer_place)
+function Personalizacao:tempo (dt)
+    self.voltar:tempo(dt)
 end
 
-function Personalizacao.finish(state)
-    state.personData = nil
+function Personalizacao:evento (e)
+    if e.tag == 'mouse.button.dn' then
+        local cor = self:cor_clicada()
+        if cor then
+            self.jogo:escolhe_cor(cor)
+        end
+    end
+    if self.voltar:clicado(e) then
+        self.jogo:volta_menu()
+    end
+end
+
+function Personalizacao:desenha ()
+    pico.output.draw.image(IMGS.."background_personalizar.png", self.fundo)
+    pico.output.draw.image(string.format("%spersonalizar/pinguim_%s.png", IMGS, self.jogo.cor_pinguim),
+                           self.r_pinguim)
+    pico.set.pencil{color='white'}
+    pico.output.draw.text.fix("Escolha sua cor", {'%', x=0.78, y=0.25, w=0.38, h=0.1})
+    pico.output.draw.layer("quadro_gelo", QUADRO)
+    self.voltar:desenha()
 end
 
 return Personalizacao
