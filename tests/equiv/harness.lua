@@ -15,6 +15,7 @@
 --   EQ_ROTEIRO  arquivo do roteiro (obrigatório)
 --   EQ_TRACO    arquivo de saída do traço (obrigatório)
 --   EQ_SEED     semente (padrão 1)
+--   EQ_FOTOS    capturas de tela: "quadro=arquivo.png,..." (as do README)
 --
 -- Formato do roteiro (uma linha por comando; quadro = número da chamada a
 -- pico.input.event, a partir de 1; '#' inicia comentário):
@@ -207,6 +208,20 @@ function M.instalar (pico)
     draw.text.dyn = function (key, txt, rect, ...)
         local r = table.pack(t_dyn(key, txt, rect, ...))
         reg("txt '" .. tostring(txt) .. "' " .. fmt_rect(rect))
+        return table.unpack(r, 1, r.n)
+    end
+
+    -- fotos (para o README): EQ_FOTOS="quadro=arquivo.png,quadro=arquivo.png"
+    local fotos = {}
+    for q, arq in (os.getenv("EQ_FOTOS") or ""):gmatch("(%d+)=([^,]+)") do
+        fotos[tonumber(q)] = arq
+    end
+    local present = pico.output.present
+    pico.output.present = function (...)
+        if fotos[quadro] then
+            pico.output.screenshot("world", fotos[quadro])
+        end
+        local r = table.pack(present(...))
         return table.unpack(r, 1, r.n)
     end
 
