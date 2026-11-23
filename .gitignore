@@ -1,103 +1,36 @@
-# =========================
+# Teste de equivalência: traços e saídas gerados por tests/equiv/run.sh
+tests/equiv/out/
+*.trc
 
-# 🔧 Build C / C++
+# Capturas e gravações do pico-sdl (o nome padrão leva data e hora)
+pico-sdl-*.png
+*.y4m
 
-# =========================
+# Core dumps (o pico aborta com assert quando falta uma imagem)
+core
+core.*
+vgcore.*
 
-*.o
-*.out
-*.a
-*.so
-*.dll
-*.exe
-*.lib
-*.dylib
+# Lua e LuaRocks
+*.luac
+lua_modules/
+.luarocks/
 
-# Arquivos gerados
+# Python (tools/, tests/equiv/gen_cercar.py)
+__pycache__/
+*.py[cod]
+.venv/
 
+# Logs e temporários
 *.log
 *.tmp
-*.cache
-
-# =========================
-
-# 📦 Pastas de build
-
-# =========================
-
-build/
-bin/
-obj/
-dist/
-cmake-build-*/
-CMakeFiles/
-Makefile
-compile_commands.json
-
-# =========================
-
-# 🧠 Debug / Profiling
-
-# =========================
-
-*.dSYM/
-*.su
-*.idb
-*.pdb
-*.ilk
-gmon.out
-valgrind.log
-
-# =========================
-
-# 🎮 SDL (assets temporários)
-
-# =========================
-
-*.bmp~
-*.png~
-*.wav~
-*.ogg~
-
-# =========================
-
-# 🐍 Lua
-
-# =========================
-
-*.luac
-
-# =========================
-
-# 🖥️ Sistema operacional
-
-# =========================
-
-# Linux
-
 *~
-.nfs*
-
-# macOS
-
-.DS_Store
-
-# Windows
-
-Thumbs.db
-desktop.ini
-
-# =========================
-
-# 🧪 IDEs / Editores
-
-# =========================
-
-.vscode/
-.idea/
 *.swp
 *.swo
 
-# =========================
-
-tests/equiv/out/
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
