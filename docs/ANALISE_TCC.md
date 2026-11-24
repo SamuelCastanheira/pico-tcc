@@ -103,56 +103,75 @@ Jogos: Laço de Atualização com Objetos × Concorrência Estruturada Síncrona
 Se preferir manter "Orientação a Objetos", explique no capítulo 1 que a
 versão Lua é um laço de jogo com objetos sobre metatabelas.
 
-1. **Introdução**
-   - jogos como sistemas reativos e o laço de jogo;
-   - problema, com o exemplo da rodada do Dojo: no laço de atualização, o
-     estado e o fluxo de um comportamento se espalham entre chamadas;
-   - pergunta: como as duas abordagens diferem em expressividade, correção e
-     custo, para o mesmo comportamento?;
-   - contribuições: o mesmo jogo nas duas abordagens; um método de
-     equivalência por replay determinístico; a comparação por padrões e
-     métricas; os erros que a comparação revelou;
-   - organização do texto.
-2. **Fundamentação teórica**
-   - 2.1 Jogos: laço, atualização e desenho, máquinas de estados (Nystrom);
-   - 2.2 Programação estruturada e orientada a objetos (sem a duplicação;
-     objetos em Lua);
-   - 2.3 Eventos e inversão de controle (Adya: tarefas × pilha, *stack
-     ripping*);
-   - 2.4 Concorrência cooperativa e corrotinas (de Moura & Ierusalimschy);
-   - 2.5 Concorrência estruturada (Smith; Chen & You);
-   - 2.6 Programação síncrona (hipótese de sincronismo, Esterel, preempção;
-     Berry; `sc.html`).
-3. **A linguagem Atmos**
-   - ambiente e eventos (relógio, entrada, `draw`; o `ambiente.lua` do jogo);
-   - tasks, hierarquia e escalonamento na ordem do código;
-   - `pin`, pools (`tasks`), `pub`;
-   - compostos: `par`, `watching`, `loop on`, `toggle`;
-   - eventos: `emit`, alcance e `await` com padrões;
-   - finalização e aborto: `defer`, `abort`;
-   - integração com Lua.
-4. **Metodologia e implementações**
-   - 4.1 O jogo Ilha Geladeira e o pico-sdl;
-   - 4.2 A versão Lua: classes com `tempo`/`evento`/`desenha`, estado em cada
-     objeto, transições pelo `Jogo`;
-   - 4.3 A versão Atmos: uma task por entidade, componentes `Image`,
-     `Image_Hover`, `XClickable`, `XCollidable`;
-   - 4.4 Equivalência por replay (`EQUIVALENCIA.md`);
-   - 4.5 Critérios de comparação: os padrões do Pingus, variáveis de estado,
-     pontos de mudança, linhas de código, custo por quadro.
-5. **Resultados e discussão**
-   - por padrão, com os pares Lua × Atmos da seção 6.3 e os diagramas do
-     `PADROES.md`;
-   - métricas (seção 6.2);
-   - erros que a comparação revelou, nas duas versões;
-   - custo de execução (o Atmos gasta mais por quadro; ver o relógio na
-     seção 2 do `EQUIVALENCIA.md`);
-   - ameaças à validade (versões escritas em momentos diferentes, por
-     autores diferentes; um só jogo).
-6. **Trabalhos relacionados**: Pingus em Céu; Esterel e Céu; concorrência
-   estruturada em Kotlin, Swift e Trio; o caso do Doom (abaixo).
-7. **Conclusão**: respostas, limitações, trabalhos futuros (*streams*,
-   threads, um estudo maior).
+Checklist da escrita (atualizado em 24/11/2026). `[x]` texto escrito;
+`[ ]` falta escrever. "Material pronto" indica o que já está no repositório
+e só precisa virar texto.
+
+- [x] **Título e palavras-chave**: mantido "Orientação a Objetos"; a
+  introdução explica que a versão Lua é um laço de jogo com objetos.
+- [x] **Resumo**, reescrito segundo os achados.
+- [x] **1. Introdução**
+  - [x] jogos como sistemas interativos e o laço de jogo, com a definição de
+    *comportamento* (sequência de ações que se estende por vários quadros);
+  - [x] problema, com o exemplo da rodada do Dojo e o *stack ripping* (Adya);
+  - [ ] pergunta explícita: como as duas abordagens diferem em
+    expressividade, correção e custo, para o mesmo comportamento? (hoje está
+    implícita em "comparamos essas duas formas");
+  - [x] contribuições, em prosa: o mesmo jogo nas duas abordagens, a
+    equivalência por replay, a análise por padrões e métricas e os erros que
+    a comparação revelou;
+  - [x] organização do texto.
+- [ ] **2. Fundamentação teórica**
+  - [ ] 2.1 Jogos: laço, atualização e desenho, máquinas de estados (Nystrom);
+  - [x] 2.2 Programação estruturada e orientada a objetos: sem a duplicação,
+    com blocos, pilha, objetos em Lua e exemplos do jogo (`Carta:compara`,
+    `Objeto`, `Predio` herdando de `Botao`, avisos do Bean Counters);
+  - [ ] 2.3 Eventos e inversão de controle (Adya: tarefas × pilha, *stack
+    ripping*);
+  - [ ] 2.4 Concorrência cooperativa e corrotinas (de Moura & Ierusalimschy);
+  - [ ] 2.5 Concorrência estruturada (Smith; Chen & You);
+  - [ ] 2.6 Programação síncrona (hipótese de sincronismo, Esterel, preempção;
+    Berry; `sc.html`).
+- [ ] **3. A linguagem Atmos**
+  - [ ] ambiente e eventos (relógio, entrada, `draw`; o `ambiente.lua` do
+    jogo);
+  - [ ] tasks, hierarquia e escalonamento na ordem do código;
+  - [ ] `pin`, pools (`tasks`), `pub`;
+  - [ ] compostos: `par`, `watching`, `loop on`, `toggle`;
+  - [ ] eventos: `emit`, alcance e `await` com padrões;
+  - [ ] finalização e aborto: `defer`, `abort`;
+  - [ ] integração com Lua.
+- [ ] **4. Metodologia e implementações**
+  - [ ] 4.1 O jogo Ilha Geladeira e o pico-sdl (material pronto: `README.md`
+    e as capturas em `docs/imgs/`);
+  - [ ] 4.2 A versão Lua: classes com `tempo`/`evento`/`desenha`, estado em
+    cada objeto, transições pelo `Jogo` (material pronto: `src/lua/`, já
+    reescrito em OO);
+  - [ ] 4.3 A versão Atmos: uma task por entidade, componentes `Image`,
+    `Image_Hover`, `XClickable`, `XCollidable` (material pronto: `src/atmos/`);
+  - [ ] 4.4 Equivalência por replay (material pronto: `EQUIVALENCIA.md`, todos
+    os roteiros iguais quadro a quadro);
+  - [ ] 4.5 Critérios de comparação: os padrões do Pingus, variáveis de
+    estado, pontos de mudança, linhas de código, custo por quadro.
+- [ ] **5. Resultados e discussão**
+  - [ ] por padrão, com os pares Lua × Atmos da seção 6.3 (material pronto:
+    os diagramas do `PADROES.md`);
+  - [ ] métricas (material pronto: seção 6.2 e `tools/metricas.py`);
+  - [ ] erros que a comparação revelou, nas duas versões (material pronto:
+    seção 2 deste documento e `EQUIVALENCIA.md`, incluindo os prédios vivos
+    durante o minigame);
+  - [ ] custo de execução (o Atmos gasta mais por quadro; ver o relógio na
+    seção 2 do `EQUIVALENCIA.md`);
+  - [ ] ameaças à validade (versões escritas em momentos diferentes, por
+    autores diferentes; um só jogo).
+- [ ] **6. Trabalhos relacionados**: Pingus em Céu; Esterel e Céu;
+  concorrência estruturada em Kotlin, Swift e Trio; o caso do Doom (abaixo).
+- [ ] **7. Conclusão**: respostas, limitações, trabalhos futuros (*streams*,
+  threads, um estudo maior).
+- [ ] **Referências**: entradas novas (`adya-cooperative`, `atmos-manual`,
+  `pingus-ceu`, `bohm-jacopini`, `dijkstra-goto`, `booch-ooad`,
+  `programming-in-lua`, `gamma-design-patterns`) e as correções da seção 4
+  (`game-cycle`, Chen & You, terceiro autor de Lua, Nystrom).
 
 **O que se mantém, o que muda, o que falta no artigo atual.**
 Mantêm-se a introdução, em linhas gerais (com as correções da seção 4), a
