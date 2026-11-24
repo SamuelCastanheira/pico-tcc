@@ -454,6 +454,16 @@ estrutura; no Lua, de código que zera referências e remove mortos.
   `centro.lua:37`; `Jogo:volta_menu` troca a tela, e a antiga fica sem
   referência.
 
+**Armadilha encontrada (anotar no texto).** A pool `predios` é criada no
+corpo do `Centro` (`centro.atm:17`), fora do laço, e o minigame roda num
+`await` dentro desse laço. Como o `Centro` continua vivo, os prédios também
+continuam: desenham por baixo do minigame e emitem `:clicked` para a árvore do
+`Centro`, onde está o Dojo. Um clique onde fica um prédio chegava ao Dojo
+como carta; hoje há um filtro (`dojo.atm:34`). A correção pelo escopo seria
+criar os prédios num bloco `do { pin predios = tasks(3) ... await Pinguim(...) }`
+dentro do laço, para morrerem quando o pinguim chega. No Lua, o mesmo cuidado
+é manual: `centro.lua:63` só repassa o clique se houver pinguim.
+
 ```mermaid
 flowchart TD
     CE["Centro"] --> PR["pool predios"]
