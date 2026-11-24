@@ -1,303 +1,215 @@
 # Análise de apoio ao TCC
 
-Trabalho de apoio ao TCC *Desenvolvimento de Jogos: Uma Análise Comparativa
-entre Orientação a Objetos e Concorrência Estruturada* (UERJ, 2026), em três
-partes:
+Apoio ao TCC *Desenvolvimento de Jogos: Uma Análise Comparativa entre
+Orientação a Objetos e Concorrência Estruturada* (UERJ, 2026):
 
-1. validação das duas conversas com o ChatGPT;
-2. fluxo de leitura, estrutura do texto e tópicos;
-3. o repositório `pico-tcc` como base da comparação.
+1. o que vale a pena ler;
+2. os achados que valem análise no texto;
+3. a sequência de leitura;
+4. correções no artigo atual;
+5. estrutura do texto e tópicos;
+6. o repositório como base da comparação (inventário e métricas).
 
-A parte 4 (equivalência entre as versões Lua e Atmos) está em
-[`EQUIVALENCIA.md`](EQUIVALENCIA.md).
+Documentos relacionados: [`EQUIVALENCIA.md`](EQUIVALENCIA.md) (o teste que
+prova que as versões Lua e Atmos fazem a mesma coisa) e
+[`PADROES.md`](PADROES.md) (padrões de jogos no código, com diagramas).
 
-Data da análise: 23/11/2026. Versões consultadas: artigo
-`TCC___Samuel-26.pdf` (12 páginas); Atmos `atmos-lang dev-4` (CLI v0.8) e
-repositório `atmos-lang/atmos` em `a06998a` (20/10/2026); `pico-tcc` em
-`fb04dd3` e seguintes.
-
----
-
-## 0. Fontes e como foram lidas
-
-Cada referência citada nas conversas foi localizada e conferida. Ficam aqui só
-as que servem ao TCC; as descartadas (artigos da JVM e do Kotlin, Teodorescu,
-Tanter, Allais, Milano, Erlang, *Rust Async Book*, Tardieu, CRP e os títulos
-inexistentes) continuam no histórico do git. A tabela diz o que foi lido de
-fato. Os textos da ACM (`dl.acm.org`) ficaram atrás de uma
-verificação anti-robô; nesses casos, usei a versão aberta dos autores quando
-existe e, quando não existe, só os metadados (Crossref) e o resumo.
-
-| Fonte | Como foi lida |
-|---|---|
-| Chen & You, *Structured Concurrency: A Review* (2022) | resumo (Semantic Scholar) e lista de referências (Crossref, OpenAlex); texto integral bloqueado |
-| de Moura & Ierusalimschy, *Revisiting Coroutines* | texto integral do relatório técnico PUC-Rio MCC 15/04 (2004), versão do artigo da TOPLAS |
-| Smith, *Notes on structured concurrency* (2018) | texto integral |
-| Adya et al., *Cooperative Task Management...* (2002) | texto integral (PDF) |
-| Berry & Gonthier (1992) | texto integral (digitalização com OCR) |
-| Berry, *Preemption in Concurrent Systems* (1993) | metadados (Crossref) e resumo; citado em `sc.html` |
-| Céu: TECS 2017 e LCTES 2018 | texto integral (versões dos autores) |
-| Sant'Anna, *Structured (Synchronous) Concurrency* (`fsantanna.github.io/sc.html`) | texto integral |
-| Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018) | texto integral (`fsantanna.github.io/pingus`) |
-| Manual e guia do Atmos; manual do Céu v0.30 | texto integral (repositórios) |
-| Ierusalimschy, de Figueiredo & Celes, *The evolution of Lua, continued* (2025) | texto integral (`lua.org/doc/cola.pdf`) |
-| Nystrom, *Game Programming Patterns*; notas CS442 de Waterloo | páginas citadas (texto integral) |
-| Ramadan & Widyani (2013); Raynal (2013) | metadados (Crossref) e resumo |
+Referências conferidas em 23/11/2026 contra o artigo `TCC___Samuel-26.pdf`,
+o Atmos `atmos-lang dev-4` (CLI v0.8; repositório `atmos-lang/atmos` em
+`a06998a`) e o código do `pico-tcc`.
 
 ---
 
-## 1. Validação das conversas com o ChatGPT
+## 1. O que vale a pena ler
 
-**Situação:** *correta*; *imprecisa* (existe, mas com dado ou atribuição
-errada, ou exagero); *errada*; *referência inexistente* (não existe com
-aquele título ou autoria). **Adequação** ao TCC: alta, média ou baixa.
+| Referência | O que traz para o TCC | Leitura conferida | Prioridade |
+|---|---|---|---|
+| Manual e guia do Atmos (`github.com/atmos-lang/atmos`, `doc/manual.md` e `doc/guide.md`) | Modelo de execução, tasks, hierarquia, `pin`/`tasks`, `par`/`watching`/`toggle`, `emit`/`await`, `defer`/`abort`, escalonamento determinístico. É a fonte primária: não há artigo que formalize o Atmos | texto integral | essencial |
+| SANT'ANNA, F. *Structured Synchronous Reactive Programming for Game Development — Case Study: On Rewriting Pingus from C++ to Céu*. SBGames, 2018 (`fsantanna.github.io/pingus`) | O trabalho mais próximo do seu: reescrita da lógica de um jogo para uma linguagem síncrona, com cinco padrões de controle e as variáveis de estado como sintoma | texto integral | essencial |
+| NYSTROM, R. *Game Programming Patterns*. Genever Benning, 2014 (`gameprogrammingpatterns.com`) | Game Loop, Update Method, State, Observer, Component: o vocabulário para descrever a versão Lua | capítulos citados | essencial |
+| ADYA, A. et al. Cooperative Task Management Without Manual Stack Management. *USENIX Annual Technical Conference*, 2002 | Separa gerenciamento de tarefas de gerenciamento de pilha; nomeia o *stack ripping*. É a moldura teórica da comparação | texto integral | essencial |
+| SMITH, N. J. *Notes on structured concurrency, or: Go statement considered harmful*. Blog, 2018 (`vorpus.org`) | A motivação mais citada da concorrência estruturada (*nurseries*; "go statements are a form of goto statement") | texto integral | alta |
+| CHEN, Y.-A.; YOU, Y.-P. Structured Concurrency: A Review. *ICPP Workshops '22*, ACM, 2022, p. 1–8. DOI 10.1145/3547276.3548519 | Revisão da área; defende que a concorrência estruturada nasce das corrotinas | resumo e referências (texto integral bloqueado pela ACM) | alta |
+| DE MOURA, A. L.; IERUSALIMSCHY, R. Revisiting Coroutines. *ACM TOPLAS*, 31(2), 2009. DOI 10.1145/1462166.1462167 | Corrotinas assimétricas completas, com o poder das continuações *one-shot*: a base das tasks do Atmos, que são corrotinas de Lua | texto integral (relatório técnico PUC-Rio MCC 15/04) | alta |
+| SANT'ANNA, F. *Structured (Synchronous) Concurrency* (`fsantanna.github.io/sc.html`) | Concorrência estruturada comparada a threads, MapReduce, Esterel e FRP em dois eixos; defende que ela deve ser síncrona | texto integral | alta |
+| BERRY, G. Preemption in Concurrent Systems. *FSTTCS*, LNCS 761, 1993, p. 72–93. DOI 10.1007/3-540-57529-4_44 | Preempção (aborto) segura exige um modelo dependente do tempo: o argumento central do `sc.html` | resumo | média |
+| BERRY, G.; GONTHIER, G. The Esterel synchronous programming language: design, semantics, implementation. *Science of Computer Programming*, 19(2):87–152, 1992 | Hipótese de sincronismo, composição paralela, preempção (só as seções iniciais) | texto integral | média |
+| SANT'ANNA, F. et al. The Design and Implementation of the Synchronous Language CÉU. *ACM TECS*, 16(4):1–26, 2017. DOI 10.1145/3035544 | A linhagem Esterel → Céu → Atmos: *trails*, ordem léxica, verificação de concorrência, finalização | texto integral | média |
+| SANTOS, R. C. M. et al. A Memory-Bounded, Deterministic and Terminating Semantics for the Synchronous Programming Language Céu. *LCTES*, 2018. DOI 10.1145/3211332.3211334 | Semântica formal de Céu (determinismo, memória limitada, terminação) | texto integral | complementar |
+| IERUSALIMSCHY, R.; DE FIGUEIREDO, L. H.; CELES, W. The evolution of Lua, continued. *Journal of Computer Languages*, 83, 101326, 2025 | Lua em jogos ("one of the leading scripting languages in game development"); corrotinas na linguagem | texto integral | média |
 
-### 1.1 Conversa 1: "Artigos sobre concorrência estruturada"
+Os textos da ACM ficaram atrás de uma verificação anti-robô; nesses casos, a
+leitura foi da versão aberta dos autores ou, sem ela, do resumo e dos
+metadados (Crossref).
 
-#### Concorrência estruturada e corrotinas
+## 2. Achados que valem análise no texto
 
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 1 | Chen & You (2022) trata da relação entre concorrência estruturada, corrotinas e ciclo de vida das tarefas | CHEN, Y.-A.; YOU, Y.-P. Structured Concurrency: A Review. *Workshop Proceedings of the 51st International Conference on Parallel Processing (ICPP Workshops '22)*. ACM, 2022, p. 1–8. DOI 10.1145/3547276.3548519 | correta | O resumo defende que a concorrência estruturada nasce das corrotinas: "the foundation established by coroutines that gives birth to structured concurrency". **O artigo do TCC cita "Association for Computing Machinery, 2023": corrigir para ICPP Workshops 2022.** Adequação alta. |
-| 2 | de Moura & Ierusalimschy, *Revisiting Coroutines*, TOPLAS 2009: classificação de corrotinas, semântica operacional, relação com continuações; autores da PUC-Rio | *ACM TOPLAS*, v. 31, n. 2, art. 6, p. 1–31, 2009. DOI 10.1145/1462166.1462167 | correta | Propõe uma classificação nova, define as corrotinas assimétricas completas por semântica operacional e mostra que elas têm o poder expressivo das continuações *one-shot*. Adequação **alta**: as tasks do Atmos são corrotinas de Lua (manual do Atmos, seção *Structured Deterministic Concurrency*). |
-| 3 | Smith (2018), *Notes on structured concurrency, or: Go statement considered harmful*: motivação, *nurseries* do Trio | post de blog, 25 abr. 2018 | correta | Argumenta que "go statements are a form of goto statement" e propõe as *nurseries*. Não é revisado por pares, mas é a referência mais citada da área (Chen & You o citam). Adequação alta. |
-| 4 | A concorrência estruturada ainda é recente "como paradigma formal" | Chen & You (resumo); Sant'Anna, `sc.html` | imprecisa | O *nome* é recente (Sústrik 2016, Smith 2018). Sant'Anna, porém, mostra que as linguagens síncronas, desde os anos 1980, já reforçam "lexically-scoped tasks with safe cancellation". Para o TCC, essa linhagem (Esterel → Céu → Atmos) é central. |
-
-#### Ciclo de vida, hierarquia e escopo
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 5 | Vocabulário: ciclo de vida, hierarquia, escopo léxico, *extent*, *binding*, *lifetime*; "escopo léxico de variáveis e escopo temporal de tarefas são diferentes, e a concorrência estruturada busca fazê-los coincidir" | Manual do Atmos (*Structured Deterministic Concurrency*) | correta | O manual do Atmos diz exatamente isso: "tasks in Atmos are treated in the same way as local variables". |
-| 6 | Chen & You discutem as diferenças entre concorrência estruturada e programação estruturada | Chen & You (resumo) | imprecisa | O artigo **contesta** a visão de que a concorrência estruturada seja sucessora da programação estruturada e propõe outra origem, as corrotinas. |
-| 7 | Adya et al., *Cooperative Task Management Without Manual Stack Management* (USENIX 2002), que "aparece nas referências de Chen & You" | ADYA, A.; HOWELL, J.; THEIMER, M.; BOLOSKY, W. J.; DOUCEUR, J. R. In: *USENIX Annual Technical Conference*, 2002 | correta; a citação por Chen & You é provável | O link dado (trilha FREENIX) dá 404; o artigo é da conferência principal. Na lista de Chen & You (Crossref), a entrada `10.5555/647057.713851` cai na posição alfabética de "Adya", mas não pude confirmar pelo texto. Adequação **alta**, e a conversa a subestimou: o artigo separa *gerenciamento de tarefas* de *gerenciamento de pilha*. A versão Lua do `pico-tcc` é o caso cooperativo com pilha manual (o estado de cada comportamento vira campos de tabela, o *stack ripping*); a versão Atmos é o cooperativo com pilha automática. É a moldura teórica exata da comparação. |
-| 8 | Separar a hierarquia das entidades da hierarquia das tasks | código do `pico-tcc` | correta (boa sugestão) | No `pico-tcc` as duas quase coincidem (cada entidade é uma task), com exceções úteis para o texto: os componentes `XClickable` e `XCollidable` são tasks sem entidade. |
-
-#### "E Esterel?"
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 9 | Esterel é imperativa, síncrona e reativa, de Berry; hipótese de sincronismo; `\|\|` termina quando todos os ramos terminam | BERRY, G.; GONTHIER, G. The Esterel synchronous programming language: design, semantics, implementation. *Science of Computer Programming*, 19(2):87–152, 1992 | correta | O resumo define a linguagem pela "synchrony hypothesis"; a seção do paralelo descreve o término conjunto dos ramos. |
-| 10 | Berry & Gonthier (1992) é indispensável | idem | correta | Adequação média: basta a parte inicial, para a hipótese de sincronismo e a preempção. |
-| 11 | Tabela Esterel × concorrência estruturada ("concorrência estruturada geralmente assíncrona") | `sc.html` | imprecisa | É verdade para Kotlin, Swift e Trio, mas o orientador defende o oposto: a concorrência estruturada *deve* ser síncrona, porque o aborto seguro (preempção) exige um modelo dependente do tempo (Berry, 1993). |
-
-#### "E Céu?"
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 12 | Céu é reativa síncrona, criada por Francisco Sant'Anna (UERJ) "entre outros" | Relatório técnico PUC-Rio MCC 12/12 (2012); SenSys 2013 | imprecisa | Céu nasceu no doutorado de Sant'Anna na **PUC-Rio** (com Rodriguez e Ierusalimschy); a UERJ é a filiação atual dele (TECS 2017). |
-| 13 | *The Design and Implementation of the Synchronous Language CÉU* (TECS 2017): Sant'Anna, Ierusalimschy, Rodriguez, Rossetto e Branco | *ACM TECS*, 16(4):1–26, 2017. DOI 10.1145/3035544 | correta | Inspirada em Esterel, com verificação em tempo de compilação de comandos concorrentes conflitantes, eventos internos em pilha, integração com C e finalização. Adequação **alta** (trabalhos relacionados). |
-| 14 | *A Memory-Bounded, Deterministic and Terminating Semantics for... Céu* (LCTES 2018): Santos, Lima, Sant'Anna, Ierusalimschy e Haeusler; semântica *small-step* | *Proc. LCTES 2018*, p. 1–18. DOI 10.1145/3211332.3211334 | correta | Semântica operacional estrutural *small-step*, com prova de reações limitadas, determinísticas e com memória finita. Adequação média. |
-| 15 | Unidade de execução de Céu é a *trail*; "gerenciamento estático de memória baseado em escopo léxico" | TECS 2017 ("known as trails"); manual do Céu v0.30, *Overview* | correta | A frase está no **manual v0.30** (`docs/manual/v0.30`), não no site, ao contrário do que a conversa sugere. |
-
-#### "E Atmos?"
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 16 | Atmos, de Sant'Anna, reconcilia concorrência estruturada e programação orientada a eventos; subtítulo *Structured Event-Driven Concurrency* | README e manual do Atmos | correta | — |
-| 17 | Combina concorrência determinística, eventos, ciclo de vida léxico, *streams* funcionais e paralelismo por threads | manual, seção *DESIGN*; guia, seção 7 | correta | O manual também avisa: "Atmos is in **experimental stage**". |
-| 18 | Tabela de construções: `task`, `spawn`, `pin` ("vincula ao escopo léxico"), `tasks`, `await`, `emit`, `par`, `watching`, `defer` | manual (*Tasks*, *Local Variables*, *Emit*) | imprecisa | Duas ressalvas. **`pin`**: toda task criada por `spawn` já fica presa ao bloco onde nasce ("By default, an unassigned `spawn` attaches the new task to the enclosing block"); o `pin` dá um nome à referência e é obrigatório para pools. **`emit`**: o alcance padrão é a task corrente e seus descendentes (`:task`); para todas as tasks, `emit @:global`. Faltaram construções usadas no `pico-tcc`: `toggle`, `loop ... on`, `pub`, `abort`, `throw`/`catch`. |
-| 19 | Citação "The lexical organization of tasks determines their lifetimes." e o exemplo do `spawn` aninhado | guia, seções 3 e 3.2 | correta | A frase continua: "...and also how they are scheduled". |
-| 20 | Tabela Esterel/Céu/Atmos | manuais | correta, em linhas gerais | — |
-| 21 | Núcleo síncrono e cooperativo, mais threads isoladas para paralelismo | guia, seções 3.1 e 7.2 | correta | "deterministic and cooperative"; as threads "cannot use Atmos standard primitives like `await`, `emit`, or `spawn`". |
-| 22 | `sc.html`: compara concorrência estruturada, Esterel, threads, MapReduce e FRP em dois eixos (procedural × funcional; síncrono × assíncrono); recomenda Berry (1993) | SANT'ANNA, F. *Structured (Synchronous) Concurrency*. Disponível em `fsantanna.github.io/sc.html` | correta | Chama Berry (1993) de "the most interesting paper to connect SC with Esterel". Para o TCC, vale um ponto que a conversa não citou: segundo o post, a hipótese de sincronismo vale para a maioria das aplicações reativas, **entre elas os video games**. |
-| 23 | Berry, *Preemption in Concurrent Systems* (1993) | FSTTCS 1993, LNCS v. 761, p. 72–93. DOI 10.1007/3-540-57529-4_44 | correta | Adequação média. |
-| 24 | Não há artigo acadêmico que formalize o Atmos | lista de publicações de `ceu-lang.org`; repositório | correta, até onde verifiquei | As fontes são o manual, o guia e o repositório. Cite o manual com versão e data. |
-
-#### O projeto
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 25 | O `pico-tcc` é "uma aplicação desenvolvida com Atmos" | repositório | imprecisa | Tem as **duas** versões do mesmo jogo, hoje em `src/lua` e `src/atmos` (havia também uma versão anterior em C, retirada do repositório). Ver a parte 3. |
-
-### 1.2 Conversa 2: continuação
-
-| # | Afirmação | Fonte conferida | Situação | Correção e citação |
-|---|---|---|---|---|
-| 26 | Comparar *abordagens* (organização de comportamentos), não linguagens | manual do Atmos; código | correta e bem fundamentada | O Atmos compila para Lua e "mimics most of the semantics of Lua" (manual, *DESIGN*); as diferenças estão no controle, não nos dados. |
-| 27 | OO, concorrência estruturada e eventos são dimensões diferentes e podem coexistir | código | correta | No `pico-tcc` Atmos, cada task expõe estado por `pub` (como um objeto) e se comunica por eventos. |
-| 28 | Faltam no texto as seções de concorrência estruturada e de programação orientada a eventos; a seção de OO repete a de programação estruturada | artigo do TCC, p. 3–4 | correta | Os dois primeiros parágrafos da seção 2.1.2 copiam os da 2.1.1. |
-| 29 | Citar Chen & You não basta: é preciso fundamentar as propriedades que serão observadas | — | correta | — |
-| 30 | Experimentos sugeridos: movimento, animação, inimigo perseguindo o jogador, projétil, dano e morte, interface | código | imprecisa | Genéricos. O `pico-tcc` **já tem** equivalentes: movimento até um alvo (pinguim do centro), estados com tempo (pinguim atordoado no Bean Counters), projéteis (cargas), dano e vidas, fuga e empurrão (puffles), interface (botões com *hover*, placar). Use-os em vez de criar experimentos novos. |
-| 31 | Não comparar só linhas de código; perguntas sobre onde fica o estado, quantos pontos mudam, como começa, como termina, como reage a eventos | Sant'Anna (Pingus, SBGames 2018) | correta | É o método do estudo do Pingus, que mede variáveis de estado e classifica o código em cinco padrões de controle. |
-| 32 | Não presumir que propriedades da concorrência estruturada *assíncrona* valham para o modelo *síncrono* do Atmos | `sc.html`; guia, seção 3.1 | correta | — |
-| 33 | Estrutura proposta: introdução, fundamentação, Atmos, metodologia e experimentos, trabalhos relacionados, conclusão | — | correta, com ajustes | Ver a parte 2 (separar resultados da metodologia e incluir a equivalência). |
-
-### 1.3 Observações sobre o próprio artigo (referências e texto)
-
-| Ponto do artigo | Situação | Correção |
+| Achado | Evidência | Onde usar |
 |---|---|---|
-| [1] Ramadan & Widyani (2013), citado para definir "jogo" | existe (ICACSIS 2013, p. 95–100, DOI 10.1109/ICACSIS.2013.6761558); conteúdo inadequado | O artigo propõe um *ciclo de desenvolvimento* de jogos (GDLC), não uma definição de jogo. Para definir jogo, sugiro uma fonte de *game studies*, como Salen & Zimmerman (*Rules of Play*, 2004) ou Juul (*Half-Real*, 2005). Não as conferi nesta análise. |
-| [2] *The evolution of Lua, continued* | dados incompletos | IERUSALIMSCHY, R.; DE FIGUEIREDO, L. H.; **CELES, W.** *Journal of Computer Languages*, v. 83, 101326, 2025. DOI 10.1016/j.cola.2025.101326. Sustenta a afirmação: Lua "is one of the leading scripting languages in game development". |
-| [3] Cormen et al., *Introduction to Algorithms*, citado para o padrão Observer e como "Nystrom [3]" | **errada** | Trocar por NYSTROM, R. *Game Programming Patterns*. Genever Benning, 2014 (`gameprogrammingpatterns.com`), que tem os capítulos *Observer*, *State*, *Game Loop* e *Update Method*. A ideia de OO sem classes está no capítulo *Prototype*, sobre a linguagem Self. Para o Observer original: GAMMA, E. et al. *Design Patterns*, 1994. |
-| [4] Chen & You | veículo errado | ICPP Workshops '22, ACM, 2022, p. 1–8. |
-| [5] e [7] Notas CS442 de Waterloo | corretas | O Módulo 8 diz que a maioria das linguagens OO, mas não todas, usa classes; o Módulo 9 divide a comunicação em memória compartilhada e troca de mensagens. Aceitáveis, mas são notas de aula: se possível, complete com um livro de linguagens de programação. |
-| [6] Raynal (2013) | correta | Springer, 2013. DOI 10.1007/978-3-642-32027-9 (o ISBN citado é o da edição impressa). |
-| Seções 2.1.1 e 2.1.2 | texto duplicado | Reescrever a 2.1.2 com o que é próprio de OO: encapsulamento, mensagens, herança por metatabelas em Lua (o `Pinguim` herda de `Objeto` no `pico-tcc`). |
-| Palavras-chave ("Orientação a Eventos") × título ("Orientação a Objetos") | inconsistente | Alinhar. Sugestão de título na parte 2.2. |
-| Resumo: "As implementações (de que?)" | lacuna | Os minigames da Ilha Geladeira (Dojo, Bean Counters, Pega Puffles), o centro e os menus, em Lua e em Atmos. |
+| A versão Lua é o caso "cooperativo com pilha manual" e a Atmos, o "cooperativo com pilha automática" | Adya et al. (2002): as duas dimensões; no código, o estado de cada comportamento Lua vira campo de objeto (`tonto`, `bloqueio`, `espera`), o *stack ripping* | Cap. 2 (moldura) e 5 |
+| A concorrência estruturada nasce das corrotinas, não da programação estruturada | Chen & You (2022), contra a visão corrente | Cap. 2 (concorrência estruturada) |
+| A ideia de tarefas com escopo léxico e cancelamento seguro é antiga: as linguagens síncronas a usam desde os anos 1980 | `sc.html`: "lexically-scoped tasks with safe cancellation" | Cap. 2 e 6 (linhagem Esterel → Céu → Atmos) |
+| A concorrência estruturada deve ser síncrona, e jogos cabem na hipótese de sincronismo | `sc.html`, apoiado em Berry (1993); o post cita os video games entre as aplicações que satisfazem a hipótese | Cap. 2 (programação síncrona) e 3 |
+| As tasks do Atmos são corrotinas de Lua e se comportam como variáveis locais: o escopo do código define o tempo de vida | manual do Atmos, *Structured Deterministic Concurrency* ("tasks in Atmos are treated in the same way as local variables"); guia, seção 3 ("the lexical organization of tasks determines their lifetimes and also how they are scheduled"); de Moura & Ierusalimschy (2009) | Cap. 3 |
+| O escalonamento é determinístico, na ordem do código | guia, seção 3.1 ("deterministic and cooperative") | Cap. 3 e 4 (é o que torna o teste de equivalência possível) |
+| `pin` não é o que prende a task ao escopo: toda task criada por `spawn` já fica presa ao bloco; o `pin` dá nome à referência e é obrigatório para pools | manual, *Tasks* ("By default, an unassigned `spawn` attaches the new task to the enclosing block") | Cap. 3 |
+| O alcance padrão do `emit` é a task corrente e seus descendentes; o alcance errado causou dois erros reais no projeto | manual, *Emit*; `EQUIVALENCIA.md`, seção 5.1 (o `:clicked` dos prédios chegando ao Dojo; o `until` que encerrava o laço de colisões) | Cap. 5 (custo do Atmos) |
+| No Lua, a ordem das chamadas dentro do quadro é semântica, e um prazo criado num passo só pode contar no seguinte; no Atmos, isso vem do escalonador | `EQUIVALENCIA.md`, seções 2 e 4.1 (seis de oito mutações detectadas são desses detalhes) | Cap. 5 (custo do Lua) |
+| As duas versões fazem exatamente a mesma coisa, quadro a quadro | `EQUIVALENCIA.md`: todos os roteiros, quatro sementes, todos os quadros iguais | Cap. 4 e 5 (validade da comparação) |
+| Com versões limpas e equivalentes, o tamanho fica parecido (980 × 888 linhas), mas as condicionais caem onde há fases (Bean Counters 22 × 7) | seção 6.2 | Cap. 5 |
+| O jogo estudado tem os cinco padrões do Pingus | `PADROES.md` (máquinas de estados, continuação, despacho, tempo de vida, sinalização, com diagramas) | Cap. 4 (critérios) e 5 |
+| A comparação é entre abordagens, não entre linguagens: o Atmos compila para Lua e imita a sua semântica | manual do Atmos, *DESIGN* ("mimics most of the semantics of Lua") | Cap. 1 e 4 |
+| Céu verifica a concorrência em tempo de compilação, ordena as *trails* pelo código e gerencia memória pelo escopo léxico | TECS 2017; manual do Céu v0.30, *Overview* | Cap. 6 |
+| Esterel: o paralelo termina quando todos os ramos terminam | Berry & Gonthier (1992) | Cap. 2 e 3 (origem do `par :all`) |
+| O Atmos é experimental e não tem artigo próprio | manual ("Atmos is in **experimental stage**") | Cap. 3 (citar o manual com versão e data) |
 
----
-
-## 2. Fluxo de leitura, estrutura e tópicos
-
-### 2.1 Fluxo de leitura (em ordem)
+## 3. Sequência de leitura
 
 | Ordem | Leitura | O que tirar | Onde entra |
 |---|---|---|---|
-| 1 | Manual e guia do Atmos (manual: *DESIGN*, *Tasks*, *Task Operations*; guia: seções 1 a 6) | Modelo de execução (ambiente, `emit`/`await`, escalonamento determinístico e cooperativo, ordem léxica), hierarquia, `pin`/`tasks`, `par`/`watching`/`toggle`, `pub`, `defer`/`abort` | Cap. 3 |
-| 2 | Sant'Anna, *Pingus: C++ → Céu* (SBGames 2018; `fsantanna.github.io/pingus`) | Os cinco padrões de controle em jogos (máquinas de estados, passagem de continuação, hierarquias de despacho, hierarquias de vida, sinalização); variáveis de estado como sintoma; LOC "densas" | Cap. 4 (critérios) e Cap. 6 |
-| 3 | Nystrom, *Game Programming Patterns* (*Game Loop*, *Update Method*, *State*, *Observer*) | O modelo da versão Lua: laço, `update`/`draw`, estado explícito, observadores | Cap. 2.1 e Cap. 4.2 |
-| 4 | Adya et al. (2002) | Gerenciamento de tarefas × gerenciamento de pilha; *stack ripping* | Cap. 2.3 (a moldura da comparação) |
-| 5 | Smith (2018) e Chen & You (2022) | Definição de concorrência estruturada, *nurseries*, histórico, papel das corrotinas | Cap. 2.5 |
-| 6 | de Moura & Ierusalimschy (2009) | Corrotinas assimétricas completas: a base das tasks | Cap. 2.4 e Cap. 3 |
-| 7 | Sant'Anna, `sc.html`, e Berry (1993) | Concorrência estruturada síncrona; preempção; por que jogos satisfazem a hipótese de sincronismo | Cap. 2.6 |
-| 8 | Berry & Gonthier (1992), seções introdutórias | Hipótese de sincronismo, paralelo, preempção | Cap. 2.6 |
-| 9 | Céu: TECS 2017 (LCTES 2018, opcional) | A linhagem Esterel → Céu → Atmos; determinismo, ordem léxica, finalização | Cap. 6 |
-| 10 | Ierusalimschy et al. (2025) | Lua em jogos; corrotinas na linguagem | Cap. 1 e 2 |
+| 1 | Manual e guia do Atmos (manual: *DESIGN*, *Tasks*, *Task Operations*; guia: seções 1 a 6) | Modelo de execução, hierarquia, compostos, eventos, finalização | Cap. 3 |
+| 2 | Sant'Anna, Pingus (2018) | Os cinco padrões; variáveis de estado como sintoma; LOC "densas" | Cap. 4 e 6 |
+| 3 | Nystrom (2014): *Game Loop*, *Update Method*, *State*, *Observer*, *Component* | O vocabulário da versão Lua | Cap. 2 e 4 |
+| 4 | Adya et al. (2002) | Tarefas × pilha; *stack ripping* | Cap. 2 (moldura da comparação) |
+| 5 | Smith (2018) e Chen & You (2022) | Definição e origem da concorrência estruturada | Cap. 2 |
+| 6 | de Moura & Ierusalimschy (2009) | Corrotinas assimétricas completas | Cap. 2 e 3 |
+| 7 | Sant'Anna, `sc.html`, e Berry (1993) | Concorrência estruturada síncrona; preempção; jogos e a hipótese de sincronismo | Cap. 2 |
+| 8 | Berry & Gonthier (1992), seções iniciais | Hipótese de sincronismo, paralelo, preempção | Cap. 2 |
+| 9 | Céu: TECS 2017 (LCTES 2018 como complemento) | A linhagem até o Atmos | Cap. 6 |
+| 10 | Ierusalimschy et al. (2025) | Lua em jogos | Cap. 1 e 2 |
 
+## 4. Correções no artigo atual (`TCC___Samuel-26.pdf`)
 
-### 2.2 Estrutura proposta (monografia, no formato do PDF)
+| Ponto do artigo | Problema | Correção |
+|---|---|---|
+| [1] Ramadan & Widyani (2013), citado para definir "jogo" | O artigo propõe um ciclo de desenvolvimento de jogos (GDLC), não uma definição de jogo | Usar uma fonte de *game studies* para a definição, como Salen & Zimmerman (*Rules of Play*, 2004) ou Juul (*Half-Real*, 2005) (não conferidas aqui) |
+| [2] *The evolution of Lua, continued* | Falta o terceiro autor | IERUSALIMSCHY, R.; DE FIGUEIREDO, L. H.; CELES, W. *Journal of Computer Languages*, v. 83, 101326, 2025 |
+| [3] Cormen et al., citado para o Observer e como "Nystrom [3]" | Referência errada | NYSTROM, R. *Game Programming Patterns*, 2014. Para o Observer original: GAMMA, E. et al. *Design Patterns*, 1994. A ideia de OO sem classes está no capítulo *Prototype* de Nystrom |
+| [4] Chen & You, "Association for Computing Machinery, 2023" | Veículo e ano errados | *ICPP Workshops '22*, ACM, 2022, p. 1–8 |
+| [5] e [7] Notas CS442 de Waterloo | Corretas, mas são notas de aula | Se possível, completar com um livro de linguagens de programação |
+| [6] Raynal (2013) | Correta | Springer, 2013. DOI 10.1007/978-3-642-32027-9 |
+| Seções 2.1.1 e 2.1.2 | Os dois primeiros parágrafos da 2.1.2 copiam os da 2.1.1 | Reescrever a 2.1.2 com o que é próprio de OO: encapsulamento, mensagens, herança por metatabelas (a classe base `Objeto` do jogo) |
+| Seção 2.1.3 (concorrência) | Descreve a concorrência assíncrona e não determinística; o Atmos é o oposto | Encurtar e apresentar como contraste: escalonamento cooperativo, determinismo, comunicação por eventos |
+| Palavras-chave ("Orientação a Eventos") × título ("Orientação a Objetos") | Inconsistentes | Alinhar (título sugerido na seção 5) |
+| Resumo: "As implementações (de que?)" | Lacuna | Os minigames da Ilha Geladeira (Dojo, Bean Counters, Pega Puffles), a praça e os menus, em Lua e em Atmos |
+| Introdução | Afirmações sem referente ("essas características", "essa abordagem", "determinadas estruturas"); o problema só no condicional; sem contribuições | Abrir com um exemplo concreto do jogo (a rodada do Dojo nas duas versões) e fechar com as contribuições numeradas |
+| Seção 2.1, fim do segundo parágrafo | Marcador "como: ......" | Completar ou cortar |
+
+## 5. Estrutura do texto e tópicos
 
 Título sugerido, mais fiel ao que o projeto compara: *Desenvolvimento de
 Jogos: Laço de Atualização com Objetos × Concorrência Estruturada Síncrona*.
 Se preferir manter "Orientação a Objetos", explique no capítulo 1 que a
-versão Lua é imperativa, com objetos sobre metatabelas e um laço
-`update`/`draw`.
+versão Lua é um laço de jogo com objetos sobre metatabelas.
 
 1. **Introdução**
    - jogos como sistemas reativos e o laço de jogo;
-   - problema: em código com `update`/`draw`, o estado e o fluxo de cada
-     comportamento se espalham entre chamadas;
+   - problema, com o exemplo da rodada do Dojo: no laço de atualização, o
+     estado e o fluxo de um comportamento se espalham entre chamadas;
    - pergunta: como as duas abordagens diferem em expressividade, correção e
-     custo, com o mesmo comportamento?;
-   - objetivos e contribuições: duas implementações do mesmo jogo, um método
-     de equivalência por replay, métricas;
+     custo, para o mesmo comportamento?;
+   - contribuições: o mesmo jogo nas duas abordagens; um método de
+     equivalência por replay determinístico; a comparação por padrões e
+     métricas; os erros que a comparação revelou;
    - organização do texto.
 2. **Fundamentação teórica**
    - 2.1 Jogos: laço, atualização e desenho, máquinas de estados (Nystrom);
-   - 2.2 Programação estruturada e orientada a objetos (o que o texto já tem,
-     sem a duplicação; objetos em Lua);
-   - 2.3 Programação orientada a eventos e inversão de controle (callbacks;
-     Adya: tarefas × pilha, *stack ripping*);
-   - 2.4 Concorrência: processos e tarefas, escalonamento cooperativo,
-     corrotinas, comunicação (o que já está escrito, mais corrotinas e
-     *broadcast* de eventos);
-   - 2.5 Concorrência estruturada: hierarquia, ciclo de vida, cancelamento
-     (Smith; Chen & You);
-   - 2.6 Programação síncrona: hipótese de sincronismo, Esterel, preempção
-     (Berry; `sc.html`).
+   - 2.2 Programação estruturada e orientada a objetos (sem a duplicação;
+     objetos em Lua);
+   - 2.3 Eventos e inversão de controle (Adya: tarefas × pilha, *stack
+     ripping*);
+   - 2.4 Concorrência cooperativa e corrotinas (de Moura & Ierusalimschy);
+   - 2.5 Concorrência estruturada (Smith; Chen & You);
+   - 2.6 Programação síncrona (hipótese de sincronismo, Esterel, preempção;
+     Berry; `sc.html`).
 3. **A linguagem Atmos**
-   - ambiente e eventos (`atmos.env.pico`: relógio, entrada, `draw`);
-   - tasks, hierarquia e escalonamento léxico;
+   - ambiente e eventos (relógio, entrada, `draw`; o `ambiente.lua` do jogo);
+   - tasks, hierarquia e escalonamento na ordem do código;
    - `pin`, pools (`tasks`), `pub`;
-   - compostos: `par`, `watching`, `loop on`, `toggle`, `every`;
-   - finalização e aborto: `defer`, `abort`, erros;
+   - compostos: `par`, `watching`, `loop on`, `toggle`;
+   - eventos: `emit`, alcance e `await` com padrões;
+   - finalização e aborto: `defer`, `abort`;
    - integração com Lua.
 4. **Metodologia e implementações**
    - 4.1 O jogo Ilha Geladeira e o pico-sdl;
-   - 4.2 A versão Lua (classes com `tempo`/`evento`/`desenha`, estado
-     encapsulado em cada objeto, transições pelo `Jogo`);
-   - 4.3 A versão Atmos (uma task por entidade; componentes `Image`, `Botao`,
-     `XClickable`, `XCollidable`);
+   - 4.2 A versão Lua: classes com `tempo`/`evento`/`desenha`, estado em cada
+     objeto, transições pelo `Jogo`;
+   - 4.3 A versão Atmos: uma task por entidade, componentes `Image`,
+     `Image_Hover`, `XClickable`, `XCollidable`;
    - 4.4 Equivalência por replay (`EQUIVALENCIA.md`);
-   - 4.5 Critérios de comparação (padrões do Pingus, variáveis de estado,
-     pontos de mudança, LOC, custo por quadro).
+   - 4.5 Critérios de comparação: os padrões do Pingus, variáveis de estado,
+     pontos de mudança, linhas de código, custo por quadro.
 5. **Resultados e discussão**
-   - por padrão, com pares de trechos Lua × Atmos (ver 3.3);
-   - métricas (3.2);
-   - divergências que o teste encontrou: o que mostram sobre correção;
-   - custo de execução;
+   - por padrão, com os pares Lua × Atmos da seção 6.3 e os diagramas do
+     `PADROES.md`;
+   - métricas (seção 6.2);
+   - erros que a comparação revelou, nas duas versões;
+   - custo de execução (o Atmos gasta mais por quadro; ver o relógio na
+     seção 2 do `EQUIVALENCIA.md`);
    - ameaças à validade (versões escritas em momentos diferentes, por
-     autores diferentes).
-6. **Trabalhos relacionados**: Pingus/Céu; Esterel e Céu; concorrência
-   estruturada em Kotlin, Swift e Trio; o caso do Doom (ver 2.4).
+     autores diferentes; um só jogo).
+6. **Trabalhos relacionados**: Pingus em Céu; Esterel e Céu; concorrência
+   estruturada em Kotlin, Swift e Trio; o caso do Doom (abaixo).
 7. **Conclusão**: respostas, limitações, trabalhos futuros (*streams*,
    threads, um estudo maior).
 
-### 2.3 O que se mantém, o que muda, o que falta
+**O que se mantém, o que muda, o que falta no artigo atual.**
+Mantêm-se a introdução, em linhas gerais (com as correções da seção 4), a
+seção 2.1.1 e a base da 2.1.3. Mudam a 2.1.2, as referências [1] a [4], o
+título ou as palavras-chave, e a posição dos trabalhos relacionados (depois
+dos resultados). Faltam concorrência estruturada, eventos e inversão de
+controle, programação síncrona, o capítulo do Atmos, a metodologia com o
+`pico-tcc` e a equivalência, e os resultados.
 
-- **Mantém-se:** a introdução, em linhas gerais (com as correções da tabela
-  1.3); a seção 2.1.1; a seção 2.1.3 (concorrência), que está boa e bem
-  referenciada.
-- **Muda:** a 2.1.2 (duplicada); as referências [1], [2], [3] e [4]; o título
-  ou as palavras-chave; o capítulo de trabalhos relacionados passa para
-  depois dos resultados.
-- **Falta:** concorrência estruturada; eventos e inversão de controle;
-  programação síncrona; o capítulo do Atmos; a metodologia com o `pico-tcc` e
-  a equivalência; os resultados. Hoje o texto não menciona o repositório.
-
-### 2.4 O caso do Doom (`lua_doom`)
-
-**Convém usar, como estudo complementar e curto**: uma seção no capítulo 5 ou
-6, não um eixo do texto. Pelo `CLAUDE.md` do projeto, ele tem o que falta ao
-`pico-tcc`: escala (a lógica inteira de um jogo comercial), migração passo a
-passo com tags, e uma equivalência provada por replay determinístico, com hash
-de estado, 14 roteiros e testes de mutação, contra a versão imperativa com
-*thinkers*. Serve para mostrar que o método da parte 4 escala e para discutir
-custo.
-
-Dois cuidados:
-
-- é um port de um port (Python → Lua), com diferenças conhecidas em relação
-  ao `linuxdoom` original (há uma auditoria em andamento). O texto deve
-  comparar as duas versões Lua do port entre si, não com o Doom original;
-- é um projeto à parte, ainda em correção. Para não abrir uma segunda frente,
-  fixe uma tag e use só os números dela.
+**O caso do Doom (`lua_doom`).** Convém usar como estudo complementar e
+curto, numa seção do capítulo 5 ou 6. Ele tem o que falta ao `pico-tcc`:
+escala (a lógica inteira de um jogo comercial), migração passo a passo com
+tags e equivalência provada por replay contra a versão imperativa com
+*thinkers*. Dois cuidados: é um port de um port (Python → Lua), então a
+comparação é entre as duas versões Lua do port, não com o Doom original; e é
+um projeto ainda em correção, então fixe uma tag e use só os números dela.
 
 ---
 
-## 3. O repositório como base da comparação
+## 6. O repositório como base da comparação
 
-Situação em 23/11/2026, depois da rodada em que as novidades do Atmos foram
-para o Lua, o que faltava no Atmos foi acrescentado e o Lua foi reescrito em
-classes. As duas versões são equivalentes quadro a quadro
-([`EQUIVALENCIA.md`](EQUIVALENCIA.md)), então as métricas abaixo comparam
-programas que fazem exatamente a mesma coisa.
+Situação em 24/11/2026. As duas versões são equivalentes quadro a quadro
+([`EQUIVALENCIA.md`](EQUIVALENCIA.md)), então as métricas comparam programas
+que fazem exatamente a mesma coisa.
 
-### 3.1 Inventário
+### 6.1 Inventário
 
 As duas versões usam as mesmas telas e os mesmos recursos (`assets/`).
-Desenho, colisão e entrada vêm do pico-sdl, instalado no sistema (o binding
-Lua usado é a v0.7; o repositório não traz mais o submódulo).
+Desenho, colisão e entrada vêm do pico-sdl, instalado no sistema.
 
 | Programa | Versão Lua (`src/lua`) | Versão Atmos (`src/atmos`) |
 |---|---|---|
-| fluxo de telas | `main.lua` (laço: `tempo`, `evento`, `desenha`) e `jogo.lua` (classe `Jogo`: moedas, cor do pinguim, troca de telas) | `main.atm`: `loop { await Menu() ... }` |
+| fluxo de telas | `main.lua` (laço: `tempo`, `evento`, `desenha`) e `jogo.lua` (classe `Jogo`: moedas, cor do pinguim, troca de telas) | `main.atm` (`loop { await Menu() ... }`) e `ambiente.lua` (relógio, entrada e `draw`) |
 | menu | `screens/telas_menu/menu.lua` + `util/botao.lua` | `screens/telas_menu/menu.atm` + `util/components/botao.atm`, `image_hover.atm`, `xclickable.atm` |
-| personalização | `screens/telas_menu/personalizacao.lua` | `screens/telas_menu/personalizar.atm` (`cor.atm` existe e não é usado) |
-| centro (com os minigames dentro) | `screens/centro/centro.lua`, `pinguim.lua`, `predio.lua` | `screens/centro/centro.atm`, `pinguim.atm`, `predio.atm` |
+| personalização | `screens/telas_menu/personalizacao.lua` | `screens/telas_menu/personalizar.atm` |
+| praça (com os minigames dentro) | `screens/centro/centro.lua`, `pinguim.lua`, `predio.lua` | `screens/centro/centro.atm`, `pinguim.atm`, `predio.atm` |
 | Dojo | `screens/minigames/dojo/dojo.lua`, `carta.lua` | `screens/minigames/dojo/dojo.atm`, `carta.atm` |
 | Bean Counters | `screens/minigames/bean_counters/bean_counters.lua`, `pinguim.lua`, `carga.lua`, `pilha.lua`, `plataforma.lua` | `.../bean_counters.atm`, `pinguim.atm`, `carga.atm`, `pilha.atm`, `plataforma.atm` |
 | Pega Puffles | `screens/minigames/pega_puffles/pega_puffles.lua`, `puffle.lua` | `.../pega_puffles.atm`, `puffle.atm` |
-| base | `util/objeto.lua` (classe base), `util/temporizador.lua` (tempo do jogo) | `util/vetor.atm`, `util/components/image.atm`, `xcollidable.atm` |
-
-Como rodar cada uma:
+| base | `util/objeto.lua` (classe base), `util/temporizador.lua` (tempo do jogo), `util/lista.lua` | `util/vetor.atm`, `util/components/image.atm`, `xcollidable.atm` |
 
 ```bash
-cd src/lua && pico-lua main.lua
+cd src/lua && lua main.lua
 ```
 
 ```bash
 cd src/atmos && atmos main.atm
 ```
 
-O repositório guarda só o jogo: as duas versões (`src/lua`, `src/atmos`), os
-recursos (`assets/`), o teste de equivalência (`tests/equiv`) e as métricas
-(`tools/metricas.py`). A versão anterior em C (da disciplina eletiva), as
-comparações de pico × SDL e os experimentos com layers saíram do repositório
-e continuam no histórico do git.
-
-O que mudou no Lua para ficar mais orientado a objetos: `Objeto` passou a ser
-uma classe base de verdade (herança por metatabelas: `extend`, `new`, `init`)
-com três ganchos (`tempo`, `evento`, `desenha`); o estado que antes ficava em
-`gameState` (`state.centroData`, `state.dojoData`...) passou para os objetos
-de cada tela; as telas não mexem mais nos campos das entidades, chamam
+A versão Lua é orientada a objetos: `Objeto` é a classe base (herança por
+metatabelas: `extend`, `new`, `init`) com três ganchos (`tempo`, `evento`,
+`desenha`); cada tela e cada entidade guarda o próprio estado e só expõe
 métodos (`pinguim:escolhe_destino(id)`, `carta:joga(r)`, `plataforma:recebe()`);
 o pinguim do Bean Counters avisa o minigame como um observador
-(`ao_coletar`, `ao_entregar`, `ao_ser_atingido`); o relógio real deu lugar ao
-`Temporizador`, que conta o tempo do jogo.
+(`ao_coletar`, `ao_entregar`, `ao_ser_atingido`); o `Temporizador` conta o
+tempo do jogo.
 
-### 3.2 Métricas (`python3 tools/metricas.py`, em 23/11/2026, depois das melhorias da seção 5.4 do `EQUIVALENCIA.md`)
+### 6.2 Métricas (`python3 tools/metricas.py`)
 
 Contagens léxicas, sem linhas em branco nem comentários.
 
@@ -306,7 +218,7 @@ Contagens léxicas, sem linhas em branco nem comentários.
 | main e jogo (fluxo de telas) | 58 | 22 | 0,38 | 8 | 0+0 | 5 | 0 |
 | menu | 34 | 36 | 1,06 | 3 | 1+0 | 1 | 0 |
 | personalização | 68 | 80 | 1,18 | 6 | 1+2 | 4 | 1 |
-| centro | 169 | 142 | 0,84 | 16 | 4+2 | 16 | 3 |
+| praça | 169 | 142 | 0,84 | 16 | 4+2 | 16 | 3 |
 | Dojo | 152 | 108 | 0,71 | 15 | 2+4 | 16 | 12 |
 | Bean Counters | 284 | 262 | 0,92 | 31 | 5+1 | 22 | 7 |
 | Pega Puffles | 159 | 174 | 1,09 | 13 | 2+4 | 13 | 11 |
@@ -318,7 +230,7 @@ Contagens léxicas, sem linhas em branco nem comentários.
 | main e jogo | 4 | 1 | 3 |
 | menu | 4 | 0 | 0 |
 | personalização | 4 | 0 | 1 |
-| centro | 15 | 11 | 10 |
+| praça | 15 | 11 | 10 |
 | Dojo | 15 | 3 | 6 |
 | Bean Counters | 32 | 6 | 15 |
 | Pega Puffles | 13 | 6 | 11 |
@@ -331,60 +243,49 @@ Construções de concorrência no Atmos:
 | main | 0 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | menu | 2 | 3 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
 | personalização | 4 | 1 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
-| centro | 10 | 7 | 4 | 1 | 4 | 0 | 0 | 2 | 0 |
+| praça | 10 | 7 | 4 | 1 | 4 | 0 | 0 | 2 | 0 |
 | Dojo | 4 | 3 | 2 | 0 | 1 | 0 | 2 | 4 | 0 |
 | Bean Counters | 25 | 12 | 5 | 0 | 15 | 2 | 7 | 8 | 2 |
 | Pega Puffles | 7 | 0 | 0 | 0 | 6 | 0 | 3 | 2 | 0 |
 | base e componentes | 1 | 1 | 0 | 0 | 4 | 0 | 2 | 0 | 0 |
 
-Leitura inicial, com cautela:
+Leitura dos números:
 
-- **o tamanho**: depois da limpeza do Atmos (código morto do `vetor.atm`,
-  `cor.atm`, `Image_Hover` em um laço, `emit` por referência, Dojo com
-  `pos()` e a tabela `VENCE`), o Atmos tem 888 linhas contra 980 do Lua (9%
-  a menos). A diferença de 28% medida no começo vinha em boa parte de código
-  morto e repetido na versão Lua antiga; a de agora compara versões limpas
-  e equivalentes;
-- **as condicionais continuam caindo no Atmos** onde há fases: Bean Counters
-  22 × 7, centro 16 × 3, fluxo 5 × 0. No Dojo e no Pega Puffles ficam perto,
-  porque ali os `if` são regras do jogo (comparar cartas, testar colisão), não
-  controle de fase;
-- **o estado de controle de fase tem forma diferente**. No Lua ele aparece
-  como campos (Bean Counters: `tonto`, `bloqueio`, `lancamento`, `fim`,
-  `espera`, `viva`; Dojo: `espera`, `rodada`, `resultado`, `prazo`, `viva`;
-  centro: `ponto`, `destino`, `minigame`). No Atmos, os mesmos papéis são
-  pontos de suspensão (`await 2s`, `watching :pinguim.atordoado`,
-  `toggle ... await 250ms`). Os campos restantes nas duas contagens são
-  sobretudo dados (retângulos, imagens, placar);
-- **custo de correção**: reproduzir no Lua as regras do Atmos exigiu cuidar da
-  ordem dos passos dentro do quadro e da regra "um prazo criado num passo só
-  conta a partir do seguinte", que no Atmos vem de graça do escalonador. Seis
-  das oito mutações da seção 4.1 do `EQUIVALENCIA.md` são exatamente desses
-  detalhes de ordem;
-- **custo do Atmos**: dois erros de hierarquia e alcance de eventos apareceram
-  só no Atmos (o `until` que encerrava o laço do pinguim; o `:clicked` dos
-  prédios chegando ao Dojo). São dois bons exemplos para discutir no texto.
+- **tamanho**: o Atmos tem 9% menos linhas (888 × 980). A maior diferença
+  está no fluxo de telas (22 × 58), em que a troca de telas é um laço com
+  `await`;
+- **condicionais**: caem no Atmos onde há fases (Bean Counters 22 × 7, praça
+  16 × 3, fluxo 5 × 0). No Dojo e no Pega Puffles ficam perto, porque ali os
+  `if` são regras do jogo (comparar cartas, testar colisão), não controle de
+  fase;
+- **estado de controle de fase**: no Lua aparece como campos (Bean Counters:
+  `tonto`, `bloqueio`, `lancamento`, `fim`, `viva`; Dojo: `espera`, `rodada`,
+  `resultado`, `prazo`, `viva`; praça: `ponto`, `destino`, `minigame`). No
+  Atmos, os mesmos papéis são pontos de suspensão (`await 2s`,
+  `watching :pinguim.atordoado`, `toggle ... await 250ms`). Os outros campos
+  das duas contagens são sobretudo dados (retângulos, imagens, placar);
+- **custo de correção de cada versão**: no Lua, a ordem dos passos e a regra
+  dos prazos criados no passo; no Atmos, o alcance dos eventos (seção 2).
 
-### 3.3 Forma das máquinas de estados (exemplos para o capítulo 5)
+### 6.3 Forma das máquinas de estados (exemplos para o capítulo 5)
 
 | Comportamento | Lua (classes) | Atmos (tasks) |
 |---|---|---|
 | Dojo, rodada | `Dojo:evento` só aceita clique quando `self.espera == nil`; `joga` cria `self.espera = Temporizador(2 s)`; `Dojo:tempo` avança cartas e espera e conta `rodada` até 3 | `loop in 3 { await <:clicked until ...>; ...; await 2s }`: a fase é o ponto do laço |
 | Bean Counters, pinguim atordoado | `self.tonto` (Temporizador) testado em `tempo` antes de colidir e de andar; o minigame troca `self.lancamento` por 2 s | `await 2s` no laço de colisões e `watching :pinguim.atordoado { ... }` seguido de `await 2s` no movimento e no lançador |
-| Bean Counters, intervalo da plataforma | `self.bloqueio` (Temporizador), criado na coleta ou entrega se não existir | `toggle spawn_plataforma(false); await 250ms; toggle spawn_plataforma(true)` |
-| Centro, ir até um prédio | `self.ponto` e `self.destino`; `tempo` testa a colisão e anda | `watching :collided until (...)` sobre o movimento; `watching :mouse.button.dn` recomeça a caminhada |
+| Bean Counters, intervalo da plataforma | `self.bloqueio` (Temporizador), criado na coleta ou entrega se não existir | `toggle entrega(false); await 250ms; toggle entrega(true)` |
+| Praça, ir até um prédio | `self.ponto` e `self.destino`; `tempo` testa a colisão e anda | `watching :collided until (...)` sobre o movimento; `watching :mouse.button.dn` recomeça a caminhada |
 | Botão com destaque | `Botao:em_cima()` decide a imagem no desenho; `Menu:evento` repassa o clique a cada botão | `Image_Hover` (um `loop on :draw`) + `XClickable(alvo, me)`; `Botao` termina no primeiro `:clicked`; o menu espera com `par :any` |
 | Fim do minigame | `Centro:tempo` recebe as moedas de `minigame:tempo(dt)` e cria um novo pinguim | `set moedas = moedas + await BeanCounters()`: a continuação é a linha seguinte |
 
-Cada linha desta tabela tem diagramas (máquina de estados e comunicação das
-tasks; fluxo das funções do Lua) em [`PADROES.md`](PADROES.md), junto com os
-outros padrões de Nystrom e do estudo do Pingus encontrados no código.
+Cada linha tem diagramas em [`PADROES.md`](PADROES.md): máquina de estados e
+comunicação das tasks; fluxo das funções do Lua.
 
-Nos termos de Adya et al., o Lua continua fazendo *stack ripping*, agora
-organizado em objetos: o que seria uma variável local da sequência "esperar o
-clique, mostrar o resultado por 2 s, passar à próxima rodada" vira campo do
-objeto (`espera`, `rodada`). Nos termos do estudo do Pingus, os exemplos
-cobrem os padrões de máquina de estados (Dojo, pinguim), passagem de
-continuação (fim do minigame), hierarquia de vida (minigame dentro do centro,
-cargas e puffles em pools) e sinalização (`:pinguim.coleta`, `:puffle.fugiu`
-no Atmos; métodos de observador no Lua).
+Nos termos de Adya et al., o Lua faz *stack ripping* organizado em objetos: o
+que seria uma variável local da sequência "esperar o clique, mostrar o
+resultado por 2 s, passar à próxima rodada" vira campo do objeto (`espera`,
+`rodada`). Nos termos do estudo do Pingus, os exemplos cobrem máquinas de
+estados (Dojo, pinguim), passagem de continuação (fim do minigame),
+hierarquia de vida (minigame dentro da praça, cargas e puffles em pools) e
+sinalização (`:pinguim.coleta`, `:puffle.fugiu` no Atmos; métodos de
+observador no Lua).

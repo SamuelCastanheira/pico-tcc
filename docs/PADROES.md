@@ -134,7 +134,7 @@ flowchart TD
 Nystrom propõe trocar flags espalhadas por uma máquina de estados explícita.
 O Pingus mostra o passo seguinte: com `await`, a máquina de estados vira
 código sequencial e as variáveis de estado somem. As cinco subseções abaixo
-são as linhas da tabela 3.3 do `ANALISE_TCC.md`.
+são as linhas da tabela 6.3 do `ANALISE_TCC.md`.
 
 ### 3.1 Dojo: a rodada
 
@@ -600,7 +600,7 @@ Melhor citar como "relacionado", não como o padrão.
 
 ## 12. Observações para o texto
 
-- Em cada linha da tabela 3.3, a coluna Atmos tem um diagrama de estados que
+- Em cada linha da tabela 6.3, a coluna Atmos tem um diagrama de estados que
   é o próprio código lido de cima para baixo; a coluna Lua tem o estado em
   campos e o fluxo espalhado entre `evento` e `tempo`. É a tese do Pingus
   ("variáveis com nomes suspeitos" como `tonto`, `bloqueio`, `espera`).

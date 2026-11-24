@@ -163,13 +163,13 @@ python3 tools/metricas.py
 ```
 
 Mede, por tela, linhas de código, funções e tasks, condicionais, estado
-mutável e as construções de concorrência do Atmos. A análise está na parte 3
+mutável e as construções de concorrência do Atmos. A análise está na seção 6
 de [`docs/ANALISE_TCC.md`](docs/ANALISE_TCC.md).
 
 ## Documentos
 
-- [`docs/ANALISE_TCC.md`](docs/ANALISE_TCC.md): validação de referências,
-  plano de leitura e de estrutura do texto, inventário e métricas do projeto.
+- [`docs/ANALISE_TCC.md`](docs/ANALISE_TCC.md): leituras, achados, sequência de
+  leitura, correções no artigo, estrutura do texto, inventário e métricas.
 - [`docs/EQUIVALENCIA.md`](docs/EQUIVALENCIA.md): o teste de equivalência
   entre as versões Lua e Atmos.
 - [`docs/PADROES.md`](docs/PADROES.md): padrões de jogos (Nystrom; estudo do
