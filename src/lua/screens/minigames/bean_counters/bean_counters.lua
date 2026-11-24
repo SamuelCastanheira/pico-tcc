@@ -7,6 +7,7 @@ local Temporizador = require("util.temporizador")
 local Pinguim = require("screens.minigames.bean_counters.pinguim")
 local Carga = require("screens.minigames.bean_counters.carga")
 local Plataforma = require("screens.minigames.bean_counters.plataforma")
+local lista = require("util.lista")
 
 local BASE = "../../assets/imgs/bean_counters/"
 
@@ -17,9 +18,13 @@ function BeanCounters:init ()
     self.fundo    = {'%', x=0.5, y=0.5, w=1, h=1}
     self.caminhao = {'%', x=1, y=1, w=0.20, h=0.85, anchor='SE'}
     self.neve     = {'%', x=0.5, y=1, w=1, h=0.4, anchor='S'}
+    -- layers das cargas (o café gira), criados uma vez por partida
+    for _, tipo in ipairs{"Anvil", "Flower_pot", "Coffe_bag", "Fish_bean_counters"} do
+        pico.layer.image{path = string.format("%s%s.webp", BASE, tipo)}
+    end
     self.plataforma = Plataforma:new({'%', x=0.13, y=0.86, w=0.30, h=0.15}, BASE.."plataforma.png")
     self.cargas = {}
-    self.pinguim = Pinguim:new(self)
+    self.pinguim = Pinguim:new(self, self.cargas, self.plataforma)
     self.placar = 0
     self.lancamento = Temporizador:new(0.5 * Temporizador.S)   -- próxima carga
     self.fim = nil
@@ -55,23 +60,16 @@ function BeanCounters:lanca ()
     self.lancamento = Temporizador:new((0.2 + (math.random() * 0.8)) * Temporizador.S)
 end
 
-local function tira_mortas (cargas)
-    for i = #cargas, 1, -1 do
-        if not cargas[i].viva then table.remove(cargas, i) end
-    end
-end
-
 -- devolve o placar quando o jogo acaba. A ordem dos passos é a da versão
 -- Atmos; prazos criados durante o passo só contam a partir do próximo.
 function BeanCounters:tempo (dt)
     local lancamento, fim = self.lancamento, self.fim
-    self.plataforma:tempo(dt)
     for _, c in ipairs(self.cargas) do
         c:tempo(dt)
     end
-    tira_mortas(self.cargas)
-    self.pinguim:tempo(dt, self.cargas, self.plataforma)
-    tira_mortas(self.cargas)
+    lista.tira_mortos(self.cargas)
+    self.pinguim:tempo(dt)
+    lista.tira_mortos(self.cargas)
     if lancamento == self.lancamento and lancamento:tempo(dt) then
         self:lanca()
     end

@@ -21,7 +21,6 @@ end
 
 function Pilha:desenha ()
     for i = 1, self.qnt do
-        pico.layer.image{path = IMG}
         pico.set.layer(IMG)
         pico.set.effect{rotate = {angle = 0, anchor = 'C'}}
         pico.set.layer("world")

@@ -1,9 +1,6 @@
-val Image = require "util/components/image"
-val XCollidable = require "util/components/xcollidable"
-
-task Pilha(x,y, max) {
+;; pilha de sacos de café na plataforma; avisa "dono" com :pilha.cheia
+task Pilha(x, y, max, dono) {
     set pub = [
-        rect = rect,
         qnt = 0,
         qnt_max = max
     ]
@@ -16,12 +13,11 @@ task Pilha(x,y, max) {
                 set pub.qnt = pub.qnt + 1
             }
         }
-        emit @(2) :pilha.cheia
-    } 
-    
+        emit @(dono) :pilha.cheia
+    }
+
     loop on :draw {
         loop i in pub.qnt {
-            pico.layer.image[path = img]
             pico.set.layer(img)
             pico.set.effect[rotate = [angle=0, anchor ='C']]
             pico.set.layer(:world)

@@ -21,7 +21,7 @@ task PegaPuffles () {
     var num_fugiram = 0
     var decorrido = 0
 
-    spawn Image(:NIL, r, img) where {
+    spawn Image(r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../assets/imgs/puffle_roundup/background.png"
     }
@@ -45,7 +45,7 @@ task PegaPuffles () {
     }
 
     ;; as árvores cobrem os puffles, como no Lua
-    spawn Image(:NIL, r, img) where {
+    spawn Image(r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../assets/imgs/puffle_roundup/arvores.png"
     }
@@ -83,7 +83,7 @@ task PegaPuffles () {
     loop us on :clock {
         set decorrido = decorrido + us
         emit :puffle.direcao
-        emit :puffle.anda
+        emit :puffle.anda [dt = us]
 
         set num_capturados = 0
         loop _, p in puffles {

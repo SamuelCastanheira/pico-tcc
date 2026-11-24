@@ -5,40 +5,45 @@ val Plataforma = require "screens/minigames/bean_counters/plataforma"
 
 task BeanCounters() {
     pico.set.window [ title="Bean Counters" ]
-    spawn Image(:NIL, r, img) where {
+    spawn Image(r, img) where {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../assets/imgs/bean_counters/background.png"
     }
 
-    spawn Image(:NIL, r, img) where {
+    spawn Image(r, img) where {
         r = ['%', x=1, y=1, w=0.20, h=0.85, anchor='SE']
         img = "../../assets/imgs/bean_counters/trucker.png"
     }
 
-    spawn Image(:NIL, r, img) where {
+    spawn Image(r, img) where {
         r = ['%', x=0.5, y=1, w=1, h=0.4, anchor='S']
         img = "../../assets/imgs/bean_counters/neve.png"
     }
 
+    ;; layers das cargas (o café gira), criados uma vez por partida
+    loop _, tipo in ["Anvil", "Flower_pot", "Coffe_bag", "Fish_bean_counters"] {
+        pico.layer.image[path = string.format("../../assets/imgs/bean_counters/%s.webp", tipo)]
+    }
+
     pin plataforma = tasks()
     spawn @(plataforma) Plataforma(['%', x=0.13, y=0.86, w=0.30, h=0.15],
-    "../../assets/imgs/bean_counters/plataforma.png")
+    "../../assets/imgs/bean_counters/plataforma.png", task)
 
     pin cargas = tasks()
     
-    pin pinguim = spawn Pinguim(:nil, ['%', x=0.3, y=0.80, w=0.12, h=0.25], 
-                        ['%', x=0.3, y=0.80, w=0.12, h=0.25],cargas, plataforma)
+    ;; a hitbox é menor que o sprite: o que passa rente à cabeça não acerta
+    pin pinguim = spawn Pinguim(['%', x=0.3, y=0.80, w=0.12, h=0.25],
+                        ['%', x=0.3, y=0.80, w=0.08, h=0.16], cargas, plataforma, task)
 
     var score = 0
     spawn {
-        loop {
-            par :any {
-                await :pinguim.coleta
-                set score = score + 2
-            } with {
-                await :pinguim.entrega
-                set score = score + 3
-            }
+        loop on :pinguim.coleta {
+            set score = score + 2
+        }
+    }
+    spawn {
+        loop on :pinguim.entrega {
+            set score = score + 3
         }
     }
 

@@ -3,11 +3,12 @@
 -- acompanha cada carga entre quadros, prevê onde ela cruza a altura do
 -- pinguim, foge dos objetos, vai buscar o café que chega primeiro e entrega
 -- na plataforma com 3 cargas. Uma vez, insiste até sobrecarregar (6º café).
+-- Segura a seta enquanto quer andar e solta para parar (key / keyup).
 local G = 9.8 * (0.5 / 60) ^ 2      -- aceleração por quadro² (tempo a meia velocidade)
-local ALTURA = 0.68                  -- y em que a carga começa a tocar o pinguim
+local ALTURA = 0.72                  -- y em que a carga começa a tocar a hitbox do pinguim
 local sobrecarga_feita = false
 local antes = {}
-local ultimo_cmd = 0
+local seta = 0           -- -1, 0, 1: seta que o controlador está segurando
 local MAX = 9000
 
 local function num (s) return tonumber(s) end
@@ -49,9 +50,8 @@ return function (q, desenhos)
         if s then placar = num(s) end
     end
     antes = cargas
-    if not px or tonto then return nil end
+    if not px then return nil end
     if carga >= 6 then sobrecarga_feita = true end
-    if q - ultimo_cmd < 2 then return nil end
 
     local quer_sobrecarga = (not sobrecarga_feita) and placar >= 25
     local perigos, cafes = {}, {}
@@ -66,7 +66,7 @@ return function (q, desenhos)
 
     local function seguro (x)
         for _, p in ipairs(perigos) do
-            if p.n < 30 and math.abs(p.x - x) < 0.13 then return false end
+            if p.n < 40 and math.abs(p.x - x) < 0.11 then return false end
         end
         return true
     end
@@ -81,19 +81,24 @@ return function (q, desenhos)
     elseif carga > 0 then
         alvo = 0.25
     end
-    -- cada tecla anda um passo inteiro: decide pela posição depois do passo
-    local passo = 10 * ((6 - carga) / 6) / 60
-    local dir, esq = math.min(px + passo, 0.8), math.max(px - passo, 0.25)
+    -- direção desejada: fugir se o lugar atual não é seguro; senão, ir ao alvo
+    local quero = 0
     if not seguro(px) then
-        if seguro(esq) and (not seguro(dir) or math.abs(esq - (alvo or esq)) <= math.abs(dir - (alvo or dir))) then
-            ultimo_cmd = q return "key Left"
-        elseif seguro(dir) then
-            ultimo_cmd = q return "key Right"
+        local melhor
+        for i = 0, 22 do
+            local x = 0.25 + i * 0.025
+            if seguro(x) and (not melhor or math.abs(x - px) < math.abs(melhor - px)) then melhor = x end
         end
-        return nil
+        if melhor then quero = (melhor > px) and 1 or -1 end
+    elseif alvo and math.abs(alvo - px) > 0.02 then
+        quero = (alvo > px) and 1 or -1
+        if not seguro(px + quero * 0.06) then quero = 0 end
     end
-    if not alvo then return nil end
-    if alvo > px + passo / 2 and seguro(dir) then ultimo_cmd = q return "key Right" end
-    if alvo < px - passo / 2 and seguro(esq) then ultimo_cmd = q return "key Left" end
-    return nil
+    if tonto then quero = 0 end
+    if quero == seta then return nil end
+    local nome = { [1] = "Right", [-1] = "Left" }
+    local cmd
+    if quero == 0 then cmd = "keyup " .. nome[seta] else cmd = "key " .. nome[quero] end
+    seta = quero
+    return cmd
 end

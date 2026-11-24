@@ -22,6 +22,7 @@
 --   <quadro> mouse <x%> <y%>     posiciona o mouse (fração da janela)
 --   <quadro> click [<x%> <y%>]   evento mouse.button.dn (posiciona antes)
 --   <quadro> key <Tecla>         evento key.dn (ex.: Left, Right, Escape)
+--   <quadro> keyup <Tecla>       evento key.up
 --   <quadro> quit                evento quit (encerra os dois programas)
 -- Um quadro aceita no máximo um evento (como o pico.input.event real).
 
@@ -49,9 +50,9 @@ local function ler_roteiro (path)
                 if a ~= "" then mouse[q] = { tonumber(a), tonumber(b) } end
                 assert(not evento[q], "dois eventos no quadro " .. q)
                 evento[q] = { tag = "mouse.button.dn", but = "left" }
-            elseif cmd == "key" then
+            elseif cmd == "key" or cmd == "keyup" then
                 assert(not evento[q], "dois eventos no quadro " .. q)
-                evento[q] = { tag = "key.dn", key = a }
+                evento[q] = { tag = (cmd == "key") and "key.dn" or "key.up", key = a }
             elseif cmd == "quit" then
                 assert(not evento[q], "dois eventos no quadro " .. q)
                 evento[q] = { tag = "quit" }
@@ -133,6 +134,7 @@ function M.instalar (pico)
                 local c, a, b = cmd:match("^(%S+)%s*(%S*)%s*(%S*)")
                 if c == "mouse" then mouse[quadro] = { tonumber(a), tonumber(b) }
                 elseif c == "key" then evento[quadro] = { tag = "key.dn", key = a }
+                elseif c == "keyup" then evento[quadro] = { tag = "key.up", key = a }
                 elseif c == "click" then evento[quadro] = { tag = "mouse.button.dn", but = "left" }
                 elseif c == "quit" then evento[quadro] = { tag = "quit" } end
             end

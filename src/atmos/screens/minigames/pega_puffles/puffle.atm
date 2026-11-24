@@ -1,8 +1,6 @@
 val Vetor = require "util/vetor"
 
-;; como no Lua: velocidade escalar e passo fixo por quadro
-val VEL_ESC = 0.04
-val DT = 0.05
+val VEL = 0.12          ;; fração da tela por segundo
 
 ;; Um puffle reage a duas fases de cada quadro, emitidas pela tela
 ;; (PegaPuffles), na mesma ordem do update do Lua:
@@ -49,13 +47,23 @@ task Puffle (rect, paredes, img, dist_max, puffles) {
         }
     }
 
-    ;; fase 2: o puffle que já está fora do mapa foge (como no Lua, o teste
-    ;; vem antes de andar); os outros andam um passo na direção do quadro
-    loop on :puffle.anda {
+    ;; fase 2: o puffle que já está fora do mapa foge (o teste vem antes de
+    ;; andar); os outros andam na direção do quadro, sem entrar nas paredes
+    loop e on :puffle.anda {
         until (fora_do_mapa(pub.rect))
-        val vel = Vetor.multiply(Vetor.normalize(direcao), VEL_ESC)
-        set pub.rect.x = pub.rect.x + (vel.x * DT)
-        set pub.rect.y = pub.rect.y + (vel.y * DT)
+        var passo = Vetor.multiply(Vetor.normalize(direcao), VEL * (e.dt / 1s))
+        loop _, parede in paredes {
+            val prox = ['%', x = pub.rect.x + passo.x, y = pub.rect.y + passo.y, w = pub.rect.w, h = pub.rect.h]
+            if pico.vs.rect.rect(prox, parede) {
+                val n = normal_parede(pub.rect, parede)
+                val dot = Vetor.dot(passo, n)
+                if dot < 0 {
+                    set passo = [x = passo.x - (dot * n.x), y = passo.y - (dot * n.y)]
+                }
+            }
+        }
+        set pub.rect.x = pub.rect.x + passo.x
+        set pub.rect.y = pub.rect.y + passo.y
     }
     set pub.fugiu = true
     emit @2 :puffle.fugiu
@@ -93,33 +101,21 @@ func fora_do_mapa(rect) {
     !((valor <= 1) && (rect.x < 1) && (rect.x > 0))
 }
 
-;; como o aplicar_slide do Lua: tira a componente que entra na parede e
-;; reduz a direção a 10%
-func slide_cerca(rect, parede, direcao) {
-    var normal = [x=0, y=0]
-
+;; normal da parede do lado em que o puffle está
+func normal_parede (rect, parede) {
     val dx = rect.x - parede.x
     val dy = rect.y - parede.y
-
     val overlapX = ((parede.w/2) + (rect.w/2)) - math.abs(dx)
     val overlapY = ((parede.h/2) + (rect.h/2)) - math.abs(dy)
-
-    ;; colisão horizontal
-    if overlapX < overlapY {
-        if dx > 0 {
-            set normal = [x=1, y=0]
-        } else {
-            set normal = [x=-1, y=0]
-        }
-    } else {
-        ;; colisão vertical
-        if dy > 0 {
-            set normal = [x=0, y=1]
-        } else {
-            set normal = [x=0, y=-1]
-        }
+    ifs {
+        overlapX < overlapY => [x = (if dx > 0 => 1 => -1), y = 0]
+        else => [x = 0, y = (if dy > 0 => 1 => -1)]
     }
+}
 
+;; tira a componente da direção que entra na parede e a reduz a 10%
+func slide_cerca(rect, parede, direcao) {
+    val normal = normal_parede(rect, parede)
     var d = [x = direcao.x, y = direcao.y]
     val dot = Vetor.dot(d, normal)
     if dot < 0 {

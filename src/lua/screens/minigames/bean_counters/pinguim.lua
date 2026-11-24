@@ -1,4 +1,5 @@
--- Pinguim do Bean Counters: anda com as setas, pega sacos de café (até 5) e
+-- Pinguim do Bean Counters: anda com as setas (enquanto pressionadas), pega
+-- sacos de café (até 5) e
 -- os entrega na plataforma. Um objeto, ou um café com o pinguim cheio, o
 -- derruba: perde uma vida e fica 2 s atordoado (sem andar nem pegar nada).
 -- Depois de pegar ou entregar, a plataforma fica bloqueada por 250 ms.
@@ -10,6 +11,7 @@ local Temporizador = require("util.temporizador")
 
 local BASE = "../../assets/imgs/bean_counters/"
 local CARGA_MAXIMA = 5
+local VEL = 0.8             -- fração da tela por segundo, sem carga
 local IMG_ATINGIDO = {
     Flower_pot         = BASE.."penguin_pot.webp",
     Anvil              = BASE.."penguin_anvil.webp",
@@ -19,10 +21,14 @@ local IMG_ATINGIDO = {
 
 local Pinguim = Objeto:extend()
 
-function Pinguim:init (observador)
+function Pinguim:init (observador, cargas, plataforma)
     self.observador = observador
+    self.cargas = cargas
+    self.plataforma = plataforma
     self.rect = {'%', x=0.3, y=0.80, w=0.12, h=0.25}
-    self.hitbox = {'%', x=0.3, y=0.80, w=0.12, h=0.25}
+    -- a hitbox é menor que o sprite: o que passa rente à cabeça não acerta
+    self.hitbox = {'%', x=0.3, y=0.80, w=0.08, h=0.16}
+    self.dir = 0            -- -1, 0, 1: seta pressionada
     self.vidas = 3
     self.carga = 0
     self.bloqueio = nil     -- plataforma bloqueada (250 ms)
@@ -69,11 +75,14 @@ function Pinguim:entrega ()
     self:atualiza_img()
 end
 
--- a cada passo: colisões com as cargas, entrega na plataforma e prazos.
--- Prazos criados neste passo só começam a contar no próximo.
-function Pinguim:tempo (dt, cargas, plataforma)
+-- a cada passo: colisões com as cargas, entrega na plataforma, prazos e
+-- movimento. Prazos criados neste passo só começam a contar no próximo (por
+-- isso as cópias abaixo): é o que o escalonador do Atmos faz sozinho, e a
+-- ordem dos passos é a da versão Atmos, para as duas baterem quadro a quadro.
+function Pinguim:tempo (dt)
     local bloqueio, tonto = self.bloqueio, self.tonto
-    for _, c in ipairs(cargas) do
+    local plataforma = self.plataforma
+    for _, c in ipairs(self.cargas) do
         if c.viva and not self.tonto and self:colide(c) then
             self:pega(c)
         end
@@ -88,21 +97,25 @@ function Pinguim:tempo (dt, cargas, plataforma)
         self.tonto = nil
         self:atualiza_img()
         self.rect.h = 0.25
+    elseif not self.tonto and self.dir ~= 0 then
+        local fator = ((CARGA_MAXIMA + 1) - self.carga) / (CARGA_MAXIMA + 1)
+        local x = self.rect.x + ((self.dir * VEL * fator) * (dt / 1000000))
+        x = math.min(math.max(x, 0.25), 0.8)
+        self.rect.x = x
+        self.hitbox.x = x
     end
 end
 
--- cada key.dn de seta é um passo; mais carga, passo menor
+-- a última seta pressionada vale até ser solta (também durante o atordoamento)
 function Pinguim:evento (e)
-    if self.tonto or e.tag ~= 'key.dn' then return end
-    local fator = ((CARGA_MAXIMA + 1) - self.carga) / (CARGA_MAXIMA + 1)
-    local vel
-    if e.key == 'Right' then vel = 10 * fator
-    elseif e.key == 'Left' then vel = -10 * fator
-    else return end
-    local x = self.rect.x + (vel * (1/60))
-    x = math.min(math.max(x, 0.25), 0.8)
-    self.rect.x = x
-    self.hitbox.x = x
+    if e.tag == 'key.dn' then
+        if e.key == 'Right' then self.dir = 1
+        elseif e.key == 'Left' then self.dir = -1 end
+    elseif e.tag == 'key.up' then
+        if (e.key == 'Right' and self.dir == 1) or (e.key == 'Left' and self.dir == -1) then
+            self.dir = 0
+        end
+    end
 end
 
 function Pinguim:desenha ()

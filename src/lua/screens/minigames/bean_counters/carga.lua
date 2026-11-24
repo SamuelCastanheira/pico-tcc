@@ -4,7 +4,10 @@ local Objeto = require("util.objeto")
 
 local BASE = "../../assets/imgs/bean_counters"
 local TIPOS = { "Anvil", "Flower_pot", "Coffe_bag", "Fish_bean_counters" }
+-- lançamento oblíquo em frações da tela: g em frações por s²; o tempo da
+-- carga corre a meia velocidade (ESCALA_TEMPO) para a queda ficar visível
 local G = 9.8
+local ESCALA_TEMPO = 0.5
 local CHAO = 0.9
 
 local Carga = Objeto:extend()
@@ -12,7 +15,6 @@ local Carga = Objeto:extend()
 function Carga:init ()
     self.tipo = TIPOS[math.random(1, #TIPOS)]
     self.img = string.format("%s/%s.webp", BASE, self.tipo)
-    pico.layer.image{path = self.img}
     self.viva = true
     self.t = 0
 
@@ -33,6 +35,7 @@ function Carga:init ()
     local denom = 2 * (cos * cos) * ((dx * tan) - dy)
     local v0 = math.sqrt((G * dx * dx) / denom)
     self.vel = {x = v0 * cos, y = (-v0) * math.sin(angulo)}
+    self.giro0 = math.deg(math.atan2(self.vel.y, self.vel.x))
 
     self.rect = {'%', x = self.lancamento.x, y = self.lancamento.y, w = 0.08, h = 0.08}
     self.hitbox = self.rect
@@ -47,10 +50,9 @@ function Carga:some ()
     self.viva = false
 end
 
--- posição exata no instante t (o tempo corre a meia velocidade); some ao
--- passar do chão
+-- posição exata no instante t; some ao passar do chão
 function Carga:tempo (dt)
-    self.t = self.t + ((dt * 0.5) / 1000000)
+    self.t = self.t + ((dt * ESCALA_TEMPO) / 1000000)
     self.rect.x = self.lancamento.x + (self.vel.x * self.t)
     self.rect.y = (self.lancamento.y + (self.vel.y * self.t)) + ((G * math.pow(self.t, 2)) / 2)
     if self.rect.y > CHAO then
@@ -60,15 +62,10 @@ end
 
 function Carga:desenha ()
     if self:e_cafe() then
-        -- o saco de café gira ao longo da trajetória
-        local p = (self.rect.x - self.lancamento.x) / (self.destino.x - self.lancamento.x)
-        local angulo
-        if p < 0.25 then angulo = 0
-        elseif p < 0.50 then angulo = 45
-        elseif p < 0.75 then angulo = 135
-        else angulo = 180 end
+        -- o saco de café gira acompanhando a direção do movimento
+        local giro = math.deg(math.atan2(self.vel.y + (G * self.t), self.vel.x)) - self.giro0
         pico.set.layer(self.img)
-        pico.set.effect{rotate = {angle = angulo, anchor = 'C'}}
+        pico.set.effect{rotate = {angle = math.floor(giro + 0.5), anchor = 'C'}}
         pico.set.layer("world")
     end
     pico.output.draw.layer(self.img, self.rect)

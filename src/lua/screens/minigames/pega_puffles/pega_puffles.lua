@@ -39,7 +39,7 @@ function PegaPuffles:tempo (dt)
         p:calcula_direcao(mouse, self.puffles, self.paredes)
     end
     for _, p in ipairs(self.puffles) do
-        p:anda()
+        p:anda(dt, self.paredes)
         if p.fugiu then self.fugiram = self.fugiram + 1 end
     end
     for i = #self.puffles, 1, -1 do

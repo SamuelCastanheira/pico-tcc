@@ -37,8 +37,13 @@ function Pinguim:tempo (dt)
     end
     if self.ponto then
         local s = dt / 1000000
-        self.rect.x = self.rect.x + (self.vel.x * s)
-        self.rect.y = self.rect.y + (self.vel.y * s)
+        if self:distancia(self.ponto) <= (VELOCIDADE * s) then
+            -- o passo que alcança o ponto para nele (não passa)
+            self.rect.x, self.rect.y = self.ponto.x, self.ponto.y
+        else
+            self.rect.x = self.rect.x + (self.vel.x * s)
+            self.rect.y = self.rect.y + (self.vel.y * s)
+        end
         self.hitbox.x = self.rect.x
         self.hitbox.y = self.rect.y
         if self:distancia(self.ponto) <= CHEGOU then
