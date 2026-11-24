@@ -38,11 +38,14 @@ math.randomseed()
 
 local jogo = JogoTeste:new()
 local tela = require(assert(CLASSES[os.getenv("EQ_TELA")], "EQ_TELA invalida")):new(jogo)
+local antes = pico.get.now()
 
 -- os minigames devolvem as moedas ganhas por tempo() ou evento() quando terminam
 while not jogo.fim do
-    local e, ms = pico.input.event()
-    local r = tela:tempo(ms * 1000)
+    local e = pico.input.event()
+    local agora = pico.get.now()
+    local r = tela:tempo((agora - antes) * 1000)
+    antes = agora
     if r ~= nil then jogo:termina(r) break end
     if e then
         if e.tag == 'quit' then break end

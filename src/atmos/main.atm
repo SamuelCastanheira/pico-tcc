@@ -1,10 +1,9 @@
-require "atmos.env.pico"
+require "ambiente"     ;; atmos.env.pico com o relógio real (ver ambiente.lua)
 set pico = require "pico"
 
 
 pico.set.window [ title="Ilha da Geladeira" ]
 pico.set.effect [ grid=false ]
-pico.set.expert(true, 60)   ;; 60 quadros/s, como na versão Lua (o ambiente usa 30)
 pico.set.dim ['!', w=1280, h=720]
 
 math.randomseed()

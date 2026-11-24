@@ -17,9 +17,15 @@ math.randomseed()
 
 local jogo = Jogo:new()
 
+-- o tempo de cada passo é o tempo real entre os passos: o ms devolvido por
+-- pico.input.event conta só a espera, sem o tempo gasto no quadro
+local antes = pico.get.now()
+
 while not jogo.fim do
-    local e, ms = pico.input.event()
-    jogo:tempo(ms * 1000)                   -- microssegundos
+    local e = pico.input.event()
+    local agora = pico.get.now()
+    jogo:tempo((agora - antes) * 1000)      -- microssegundos
+    antes = agora
     if e then
         if e.tag == 'quit' then break end
         jogo:evento(e)

@@ -1,12 +1,11 @@
 ;; Ponto de entrada de teste da versão Atmos: o mesmo início do main.atm, mas
 ;; aguardando direto a tela EQ_TELA. Quando a tela termina, o teste termina
 ;; (FIM <resultado>), para comparar cada minigame isoladamente.
-require "atmos.env.pico"
+require "ambiente"     ;; atmos.env.pico com o relógio real (ver ambiente.lua)
 set pico = require "pico"
 
 pico.set.window [ title="Ilha da Geladeira" ]
 pico.set.effect [ grid=false ]
-pico.set.expert(true, 60)
 pico.set.dim ['!', w=1280, h=720]
 math.randomseed()
 

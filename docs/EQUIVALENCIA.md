@@ -49,6 +49,16 @@ emite `:draw`. O `main.lua` agora faz o mesmo: `jogo:tempo(dt)`, depois
 `jogo:evento(e)`, depois `jogo:desenha()`, com as trocas de tela imediatas.
 Por isso não há mais defasagem de um quadro nas transições.
 
+**O tempo de cada passo é o tempo real.** O `ms` devolvido por
+`pico.input.event()` conta só a espera, não o tempo gasto processando o
+quadro (medido: com 5 ms de trabalho por quadro, 1 s real virava 0,67 s de
+jogo; com 12 ms, 0,25 s). As duas versões usavam esse valor, e a que gasta
+mais por quadro (o Atmos) andava mais devagar no jogo real. Agora o tempo é a
+diferença entre chamadas de `pico.get.now()`: no `main.lua`, e no Atmos por um
+ambiente próprio (`src/atmos/ambiente.lua`), igual ao `atmos.env.pico`
+instalado, mas com esse relógio. No teste, o relógio virtual dá o mesmo valor
+pelos dois caminhos.
+
 **O tempo do Atmos, reproduzido no Lua.** No runtime do Atmos, um `await` de
 tempo começa do zero (não herda o excedente do anterior), soma os `:clock`
 *seguintes* ao da sua criação e acorda quando a soma alcança o prazo. O
