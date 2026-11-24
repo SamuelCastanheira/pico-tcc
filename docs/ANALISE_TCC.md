@@ -336,32 +336,32 @@ o pinguim do Bean Counters avisa o minigame como um observador
 (`ao_coletar`, `ao_entregar`, `ao_ser_atingido`); o relógio real deu lugar ao
 `Temporizador`, que conta o tempo do jogo.
 
-### 3.2 Métricas (`python3 tools/metricas.py`, em 23/11/2026)
+### 3.2 Métricas (`python3 tools/metricas.py`, em 23/11/2026, depois das melhorias da seção 5.4 do `EQUIVALENCIA.md`)
 
 Contagens léxicas, sem linhas em branco nem comentários.
 
 | Programa | LOC Lua | LOC Atmos | Atmos/Lua | funções Lua | tasks + funcs Atmos | if/elseif Lua | if/ifs Atmos |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| main e jogo (fluxo de telas) | 58 | 23 | 0,40 | 8 | 0+0 | 5 | 0 |
-| menu | 39 | 36 | 0,92 | 4 | 1+0 | 1 | 0 |
-| personalização | 71 | 80 | 1,13 | 7 | 1+2 | 4 | 1 |
-| centro | 168 | 139 | 0,83 | 16 | 4+2 | 15 | 2 |
-| Dojo | 156 | 146 | 0,94 | 16 | 2+3 | 17 | 16 |
-| Bean Counters | 292 | 279 | 0,96 | 33 | 5+0 | 26 | 5 |
-| Pega Puffles | 147 | 172 | 1,17 | 12 | 2+3 | 11 | 9 |
-| base e componentes | 58 | 155 | 2,67 | 14 | 5+19 | 0 | 7 |
-| **total** | **989** | **1030** | **1,04** | | | | |
+| main e jogo (fluxo de telas) | 58 | 22 | 0,38 | 8 | 0+0 | 5 | 0 |
+| menu | 34 | 36 | 1,06 | 3 | 1+0 | 1 | 0 |
+| personalização | 68 | 80 | 1,18 | 6 | 1+2 | 4 | 1 |
+| centro | 169 | 142 | 0,84 | 16 | 4+2 | 16 | 3 |
+| Dojo | 152 | 108 | 0,71 | 15 | 2+4 | 16 | 12 |
+| Bean Counters | 284 | 262 | 0,92 | 31 | 5+1 | 22 | 7 |
+| Pega Puffles | 159 | 174 | 1,09 | 13 | 2+4 | 13 | 11 |
+| base e componentes | 56 | 64 | 1,14 | 14 | 5+6 | 0 | 4 |
+| **total** | **980** | **888** | **0,91** | | | | |
 
 | Programa | campos de estado Lua (`self.x =`) | `var` Atmos | alvos de `set` Atmos |
 |---|---:|---:|---:|
-| main e jogo | 4 | 1 | 4 |
+| main e jogo | 4 | 1 | 3 |
 | menu | 4 | 0 | 0 |
 | personalização | 4 | 0 | 1 |
 | centro | 15 | 11 | 10 |
-| Dojo | 15 | 13 | 8 |
-| Bean Counters | 31 | 13 | 18 |
+| Dojo | 15 | 3 | 6 |
+| Bean Counters | 32 | 6 | 15 |
 | Pega Puffles | 13 | 6 | 11 |
-| base e componentes | 7 | 13 | 5 |
+| base e componentes | 6 | 2 | 1 |
 
 Construções de concorrência no Atmos:
 
@@ -371,20 +371,21 @@ Construções de concorrência no Atmos:
 | menu | 2 | 3 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
 | personalização | 4 | 1 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
 | centro | 10 | 7 | 4 | 1 | 4 | 0 | 0 | 2 | 0 |
-| Dojo | 4 | 4 | 2 | 0 | 1 | 0 | 2 | 4 | 0 |
-| Bean Counters | 22 | 17 | 5 | 2 | 10 | 2 | 7 | 10 | 2 |
+| Dojo | 4 | 3 | 2 | 0 | 1 | 0 | 2 | 4 | 0 |
+| Bean Counters | 25 | 12 | 5 | 0 | 15 | 2 | 7 | 8 | 2 |
 | Pega Puffles | 7 | 0 | 0 | 0 | 6 | 0 | 3 | 2 | 0 |
-| base e componentes | 2 | 3 | 2 | 1 | 4 | 0 | 3 | 0 | 0 |
+| base e componentes | 1 | 1 | 0 | 0 | 4 | 0 | 2 | 0 | 0 |
 
 Leitura inicial, com cautela:
 
-- **o tamanho ficou quase igual** (989 × 1030 linhas). A diferença de 28% a
-  favor do Atmos, medida antes, vinha em boa parte de código morto e
-  repetido na versão Lua antiga, não do paradigma. Do lado Atmos, o
-  `vetor.atm` tem 82 linhas, das quais só seis funções são usadas; o Lua faz
-  as mesmas contas dentro das classes;
+- **o tamanho**: depois da limpeza do Atmos (código morto do `vetor.atm`,
+  `cor.atm`, `Image_Hover` em um laço, `emit` por referência, Dojo com
+  `pos()` e a tabela `VENCE`), o Atmos tem 888 linhas contra 980 do Lua (9%
+  a menos). A diferença de 28% medida no começo vinha em boa parte de código
+  morto e repetido na versão Lua antiga; a de agora compara versões limpas
+  e equivalentes;
 - **as condicionais continuam caindo no Atmos** onde há fases: Bean Counters
-  26 × 5, centro 15 × 2, fluxo 5 × 0. No Dojo e no Pega Puffles empatam,
+  22 × 7, centro 16 × 3, fluxo 5 × 0. No Dojo e no Pega Puffles ficam perto,
   porque ali os `if` são regras do jogo (comparar cartas, testar colisão), não
   controle de fase;
 - **o estado de controle de fase tem forma diferente**. No Lua ele aparece

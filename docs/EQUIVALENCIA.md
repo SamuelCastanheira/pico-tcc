@@ -104,7 +104,8 @@ partir de 1):
 # semente: 41         (opcional)
 1 mouse 0.5 0.5       posiciona o mouse (fração da janela)
 10 click 0.9 0.88     clique (mouse.button.dn), posicionando antes
-30 key Right          tecla (key.dn)
+30 key Right          tecla pressionada (key.dn)
+90 keyup Right        tecla solta (key.up)
 650 quit              encerra
 ```
 
@@ -126,26 +127,26 @@ SDL_VIDEODRIVER=offscreen EQ_TELA=bean_counters EQ_SEED=41 EQ_ROTEIRO=roteiro_va
 | `person.txt` | personalização | *hover* sobre cores (sem efeito), clique numa cor, outra cor, "Voltar" | 80/80 |
 | `centro.txt` | centro | caminhada, troca de destino, chegada ao Dojo pela hitbox e o Dojo aninhado | 600/600 |
 | `dojo.txt` | Dojo | três rodadas até o prêmio (100 moedas) | 520/520 |
-| `bean_counters.txt` | Bean Counters | idas e vindas, coletas, entregas, os três acertos até o fim | 854/854 |
-| `bean_counters_jogo.txt` (semente 41) | Bean Counters | jogador gerado: enche a primeira pilha e põe 7 cafés na segunda | 3044/3044 |
-| `bean_counters_sobrecarga.txt` (semente 24) | Bean Counters | jogador gerado: pega o 6º café e é derrubado | 2002/2002 |
+| `bean_counters.txt` | Bean Counters | idas e vindas segurando as setas, até perder as vidas | 638/638 |
+| `bean_counters_jogo.txt` (semente 9) | Bean Counters | jogador gerado: enche as duas pilhas e vence (115 moedas); sobrecarrega uma vez | 4165/4165 |
+| `bean_counters_sobrecarga.txt` (semente 4) | Bean Counters | jogador gerado: pega o 6º café, é derrubado e perde as 3 vidas | 3463/3463 |
 | `pega_puffle.txt` | Pega Puffles | o mouse numa curva: empurrões entre puffles e 3 fugas | 901/901 |
-| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio: paredes, 8 capturas, 2 fugas e vitória (80 moedas) | 1816/1816 |
+| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio: paredes, 8 capturas, 2 fugas e vitória (80 moedas) | 1823/1823 |
 | `fluxo.txt` | jogo inteiro | personaliza a cor, ganha o Dojo, volta ao centro, sai do Pega Puffles e do Bean Counters com Escape, "Sair" | 1550/1550 |
 
 Com as sementes 2, 3 e 7, `centro`, `dojo`, `bean_counters`, `pega_puffle` e
 `fluxo` também dão todos os quadros iguais.
 
-**Vitória no Bean Counters.** Nenhum roteiro enche as duas pilhas de 10
-(o controlador perde as vidas antes). O fim por pilhas cheias foi conferido
-em cópias das duas versões com pilhas de 2, no roteiro `bean_counters_jogo`:
-1224/1224 quadros iguais, depois de corrigir no Lua a plataforma que ainda
-recebia cafés com as duas pilhas cheias.
+**Vitória no Bean Counters.** Com o movimento contínuo e a hitbox menor
+(seção 5.4), o controlador enche as duas pilhas de 10 no roteiro
+`bean_counters_jogo`. Antes, a vitória só tinha sido conferida em cópias com
+pilhas de 2; foi esse teste que achou no Lua a plataforma que ainda recebia
+cafés com as duas pilhas cheias.
 
 ### 4.1 Sensibilidade (mutações)
 
 Cada mutação foi aplicada a uma cópia e comparada com a outra versão sem
-mudança.
+mudança (medidas antes das melhorias da seção 5.4, com os roteiros de então).
 
 **Pega Puffles** (no `puffle.atm`, roteiro `pega_puffle_cercar`): detectadas
 a cerca somando em vez de substituir (quadro 551), o empurrão com sinal
@@ -163,7 +164,7 @@ andar). Não coberta: empurrar puffles que já fugiram.
 | o prazo do fim conta no quadro em que nasce | detectada (3044) |
 | as cargas andam depois do pinguim | detectada (368) |
 | passo sem o "+1" na carga máxima | detectada (369) |
-| a plataforma sem a espera de 250 ms | **equivalente**: o bloqueio do pinguim já espaça as entregas em mais de 250 ms, então essa espera da versão Atmos nunca decide nada |
+| a plataforma sem a espera de 250 ms | **equivalente**: o bloqueio do pinguim já espaça as entregas em mais de 250 ms, então essa espera nunca decidia nada. Saiu das duas versões (seção 5.4) |
 | o atordoamento acaba antes das colisões do mesmo quadro | não detectada em nenhum dos roteiros do Bean Counters: um acerto bem no quadro em que o atordoamento acaba é raro. Situação não coberta |
 
 ## 5. Divergências encontradas e como foram resolvidas
@@ -207,10 +208,24 @@ mexiam diretamente nos campos das entidades). O pinguim do Bean Counters
 avisa o minigame por métodos de um observador (`ao_coletar`, `ao_entregar`,
 `ao_ser_atingido`). `timer.lua` (relógio real) e `vetor.lua` saíram.
 
+### 5.4 Melhorias da física e do código (mesmas nas duas versões)
+
+| Melhoria | Onde |
+|---|---|
+| Pinguim do Bean Counters anda enquanto a seta está pressionada, com `dt` (antes: um passo por repetição de tecla do sistema) | `bean_counters/pinguim` |
+| Hitbox do pinguim menor que o sprite (0,08 × 0,16) | `bean_counters` |
+| Café gira de forma contínua, pela direção da velocidade; layers das cargas criados uma vez por partida; `G` e `ESCALA_TEMPO` nomeados | `bean_counters/carga`, `bean_counters` |
+| Plataforma sem a espera redundante de 250 ms | `bean_counters/plataforma` |
+| Pinguim da praça para no ponto quando o passo o alcançaria (antes podia passar do ponto e seguir andando) | `centro/pinguim` |
+| Puffles com velocidade por tempo (0,12 da tela por segundo) e paredes que bloqueiam o passo que entraria nelas | `pega_puffles/puffle` |
+| Atmos: `emit` dirigido a uma task (`XClickable(alvo, me)`, `XCollidable(alvo, me, outros)`, `emit @(jogo)`), em vez de níveis numéricos; `Image(rect, path)`; `Image_Hover` em um laço só; `Botao` feito sobre `Predio`; `vetor.atm` só com o que é usado; `cor.atm` removido; Dojo com `pos()` e a tabela `VENCE` | `src/atmos` |
+| Lua: o destaque dos botões é decidido no desenho, como no Atmos; dependências do pinguim no construtor; `tira_mortos` em `util/lista.lua` | `src/lua` |
+
+O roteiro `pega_puffle_cercar` foi mantido; os do Bean Counters foram gerados
+de novo com o controlador segurando as setas (`key`/`keyup`).
+
 ## 6. Limitações
 
-- A vitória do Bean Counters com pilhas de 10 não está em nenhum roteiro (foi
-  conferida com pilhas de 2, em cópias).
 - Duas mutações não são detectadas pelos roteiros atuais (seção 4.1).
 - A comparação vê o que é desenhado. Estado que não aparece na tela só é
   conferido pelos efeitos que tem depois (por exemplo, o placar só aparece
