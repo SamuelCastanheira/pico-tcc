@@ -2,7 +2,7 @@
 -- nas paredes do cercado. Se sai do mapa, foge de vez.
 local Objeto = require("util.objeto")
 
-local VEL = 0.12            -- fração da tela por segundo
+local VEL = 0.30            -- fração da tela por segundo
 local DIST_MAX = 0.2        -- distância em que o mouse assusta
 local VIZINHO = 0.05        -- distância em que dois puffles se empurram
 

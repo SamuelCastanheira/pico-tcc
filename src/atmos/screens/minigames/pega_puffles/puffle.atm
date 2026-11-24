@@ -1,6 +1,6 @@
 val Vetor = require "util/vetor"
 
-val VEL = 0.12          ;; fração da tela por segundo
+val VEL = 0.3          ;; fração da tela por segundo
 
 ;; Um puffle reage a duas fases de cada quadro, emitidas pela tela
 ;; (PegaPuffles), na mesma ordem do update do Lua:

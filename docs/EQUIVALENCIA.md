@@ -141,7 +141,7 @@ SDL_VIDEODRIVER=offscreen EQ_TELA=bean_counters EQ_SEED=41 EQ_ROTEIRO=roteiro_va
 | `bean_counters_jogo.txt` (semente 9) | Bean Counters | jogador gerado: enche as duas pilhas e vence (115 moedas); sobrecarrega uma vez | 4165/4165 |
 | `bean_counters_sobrecarga.txt` (semente 4) | Bean Counters | jogador gerado: pega o 6º café, é derrubado e perde as 3 vidas | 3463/3463 |
 | `pega_puffle.txt` | Pega Puffles | o mouse numa curva: empurrões entre puffles e 3 fugas | 901/901 |
-| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio: paredes, 8 capturas, 2 fugas e vitória (80 moedas) | 1823/1823 |
+| `pega_puffle_cercar.txt` | Pega Puffles | pastoreio (gerado para a velocidade 0,3): paredes, capturas, 2 fugas e vitória (80 moedas) | 3301/3301 |
 | `fluxo.txt` | jogo inteiro | personaliza a cor, ganha o Dojo, volta ao centro, sai do Pega Puffles e do Bean Counters com Escape, "Sair" | 1550/1550 |
 
 Com as sementes 2, 3 e 7, `centro`, `dojo`, `bean_counters`, `pega_puffle` e
@@ -227,11 +227,11 @@ avisa o minigame por métodos de um observador (`ao_coletar`, `ao_entregar`,
 | Café gira de forma contínua, pela direção da velocidade; layers das cargas criados uma vez por partida; `G` e `ESCALA_TEMPO` nomeados | `bean_counters/carga`, `bean_counters` |
 | Plataforma sem a espera redundante de 250 ms | `bean_counters/plataforma` |
 | Pinguim da praça para no ponto quando o passo o alcançaria (antes podia passar do ponto e seguir andando) | `centro/pinguim` |
-| Puffles com velocidade por tempo (0,12 da tela por segundo) e paredes que bloqueiam o passo que entraria nelas | `pega_puffles/puffle` |
+| Puffles com velocidade por tempo (0,3 da tela por segundo, valor escolhido pelo usuário) e paredes que bloqueiam o passo que entraria nelas | `pega_puffles/puffle` |
 | Atmos: `emit` dirigido a uma task (`XClickable(alvo, me)`, `XCollidable(alvo, me, outros)`, `emit @(jogo)`), em vez de níveis numéricos; `Image(rect, path)`; `Image_Hover` em um laço só; `Botao` feito sobre `Predio`; `vetor.atm` só com o que é usado; `cor.atm` removido; Dojo com `pos()` e a tabela `VENCE` | `src/atmos` |
 | Lua: o destaque dos botões é decidido no desenho, como no Atmos; dependências do pinguim no construtor; `tira_mortos` em `util/lista.lua` | `src/lua` |
 
-O roteiro `pega_puffle_cercar` foi mantido; os do Bean Counters foram gerados
+O roteiro `pega_puffle_cercar` foi gerado de novo para a velocidade 0,3; os do Bean Counters foram gerados
 de novo com o controlador segurando as setas (`key`/`keyup`).
 
 ## 6. Limitações
