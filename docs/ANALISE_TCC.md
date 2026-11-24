@@ -409,11 +409,15 @@ Leitura inicial, com cautela:
 | Comportamento | Lua (classes) | Atmos (tasks) |
 |---|---|---|
 | Dojo, rodada | `Dojo:evento` só aceita clique quando `self.espera == nil`; `joga` cria `self.espera = Temporizador(2 s)`; `Dojo:tempo` avança cartas e espera e conta `rodada` até 3 | `loop in 3 { await <:clicked until ...>; ...; await 2s }`: a fase é o ponto do laço |
-| Bean Counters, pinguim atordoado | `self.tonto` (Temporizador) testado em `tempo` e em `evento`; o minigame troca `self.lancamento` por 2 s | `watching :pinguim.atordoado { ... }` seguido de `await 2s`, em três tasks (colisões, movimento, lançador) |
+| Bean Counters, pinguim atordoado | `self.tonto` (Temporizador) testado em `tempo` antes de colidir e de andar; o minigame troca `self.lancamento` por 2 s | `await 2s` no laço de colisões e `watching :pinguim.atordoado { ... }` seguido de `await 2s` no movimento e no lançador |
 | Bean Counters, intervalo da plataforma | `self.bloqueio` (Temporizador), criado na coleta ou entrega se não existir | `toggle spawn_plataforma(false); await 250ms; toggle spawn_plataforma(true)` |
 | Centro, ir até um prédio | `self.ponto` e `self.destino`; `tempo` testa a colisão e anda | `watching :collided until (...)` sobre o movimento; `watching :mouse.button.dn` recomeça a caminhada |
-| Botão com destaque | `Botao:tempo` recalcula `self.hover` | `Image_Hover`: `watching :on { await Image(off) }` e `watching :off { ... }` alternados |
+| Botão com destaque | `Botao:em_cima()` decide a imagem no desenho; `Menu:evento` repassa o clique a cada botão | `Image_Hover` (um `loop on :draw`) + `XClickable(alvo, me)`; `Botao` termina no primeiro `:clicked`; o menu espera com `par :any` |
 | Fim do minigame | `Centro:tempo` recebe as moedas de `minigame:tempo(dt)` e cria um novo pinguim | `set moedas = moedas + await BeanCounters()`: a continuação é a linha seguinte |
+
+Cada linha desta tabela tem diagramas (máquina de estados e comunicação das
+tasks; fluxo das funções do Lua) em [`PADROES.md`](PADROES.md), junto com os
+outros padrões de Nystrom e do estudo do Pingus encontrados no código.
 
 Nos termos de Adya et al., o Lua continua fazendo *stack ripping*, agora
 organizado em objetos: o que seria uma variável local da sequência "esperar o

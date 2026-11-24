@@ -125,7 +125,7 @@ src/
 assets/       imagens do jogo, compartilhadas pelas duas versões
 tests/equiv/  teste de equivalência por replay determinístico (Lua x Atmos)
 tools/        metricas.py: métricas de comparação entre as duas versões
-docs/         ANALISE_TCC.md, EQUIVALENCIA.md e as capturas de tela
+docs/         ANALISE_TCC.md, EQUIVALENCIA.md, PADROES.md e as capturas de tela
 ```
 
 | Tela | Lua (`src/lua/`) | Atmos (`src/atmos/`) |
@@ -172,6 +172,8 @@ de [`docs/ANALISE_TCC.md`](docs/ANALISE_TCC.md).
   plano de leitura e de estrutura do texto, inventário e métricas do projeto.
 - [`docs/EQUIVALENCIA.md`](docs/EQUIVALENCIA.md): o teste de equivalência
   entre as versões Lua e Atmos.
+- [`docs/PADROES.md`](docs/PADROES.md): padrões de jogos (Nystrom; estudo do
+  Pingus em Céu) no código, com diagramas das duas versões.
 
 ## Licença
 
