@@ -102,8 +102,10 @@ O projeto foi testado com Lua 5.4.6, `pico-sdl dev-2` e `atmos-lang dev-4`
 ### Versão Lua
 
 ```bash
-cd src/lua && pico-lua main.lua
+cd src/lua && lua main.lua
 ```
+
+(ou `pico-lua main.lua`)
 
 ### Versão Atmos
 

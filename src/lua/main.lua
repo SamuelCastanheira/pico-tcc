@@ -3,6 +3,9 @@
 -- A cada quadro: o relógio avança (tempo), depois chega o evento de entrada,
 -- se houver (evento), e então tudo é desenhado. É a mesma ordem do ambiente
 -- atmos.env.pico da versão Atmos.
+-- roda com "lua main.lua" ou "pico-lua main.lua" (que já carrega o pico)
+pico = pico or require("pico")
+
 local Jogo = require("jogo")
 
 pico.init(true)
