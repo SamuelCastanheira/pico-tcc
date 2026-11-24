@@ -9,14 +9,12 @@ function Botao:init (id, rect, img, img_hover)
     self.rect = rect
     self.img = img
     self.img_hover = img_hover
-    self.hover = false
 end
 
--- o destaque acompanha o mouse a cada passo do relógio
-function Botao:tempo (dt)
+-- o destaque segue o mouse no momento do desenho
+function Botao:em_cima ()
     local m = pico.get.mouse('%')
-    self.hover = (self.img_hover ~= nil) and
-                 pico.vs.pos.rect({'%', x=m.x, y=m.y}, self.rect)
+    return (self.img_hover ~= nil) and pico.vs.pos.rect({'%', x=m.x, y=m.y}, self.rect)
 end
 
 function Botao:clicado (e)
@@ -25,7 +23,7 @@ function Botao:clicado (e)
 end
 
 function Botao:desenha ()
-    pico.output.draw.image(self.hover and self.img_hover or self.img, self.rect)
+    pico.output.draw.image(self:em_cima() and self.img_hover or self.img, self.rect)
 end
 
 return Botao

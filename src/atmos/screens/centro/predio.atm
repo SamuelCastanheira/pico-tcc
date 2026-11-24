@@ -1,17 +1,15 @@
 val Image_Hover = require "util/components/image_hover"
 val XClickable = require "util/components/xclickable"
 
-task Predio(id, rect, hitbox, off, on_)
-{
+;; imagem clicável com destaque; o clique vai para "alvo"
+task Predio (id, rect, hitbox, off, on_, alvo) {
     set pub = [
         id = id,
         rect = rect,
         hitbox = hitbox,
     ]
-
-    spawn Image_Hover(id, rect, off, on_)
-    spawn XClickable(2,task)
-
+    spawn Image_Hover(rect, off, on_)
+    spawn XClickable(alvo, task)
     await(false)
 }
 

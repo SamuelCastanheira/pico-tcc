@@ -1,10 +1,5 @@
-task Image(id, rect, path)
-{
-    set pub = [
-        id = id,
-        rect = rect
-    ]
-    
+;; imagem fixa, desenhada a cada quadro
+task Image (rect, path) {
     loop on :draw {
         pico.output.draw.image(path, rect)
     }

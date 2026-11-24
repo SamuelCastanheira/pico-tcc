@@ -51,9 +51,6 @@ function Centro:termina_minigame (moedas)
 end
 
 function Centro:tempo (dt)
-    for _, p in ipairs(self.predios) do
-        p:tempo(dt)
-    end
     if self.minigame then
         local moedas = self.minigame:tempo(dt)
         if moedas then self:termina_minigame(moedas) end

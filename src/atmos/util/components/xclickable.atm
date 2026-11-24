@@ -1,8 +1,9 @@
-task XClickable (tgt, me) {
+;; avisa "alvo" (uma task) com :clicked [me=me] quando "me" é clicado
+task XClickable (alvo, me) {
     loop on :mouse.button.dn {
-        var m = pico.get.mouse('%')
+        val m = pico.get.mouse('%')
         if pico.vs.pos.rect(m, me.pub.rect) {
-            emit @(1+tgt) :clicked [me = me]
+            emit @(alvo) :clicked [me = me]
         }
     }
 }

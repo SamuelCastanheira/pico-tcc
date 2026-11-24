@@ -1,29 +1,13 @@
-val Image = require "util/components/image"
-
-task Image_Hover(id, rect, off, on_)
-{
-    set pub = [
-        id = id,
-        rect = rect
-    ]
-
-    par:any {
-        loop on :clock {
-            val m  = pico.get.mouse('%')
-            val check_on = pico.vs.pos.rect(['%', x=m.x, y=m.y], rect)
-            emit (if on_ && check_on => :on => :off)
+;; imagem que troca para "on_" enquanto o mouse está em cima (sem "on_", fixa)
+task Image_Hover (rect, off, on_) {
+    loop on :draw {
+        val m = pico.get.mouse('%')
+        var img = off
+        if on_ && pico.vs.pos.rect(['%', x=m.x, y=m.y], rect) {
+            set img = on_
         }
-    } with {
-        loop {
-            watching :on {
-                await Image(id,rect, off)
-            }
-            watching :off {
-                await Image(id, rect, on_)
-            }            
-        }
-    } 
+        pico.output.draw.image(img, rect)
+    }
 }
-
 
 Image_Hover

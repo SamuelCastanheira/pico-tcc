@@ -1,16 +1,8 @@
-val Image_Hover = require "util/components/image_hover"
-val XClickable = require "util/components/xclickable"
+val Predio = require "screens/centro/predio"
 
-task Botao(id, rect, off, on_)
-{
-    set pub = [
-        id = id,
-        rect = rect
-    ]
-
-    spawn Image_Hover(id, rect, off, on_)
-    spawn XClickable(0,task)
-    
+;; botão: um prédio que avisa a si mesmo e termina no primeiro clique
+task Botao (id, rect, off, on_) {
+    spawn Predio(id, rect, rect, off, on_, task)
     await :clicked
     id
 }

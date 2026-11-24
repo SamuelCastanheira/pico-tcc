@@ -6,7 +6,7 @@ val BeanCounters = require "screens/minigames/bean_counters/bean_counters"
 val PegaPuffles = require "screens/minigames/pega_puffles/pega_puffles"
 
 task Centro(){
-    spawn Image(:NIL, r, img) where
+    spawn Image(r, img) where
     {
         r = [ '%', x=0.5, y=0.5, w=1, h=1]
         img = "../../assets/imgs/centro.png"
@@ -20,19 +20,19 @@ task Centro(){
         ['%', x=0.20, y=0.4, w=0.4, h=0.4],
         ['%', x=0.20, y=0.4, w=0.21, h=0.21],
         "../../assets/imgs/coffe.png",
-        "../../assets/imgs/coffe_hover.png")
+        "../../assets/imgs/coffe_hover.png", task)
     
     spawn @predios Predio(:DOJO, 
         ['%', x=0.72, y=0.39, w=0.35, h=0.35],
         ['%', x=0.72, y=0.39, w=0.21, h=0.21],
         "../../assets/imgs/dojo/dojo.png",
-        "../../assets/imgs/dojo/dojo_hover.png")
+        "../../assets/imgs/dojo/dojo_hover.png", task)
 
     spawn @predios Predio(:PUFF,
         ['%', x=0.5, y=0.4, w=0.35, h=0.35],
         ['%', x=0.5, y=0.4, w=0.21, h=0.21],
         "../../assets/imgs/pet_shop.png",
-        "../../assets/imgs/pet_shop_hover.png")
+        "../../assets/imgs/pet_shop_hover.png", task)
 
     watching :key.dn until (it.key == :Escape) {
         loop {
@@ -40,7 +40,6 @@ task Centro(){
             val v = await Pinguim(
                 ['%', x=0.5, y=0.7, w=0.08, h=0.2],
                 ['%', x=0.5, y=0.7, w=0.08, h=0.1],
-                "amarelo",
                 predios)
             set moedas = moedas + match v {
                 :BEAN => await BeanCounters()
@@ -53,7 +52,7 @@ task Centro(){
 
 task Moeda()
 {
-    spawn Image(:NIL, r ,img) where{
+    spawn Image(r, img) where{
     r = ['%',x=0.05, y=0.05, w=0.05, h=0]
     img = "../../assets/imgs/moeda.png"}
 

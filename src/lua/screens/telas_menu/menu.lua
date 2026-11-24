@@ -20,12 +20,6 @@ function Menu:init (jogo)
     }
 end
 
-function Menu:tempo (dt)
-    for _, b in ipairs(self.botoes) do
-        b:tempo(dt)
-    end
-end
-
 function Menu:evento (e)
     for _, b in ipairs(self.botoes) do
         if b:clicado(e) then

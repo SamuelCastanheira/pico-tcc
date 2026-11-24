@@ -1,12 +1,10 @@
-task XCollidable (tgt, me, others) {
+;; a cada passo, avisa "alvo" (uma task) com :collided [me, oth] para cada
+;; task de "others" cuja hitbox encosta na de "me"
+task XCollidable (alvo, me, others) {
     loop on :clock {
         loop _,oth in others {
-            if (me != oth)
-            {
-                val col = pico.vs.rect.rect(me.pub.hitbox, oth.pub.hitbox)
-                if col {
-                    emit @(tgt+1) :collided [me=me, oth=oth]
-                }
+            if (me != oth) && pico.vs.rect.rect(me.pub.hitbox, oth.pub.hitbox) {
+                emit @(alvo) :collided [me=me, oth=oth]
             }
         }
     }

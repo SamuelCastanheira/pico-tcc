@@ -59,10 +59,6 @@ function Personalizacao:cor_clicada ()
     return escolhida
 end
 
-function Personalizacao:tempo (dt)
-    self.voltar:tempo(dt)
-end
-
 function Personalizacao:evento (e)
     if e.tag == 'mouse.button.dn' then
         local cor = self:cor_clicada()

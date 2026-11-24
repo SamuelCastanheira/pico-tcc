@@ -4,6 +4,7 @@
 local Objeto = require("util.objeto")
 local Temporizador = require("util.temporizador")
 local Carta = require("screens.minigames.dojo.carta")
+local lista = require("util.lista")
 
 local IMGS = "../../assets/imgs/dojo/"
 local NUM_CARTAS = 3
@@ -83,19 +84,13 @@ function Dojo:evento (e)
     return nil
 end
 
-local function tira_mortas (cartas)
-    for i = #cartas, 1, -1 do
-        if not cartas[i].viva then table.remove(cartas, i) end
-    end
-end
-
 -- devolve o prêmio quando as rodadas acabam
 function Dojo:tempo (dt)
     for _, dono in ipairs{"player", "enemy"} do
         for _, c in ipairs(self.mao[dono]) do
             c:tempo(dt)
         end
-        tira_mortas(self.mao[dono])
+        lista.tira_mortos(self.mao[dono])
     end
     if self.espera and self.espera:tempo(dt) then
         self.espera = nil
